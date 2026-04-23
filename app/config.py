@@ -11,48 +11,43 @@ class Config:
     """
 
     # --- Sécurité Flask ---
-    # Clé secrète pour signer les cookies et les sessions
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev_key_change_in_production')
 
     # --- Base de données ---
-    # URL de connexion à PostgreSQL
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    # Désactiver le suivi des modifications pour économiser de la mémoire
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # --- Chiffrement ---
-    # Clé utilisée pour chiffrer les photos et données biométriques (AES-256)
     ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY')
 
     # --- Configuration système ---
-    # Mode du système : 'ecole' ou 'entreprise'
     SYSTEM_MODE = os.getenv('SYSTEM_MODE', 'ecole')
-    # Seuil minimum de similarité faciale pour valider une présence (0 à 1)
     SIMILARITY_THRESHOLD = float(os.getenv('SIMILARITY_THRESHOLD', 0.85))
-    # Nombre maximum de tentatives échouées avant blocage
     MAX_ATTEMPTS = int(os.getenv('MAX_ATTEMPTS', 5))
 
     # --- Upload photos ---
-    # Dossier de stockage des photos
     UPLOAD_FOLDER = 'static/uploads'
-    # Taille maximale des fichiers uploadés : 16 MB
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+
+    # --- Configuration Gmail / Flask-Mail ---
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'True') == 'True'
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER')
+
+    # --- Emails des destinataires ---
+    DEVELOPER_EMAIL = os.getenv('DEVELOPER_EMAIL')
+    ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 
 
 class DevelopmentConfig(Config):
-    """
-    Configuration pour le développement.
-    Le mode DEBUG affiche les erreurs en détail.
-    ATTENTION : Ne jamais activer en production !
-    """
     DEBUG = True
 
 
 class ProductionConfig(Config):
-    """
-    Configuration pour la production.
-    Le mode DEBUG est désactivé pour la sécurité.
-    """
     DEBUG = False
 
 
