@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_login import UserMixin
 from app import db
 
@@ -79,9 +79,9 @@ class Utilisateur(UserMixin, db.Model):
     # NULL tant que le compte n'est pas validé
     role = db.Column(db.String(50), nullable=True, default=None)
 
-    # Rôle souhaité par l'utilisateur lors de l'inscription
-    # Valeurs possibles : 'enseignant' ou 'agent' uniquement
-    # L'admin ne s'inscrit jamais via la page publique
+    # Nouveau commentaire
+    # Toujours NULL — l'admin attribue directement le rôle
+    # lors de la validation du compte via son interface
     role_souhaite = db.Column(db.String(50), nullable=True)
 
     # -------------------------------------------------------
