@@ -42,4 +42,7 @@ def create_app(config_name='default'):
     from app.auth import auth
     app.register_blueprint(auth)
 
+    from app.auth.decorateurs import configurer_gestionnaires_erreurs
+    configurer_gestionnaires_erreurs(app)
+
     return app
