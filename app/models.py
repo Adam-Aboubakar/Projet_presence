@@ -494,3 +494,149 @@ class JournalSecurite(db.Model):
 
     def __repr__(self):
         return f'<JournalSecurite {self.type_evenement} severite={self.severite}>'
+    
+    # ============================================================
+# TABLE : NOTIFICATIONS
+# Notifications internes entre administrateurs
+# Créées automatiquement après chaque action importante
+# ============================================================
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+
+    id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
+
+    # -------------------------------------------------------
+    # DESTINATAIRE ET EXPÉDITEUR
+    # -------------------------------------------------------
+    # Admin qui reçoit la notification
+    destinataire_id = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=False)
+
+    # Admin qui a effectué l'action (peut être None pour les alertes système)
+    expediteur_id = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
+
+    # -------------------------------------------------------
+    # CONTENU
+    # -------------------------------------------------------
+    # Type de notification :
+    # 'validation'      → un compte a été validé
+    # 'rejet'           → un compte a été rejeté
+    # 'changement_role' → un rôle a été modifié
+    # 'desactivation'   → un compte a été désactivé
+    # 'reactivation'    → un compte a été réactivé
+    # 'nouvel_admin'    → un nouvel admin a été créé
+    # 'message'         → message direct entre admins
+    type_notification = db.Column(db.String(50), nullable=False)
+
+    # Titre court affiché dans la cloche de notifications
+    # Ex: "Youssef Benali validé comme Enseignant"
+    titre = db.Column(db.String(200), nullable=False)
+
+    # Contenu détaillé affiché quand on clique sur la notification
+    # Ex: "Mohammed Alami a validé le compte de Youssef Benali
+    #      et lui a attribué le rôle Enseignant / Manager"
+    contenu = db.Column(db.Text, nullable=True)
+
+    # -------------------------------------------------------
+    # STATUT
+    # -------------------------------------------------------
+    # False = non lue (badge rouge sur la cloche)
+    # True  = lue (notification grisée)
+    est_lue = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Date de lecture de la notification
+    lue_le = db.Column(db.DateTime, nullable=True)
+
+    # -------------------------------------------------------
+    # MÉTADONNÉES
+    # -------------------------------------------------------
+    # Date de création de la notification
+    cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # -------------------------------------------------------
+    # RELATIONS
+    # -------------------------------------------------------
+    # Admin destinataire
+    destinataire = db.relationship(
+        'Utilisateur',
+        foreign_keys=[destinataire_id],
+        backref='notifications_recues'
+    )
+
+    # Admin expéditeur
+    expediteur = db.relationship(
+        'Utilisateur',
+        foreign_keys=[expediteur_id],
+        backref='notifications_envoyees'
+    )
+
+    def __repr__(self):
+        return f'<Notification {self.type_notification} → {self.destinataire_id} lue={self.est_lue}>'
+
+    def marquer_lue(self):
+        """Marquer la notification comme lue"""
+        self.est_lue = True
+        self.lue_le = datetime.now(timezone.utc)
+
+    @staticmethod
+    def notifier_admins(expediteur, type_notification, titre, contenu=None):
+        """
+        Créer une notification pour tous les autres admins actifs.
+
+        Cette méthode est appelée automatiquement après chaque
+        action importante dans le module admin.
+
+        Args:
+            expediteur       : objet Utilisateur admin qui a effectué l'action
+            type_notification: type de la notification (ex: 'validation')
+            titre            : titre court de la notification
+            contenu          : détails supplémentaires (optionnel)
+
+        Exemple d'utilisation :
+            Notification.notifier_admins(
+                expediteur=current_user,
+                type_notification='validation',
+                titre=f"{current_user.prenom} a validé {utilisateur.nom_complet()}",
+                contenu=f"Rôle attribué : Enseignant"
+            )
+        """
+        from app import db
+
+        # Récupérer tous les autres admins actifs
+        autres_admins = Utilisateur.query.filter(
+            Utilisateur.role == 'admin',
+            Utilisateur.statut_compte == 'actif',
+            Utilisateur.est_actif == True,
+            # Exclure l'admin qui a effectué l'action
+            Utilisateur.id != expediteur.id
+        ).all()
+
+        # Créer une notification pour chaque admin
+        for admin in autres_admins:
+            notif = Notification(
+                destinataire_id=admin.id,
+                expediteur_id=expediteur.id,
+                type_notification=type_notification,
+                titre=titre,
+                contenu=contenu,
+                est_lue=False
+            )
+            db.session.add(notif)
+
+        db.session.commit()
+
+    @staticmethod
+    def compter_non_lues(admin_id):
+        """
+        Retourner le nombre de notifications non lues pour un admin.
+        Utilisé pour afficher le badge sur la cloche de notifications.
+
+        Args:
+            admin_id : UUID de l'admin connecté
+
+        Returns:
+            int : nombre de notifications non lues
+        """
+        return Notification.query.filter_by(
+            destinataire_id=admin_id,
+            est_lue=False
+        ).count()
