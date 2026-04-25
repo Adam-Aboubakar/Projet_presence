@@ -19,18 +19,60 @@ class Configuration(db.Model):
 
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
+    # -------------------------------------------------------
+    # MODE DU SYSTÈME
+    # -------------------------------------------------------
     # Mode du système : 'ecole' ou 'entreprise'
     mode = db.Column(db.String(20), nullable=False, default='ecole')
 
+    # -------------------------------------------------------
+    # INFORMATIONS DE L'ÉTABLISSEMENT
+    # Ces informations apparaissent dans les emails,
+    # les rapports PDF et l'interface du système
+    # -------------------------------------------------------
+    # Nom de l'établissement
+    # Ex: "Université Mohammed V" ou "PME Tech Casablanca"
+    nom_etablissement = db.Column(db.String(200), nullable=True)
+
+    # Adresse physique de l'établissement
+    adresse = db.Column(db.String(255), nullable=True)
+
+    # Ville
+    ville = db.Column(db.String(100), nullable=True)
+
+    # Numéro de téléphone
+    telephone = db.Column(db.String(20), nullable=True)
+
+    # Site web officiel
+    site_web = db.Column(db.String(100), nullable=True)
+
+    # Chemin vers le logo de l'établissement
+    # Stocké dans app/static/uploads/logos/
+    logo_path = db.Column(db.String(255), nullable=True)
+
+    # -------------------------------------------------------
+    # SÉCURITÉ EMAIL
+    # -------------------------------------------------------
+    # Domaine email autorisé pour l'inscription
+    # Ex: "universite.ma" → seules les adresses @universite.ma acceptées
+    # Si vide (None) → tous les emails sont acceptés
+    domaine_email_autorise = db.Column(db.String(100), nullable=True)
+
+    # -------------------------------------------------------
+    # PARAMÈTRES DE SÉCURITÉ
+    # -------------------------------------------------------
     # Seuil minimum de similarité faciale (ex: 0.90 = 90%)
     seuil_similarite = db.Column(db.Float, nullable=False, default=0.90)
 
-    # Nombre maximum de tentatives échouées avant blocage du compte
+    # Nombre maximum de tentatives échouées avant blocage
     max_tentatives = db.Column(db.Integer, nullable=False, default=5)
 
     # Durée de conservation des données biométriques en jours (RGPD)
     duree_retention_jours = db.Column(db.Integer, nullable=False, default=365)
 
+    # -------------------------------------------------------
+    # PARAMÈTRES GÉNÉRAUX
+    # -------------------------------------------------------
     # Langue par défaut : 'fr', 'en', 'ar'
     langue_defaut = db.Column(db.String(5), nullable=False, default='fr')
 
@@ -41,7 +83,15 @@ class Configuration(db.Model):
     email_admin = db.Column(db.String(150), nullable=True)
 
     def __repr__(self):
-        return f'<Configuration mode={self.mode}>'
+        return f'<Configuration mode={self.mode} etablissement={self.nom_etablissement}>'
+
+    @staticmethod
+    def get_config():
+        """
+        Récupérer la configuration du système (Singleton).
+        Retourne la première et unique instance de configuration.
+        """
+        return Configuration.query.first()
 
 
 # ============================================================

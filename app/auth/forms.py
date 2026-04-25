@@ -128,12 +128,30 @@ class FormulaireInscription(FlaskForm):
     # -------------------------------------------------------
     def validate_email(self, email):
         """
-        Vérifier que l'adresse email n'est pas déjà utilisée.
-        Si un compte existe déjà avec cet email, on lève une erreur.
+        Vérifier deux choses :
+        1. L'email n'est pas déjà utilisé dans le système
+        2. Le domaine email respecte celui configuré par l'admin
+        (si aucun domaine n'est configuré, tous les emails sont acceptés)
         """
+        # Vérification 1 : unicité de l'email
         utilisateur = Utilisateur.query.filter_by(email=email.data).first()
         if utilisateur:
             raise ValidationError('Cette adresse email est déjà utilisée.')
+
+        # Vérification 2 : domaine email autorisé
+        from app.models import Configuration
+        config = Configuration.get_config()
+
+        if config and config.domaine_email_autorise:
+            # Extraire le domaine de l'email saisi
+            # Ex: "youssef@universite.ma" → "universite.ma"
+            domaine_saisi = email.data.split('@')[1].lower()
+            domaine_autorise = config.domaine_email_autorise.lower()
+
+            if domaine_saisi != domaine_autorise:
+                raise ValidationError(
+                    f"Seules les adresses @{domaine_autorise} sont acceptées."
+                )
 
     # -------------------------------------------------------
     # Validation personnalisée : complexité du mot de passe
