@@ -42,6 +42,9 @@ class Config:
     DEVELOPER_EMAIL = os.getenv('DEVELOPER_EMAIL')
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 
+    # Token secret pour la création d'admin par le développeur
+    ADMIN_SECRET_TOKEN = os.getenv('ADMIN_SECRET_TOKEN')
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

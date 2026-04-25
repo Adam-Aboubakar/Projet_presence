@@ -45,4 +45,8 @@ def create_app(config_name='default'):
     from app.auth.decorateurs import configurer_gestionnaires_erreurs
     configurer_gestionnaires_erreurs(app)
 
+    # --- Enregistrer le blueprint admin ---
+    from app.admin import admin
+    app.register_blueprint(admin)
+
     return app
