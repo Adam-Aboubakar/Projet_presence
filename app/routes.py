@@ -18,3 +18,4 @@ def health():
     Utilisée pour vérifier que le serveur fonctionne.
     """
     return {"status": "ok", "message": "Serveur opérationnel"}
+
