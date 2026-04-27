@@ -894,3 +894,83 @@ class EmploiDuTemps(db.Model):
         if jours_restants == 0:
             jours_restants = 7
         return aujourd_hui + timedelta(days=jours_restants)
+    
+    # ============================================================
+# TABLE : HEURES SUPPLÉMENTAIRES
+# Saisies manuellement par le manager (mode entreprise)
+# Le système de pointage ne gère que l'entrée —
+# les heures sup nécessitent une validation humaine
+# ============================================================
+class HeuresSupplementaires(db.Model):
+    __tablename__ = 'heures_supplementaires'
+
+    id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
+
+    # -------------------------------------------------------
+    # EMPLOYÉ CONCERNÉ
+    # -------------------------------------------------------
+    personne_id = db.Column(
+        db.String(36),
+        db.ForeignKey('personnes.id'),
+        nullable=False
+    )
+
+    # -------------------------------------------------------
+    # DATE ET DURÉE
+    # -------------------------------------------------------
+    # Date des heures supplémentaires
+    date = db.Column(db.Date, nullable=False)
+
+    # Durée en minutes
+    # Ex: 150 = 2h30
+    duree_minutes = db.Column(db.Integer, nullable=False)
+
+    # -------------------------------------------------------
+    # RAISON OBLIGATOIRE
+    # Le manager doit toujours justifier les heures sup
+    # Ex: "Réunion client exceptionnelle"
+    # Ex: "Clôture de projet fin de mois"
+    # -------------------------------------------------------
+    raison = db.Column(db.String(255), nullable=False)
+
+    # -------------------------------------------------------
+    # TRAÇABILITÉ
+    # -------------------------------------------------------
+    # Manager qui a saisi les heures sup
+    saisie_par = db.Column(
+        db.String(36),
+        db.ForeignKey('utilisateurs.id'),
+        nullable=False
+    )
+
+    # Date et heure de la saisie
+    saisie_le = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    # -------------------------------------------------------
+    # RELATIONS
+    # -------------------------------------------------------
+    personne = db.relationship(
+        'Personne',
+        foreign_keys=[personne_id],
+        backref='heures_supplementaires'
+    )
+
+    manager = db.relationship(
+        'Utilisateur',
+        foreign_keys=[saisie_par],
+        backref='heures_sup_saisies'
+    )
+
+    def __repr__(self):
+        return f'<HeuresSup {self.personne_id} {self.date} {self.duree_minutes}min>'
+
+    def duree_en_heures(self):
+        """Retourne la durée en format lisible (ex: 2h30)"""
+        heures = self.duree_minutes // 60
+        minutes = self.duree_minutes % 60
+        if minutes == 0:
+            return f"{heures}h"
+        return f"{heures}h{minutes:02d}"
