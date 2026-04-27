@@ -187,7 +187,7 @@ def configurer_gestionnaires_erreurs(app):
                 'message': 'Accès interdit. Vous n\'avez pas les permissions nécessaires.',
                 'code': 'ACCES_INTERDIT'
             }), 403
-        return redirect(url_for('main.tableau_de_bord'))
+        return redirect(url_for('admin.tableau_de_bord'))
 
     @app.errorhandler(404)
     def page_introuvable(e):
@@ -198,7 +198,7 @@ def configurer_gestionnaires_erreurs(app):
                 'message': 'Ressource introuvable.',
                 'code': 'INTROUVABLE'
             }), 404
-        return redirect(url_for('main.tableau_de_bord'))
+        return redirect(url_for('admin.tableau_de_bord'))
 
     @app.errorhandler(500)
     def erreur_serveur(e):
@@ -209,4 +209,4 @@ def configurer_gestionnaires_erreurs(app):
                 'message': 'Erreur interne du serveur.',
                 'code': 'ERREUR_SERVEUR'
             }), 500
-        return redirect(url_for('main.tableau_de_bord'))
+        return redirect(url_for('admin.tableau_de_bord'))

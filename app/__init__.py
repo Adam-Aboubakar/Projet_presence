@@ -49,4 +49,8 @@ def create_app(config_name='default'):
     from app.admin import admin
     app.register_blueprint(admin)
 
+    # --- Enregistrer le blueprint personnes ---
+    from app.personnes import personnes
+    app.register_blueprint(personnes)
+
     return app
