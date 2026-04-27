@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, time
 from flask_login import UserMixin
 from app import db
 
@@ -27,14 +27,12 @@ class Configuration(db.Model):
 
     # -------------------------------------------------------
     # INFORMATIONS DE L'ÉTABLISSEMENT
-    # Ces informations apparaissent dans les emails,
-    # les rapports PDF et l'interface du système
+    # Apparaissent dans les emails, rapports PDF et interface
     # -------------------------------------------------------
     # Nom de l'établissement
-    # Ex: "Université Mohammed V" ou "PME Tech Casablanca"
     nom_etablissement = db.Column(db.String(200), nullable=True)
 
-    # Adresse physique de l'établissement
+    # Adresse physique
     adresse = db.Column(db.String(255), nullable=True)
 
     # Ville
@@ -46,20 +44,19 @@ class Configuration(db.Model):
     # Site web officiel
     site_web = db.Column(db.String(100), nullable=True)
 
-    # Chemin vers le logo de l'établissement
-    # Stocké dans app/static/uploads/logos/
+    # Chemin vers le logo (stocké dans app/static/uploads/logos/)
     logo_path = db.Column(db.String(255), nullable=True)
 
     # -------------------------------------------------------
     # SÉCURITÉ EMAIL
     # -------------------------------------------------------
     # Domaine email autorisé pour l'inscription
-    # Ex: "universite.ma" → seules les adresses @universite.ma acceptées
-    # Si vide (None) → tous les emails sont acceptés
+    # Ex: "universite.ma" → seules @universite.ma acceptées
+    # Si None → tous les emails acceptés
     domaine_email_autorise = db.Column(db.String(100), nullable=True)
 
     # -------------------------------------------------------
-    # PARAMÈTRES DE SÉCURITÉ
+    # PARAMÈTRES DE SÉCURITÉ BIOMÉTRIQUE
     # -------------------------------------------------------
     # Seuil minimum de similarité faciale (ex: 0.90 = 90%)
     seuil_similarite = db.Column(db.Float, nullable=False, default=0.90)
@@ -69,6 +66,13 @@ class Configuration(db.Model):
 
     # Durée de conservation des données biométriques en jours (RGPD)
     duree_retention_jours = db.Column(db.Integer, nullable=False, default=365)
+
+    # -------------------------------------------------------
+    # PARAMÈTRES DE PRÉSENCE
+    # -------------------------------------------------------
+    # Tolérance retard par défaut en minutes
+    # Peut être modifiée par l'enseignant lors de la création de session
+    tolerance_retard_defaut = db.Column(db.Integer, nullable=False, default=10)
 
     # -------------------------------------------------------
     # PARAMÈTRES GÉNÉRAUX
@@ -106,7 +110,6 @@ class Utilisateur(UserMixin, db.Model):
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
     # Version pour l'Optimistic Locking
-    # Incrémentée automatiquement à chaque modification
     # Empêche 2 admins de modifier le même enregistrement simultanément
     version = db.Column(db.Integer, default=1, nullable=False)
 
@@ -118,7 +121,7 @@ class Utilisateur(UserMixin, db.Model):
     # Mot de passe haché avec bcrypt — JAMAIS stocké en clair
     mot_de_passe_hache = db.Column(db.String(255), nullable=False)
 
-    # Département ou filière — aide l'admin à attribuer le bon rôle
+    # Département ou filière
     departement = db.Column(db.String(100), nullable=True)
 
     # -------------------------------------------------------
@@ -129,7 +132,6 @@ class Utilisateur(UserMixin, db.Model):
     # NULL tant que le compte n'est pas validé
     role = db.Column(db.String(50), nullable=True, default=None)
 
-    # Nouveau commentaire
     # Toujours NULL — l'admin attribue directement le rôle
     # lors de la validation du compte via son interface
     role_souhaite = db.Column(db.String(50), nullable=True)
@@ -137,56 +139,42 @@ class Utilisateur(UserMixin, db.Model):
     # -------------------------------------------------------
     # GESTION DES STATUTS DU COMPTE
     # -------------------------------------------------------
-    # Statut du compte :
-    # 'en_attente'     → inscrit, email non encore vérifié
-    # 'email_verifie'  → email confirmé, attend validation admin
-    # 'actif'          → rôle attribué, accès complet
-    # 'desactive'      → bloqué par l'admin
-    # 'rejete'         → demande refusée par l'admin
+    # 'en_attente'    → inscrit, email non encore vérifié
+    # 'email_verifie' → email confirmé, attend validation admin
+    # 'actif'         → rôle attribué, accès complet
+    # 'desactive'     → bloqué par l'admin
+    # 'rejete'        → demande refusée par l'admin
     statut_compte = db.Column(db.String(20), nullable=False, default='en_attente')
 
-    # Raison du rejet par l'admin (si statut = 'rejete')
+    # Raison du rejet par l'admin
     raison_rejet = db.Column(db.String(255), nullable=True)
 
     # -------------------------------------------------------
     # VÉRIFICATION DE L'EMAIL
     # -------------------------------------------------------
-    # Token envoyé par email pour confirmer l'adresse
     token_email = db.Column(db.String(255), nullable=True)
-
-    # Date d'expiration du token (valable 24h)
     expiration_token = db.Column(db.DateTime, nullable=True)
 
     # -------------------------------------------------------
     # VALIDATION PAR L'ADMIN
     # -------------------------------------------------------
-    # ID de l'admin qui a validé ou rejeté la demande
     valide_par = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
-
-    # Date de validation ou de rejet
     valide_le = db.Column(db.DateTime, nullable=True)
 
     # -------------------------------------------------------
     # SÉCURITÉ — TENTATIVES DE CONNEXION
     # -------------------------------------------------------
-    # Nombre de tentatives de connexion échouées consécutives
     tentatives_echouees = db.Column(db.Integer, default=0)
-
-    # Indique si le compte est actif (False = bloqué après tentatives)
     est_actif = db.Column(db.Boolean, default=True)
 
     # -------------------------------------------------------
     # MÉTADONNÉES
     # -------------------------------------------------------
-    # Date et heure de la dernière connexion réussie
     derniere_connexion = db.Column(db.DateTime, nullable=True)
-
-    # Date de création du compte
-    cree_le = db.Column(db.DateTime, default=datetime.utcnow)
+    cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # -------------------------------------------------------
     # OPTIMISTIC LOCKING
-    # Empêche les conflits lors d'accès simultanés par plusieurs admins
     # -------------------------------------------------------
     __mapper_args__ = {
         'version_id_col': version,
@@ -207,30 +195,24 @@ class Utilisateur(UserMixin, db.Model):
         return f'<Utilisateur {self.email} role={self.role} statut={self.statut_compte}>'
 
     def nom_complet(self):
-        """Retourne le nom complet de l'utilisateur"""
         return f'{self.prenom} {self.nom}'
 
     def est_admin(self):
-        """Vérifie si l'utilisateur est admin"""
         return self.role == 'admin'
 
     def est_enseignant(self):
-        """Vérifie si l'utilisateur est enseignant"""
         return self.role == 'enseignant'
 
     def est_agent(self):
-        """Vérifie si l'utilisateur est agent"""
         return self.role == 'agent'
 
     def compte_actif(self):
-        """Vérifie si le compte est actif et non bloqué"""
         return self.statut_compte == 'actif' and self.est_actif
 
     @staticmethod
     def peut_ajouter_admin():
         """Vérifie si on peut encore ajouter un admin — maximum 3"""
-        nombre = Utilisateur.query.filter_by(role='admin').count()
-        return nombre < 3
+        return Utilisateur.query.filter_by(role='admin').count() < 3
 
     @staticmethod
     def nombre_admins():
@@ -242,7 +224,6 @@ class Utilisateur(UserMixin, db.Model):
 # TABLE : PERSONNES
 # Étudiants (mode école) ou Employés (mode entreprise)
 # Ces personnes N'ONT PAS accès à l'interface web
-# Elles s'authentifient uniquement via carte RFID + visage
 # ============================================================
 class Personne(db.Model):
     __tablename__ = 'personnes'
@@ -259,29 +240,69 @@ class Personne(db.Model):
     # Mode entreprise → Matricule ou Badge employé
     identifiant = db.Column(db.String(100), unique=True, nullable=False)
 
-    # Département / Filière selon le contexte :
-    # Mode école      → Filière (ex: Cybersécurité)
-    # Mode entreprise → Département (ex: IT, RH)
+    # Département / Filière
     departement = db.Column(db.String(100), nullable=True)
 
-    # Niveau / Poste selon le contexte :
-    # Mode école      → Niveau (ex: 2ème année)
-    # Mode entreprise → Poste (ex: Développeur)
+    # Niveau / Poste
     niveau_ou_poste = db.Column(db.String(100), nullable=True)
 
-    # Groupe / Site selon le contexte :
-    # Mode école      → Groupe (ex: G1, G2)
-    # Mode entreprise → Site (ex: Casablanca, Rabat)
+    # Groupe / Site
     groupe_ou_site = db.Column(db.String(100), nullable=True)
 
-    # Statut : True = actif, False = inactif
+    # Statut
     est_actif = db.Column(db.Boolean, default=True)
 
     # Agent ou RH qui a créé ce profil
     cree_par = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
 
-    # Date de création du profil
-    cree_le = db.Column(db.DateTime, default=datetime.utcnow)
+    # Date de création
+    cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # -------------------------------------------------------
+    # CONTRAT DE TRAVAIL (MODE ENTREPRISE UNIQUEMENT)
+    # Ces champs sont NULL en mode école
+    # -------------------------------------------------------
+    # Type de contrat : 'cdi', 'cdd', 'stage'
+    type_contrat = db.Column(db.String(20), nullable=True)
+
+    # Date de début du contrat
+    # Ne peut pas être dans le passé lors de l'enregistrement
+    date_debut_contrat = db.Column(db.Date, nullable=True)
+
+    # Date de fin du contrat (NULL si CDI)
+    # Doit être > date_debut_contrat
+    date_fin_contrat = db.Column(db.Date, nullable=True)
+
+    # -------------------------------------------------------
+    # HORAIRES DE TRAVAIL (MODE ENTREPRISE UNIQUEMENT)
+    # -------------------------------------------------------
+    # Heure d'arrivée contractuelle (ex: 08:30)
+    heure_arrivee = db.Column(db.Time, nullable=True)
+
+    # Heure de départ contractuelle (ex: 17:30)
+    # Doit être > heure_arrivee
+    heure_depart = db.Column(db.Time, nullable=True)
+
+    # Durée de pause forfaitaire en minutes (ex: 60 = 1 heure)
+    # Déduite automatiquement du calcul des heures travaillées
+    pause_minutes = db.Column(db.Integer, nullable=True, default=60)
+
+    # Tolérance retard en minutes pour cet employé
+    # Peut différer de la tolérance par défaut du système
+    tolerance_retard_minutes = db.Column(db.Integer, nullable=True, default=10)
+
+    # -------------------------------------------------------
+    # JOURS TRAVAILLÉS (MODE ENTREPRISE UNIQUEMENT)
+    # Cochés lors de l'enregistrement de l'employé
+    # Le système génère automatiquement les sessions selon ces jours
+    # -------------------------------------------------------
+    travaille_lundi = db.Column(db.Boolean, default=True)
+    travaille_mardi = db.Column(db.Boolean, default=True)
+    travaille_mercredi = db.Column(db.Boolean, default=True)
+    travaille_jeudi = db.Column(db.Boolean, default=True)
+    travaille_vendredi = db.Column(db.Boolean, default=True)
+    travaille_samedi = db.Column(db.Boolean, default=False)
+    travaille_dimanche = db.Column(db.Boolean, default=False)
 
     # -------------------------------------------------------
     # RELATIONS
@@ -312,35 +333,69 @@ class Personne(db.Model):
             est_principale=True
         ).first()
 
+    def contrat_actif(self):
+        """
+        Vérifie si le contrat de l'employé est encore actif.
+        Utilisé en mode entreprise pour savoir si générer des sessions.
+        """
+        from datetime import date
+        aujourd_hui = date.today()
+
+        if not self.date_debut_contrat:
+            return False
+
+        # Contrat pas encore commencé
+        if aujourd_hui < self.date_debut_contrat:
+            return False
+
+        # CDI ou contrat sans date de fin → toujours actif
+        if not self.date_fin_contrat:
+            return True
+
+        # CDD → vérifier la date de fin
+        return aujourd_hui <= self.date_fin_contrat
+
+    def heures_contractuelles_jour(self):
+        """
+        Calcule les heures contractuelles par jour en mode entreprise.
+        Formule : heure_depart - heure_arrivee - pause_minutes
+        """
+        if not self.heure_arrivee or not self.heure_depart:
+            return 0
+
+        from datetime import datetime as dt
+        debut = dt.combine(dt.today(), self.heure_arrivee)
+        fin = dt.combine(dt.today(), self.heure_depart)
+        duree_minutes = (fin - debut).seconds / 60
+        return (duree_minutes - (self.pause_minutes or 0)) / 60
+
 
 # ============================================================
 # TABLE : PHOTOS
 # Photos faciales des personnes — chiffrées AES-256
-# Plusieurs photos par personne pour améliorer DeepFace
 # ============================================================
 class Photo(db.Model):
     __tablename__ = 'photos'
 
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
-    # Référence vers la personne propriétaire de la photo
+    # Référence vers la personne
     personne_id = db.Column(db.String(36), db.ForeignKey('personnes.id'), nullable=False)
 
-    # Chemin du fichier chiffré sur le serveur (AES-256)
+    # Chemin du fichier chiffré (AES-256)
     chemin_fichier = db.Column(db.String(255), nullable=False)
 
-    # Indique si c'est la photo principale utilisée par DeepFace
+    # Photo principale utilisée par DeepFace
     est_principale = db.Column(db.Boolean, default=False)
 
-    # Score de qualité de la photo (0 à 1)
-    # Une photo doit avoir un score >= 0.7 pour être acceptée
+    # Score de qualité (0 à 1) — minimum 0.7 requis
     score_qualite = db.Column(db.Float, nullable=True)
 
-    # Confirme que la photo est bien chiffrée
+    # Confirme que la photo est chiffrée
     est_chiffree = db.Column(db.Boolean, default=True)
 
-    # Date d'ajout de la photo
-    cree_le = db.Column(db.DateTime, default=datetime.utcnow)
+    # Date d'ajout
+    cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f'<Photo personne={self.personne_id} principale={self.est_principale}>'
@@ -348,102 +403,112 @@ class Photo(db.Model):
 
 # ============================================================
 # TABLE : CARTES RFID
-# Cartes RFID associées aux personnes
-# Historique complet : active, révoquée, perdue, expirée
 # ============================================================
 class CarteRFID(db.Model):
     __tablename__ = 'cartes_rfid'
 
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
-    # Numéro de la carte RFID — chiffré en AES-256 en base
+    # Numéro chiffré AES-256
     numero_rfid = db.Column(db.String(255), unique=True, nullable=False)
 
-    # Référence vers la personne propriétaire
+    # Propriétaire
     personne_id = db.Column(db.String(36), db.ForeignKey('personnes.id'), nullable=False)
 
-    # Statut de la carte :
-    # 'actif'   → carte valide et utilisable
-    # 'revoque' → carte désactivée volontairement
-    # 'perdu'   → carte signalée perdue ou volée
-    # 'expire'  → carte expirée
+    # Statut : 'actif', 'revoque', 'perdu', 'expire'
     statut = db.Column(db.String(20), nullable=False, default='actif')
 
-    # Agent ou RH qui a attribué cette carte
+    # Agent qui a attribué la carte
     attribuee_par = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
 
-    # Date d'attribution
-    attribuee_le = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Date de révocation
+    # Dates
+    attribuee_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     revoquee_le = db.Column(db.DateTime, nullable=True)
-
-    # Raison de la révocation
     raison_revocation = db.Column(db.String(255), nullable=True)
 
-    # -------------------------------------------------------
-    # RELATIONS
-    # -------------------------------------------------------
+    # Relations
     presences = db.relationship('Presence', backref='carte_rfid', lazy=True)
 
     def __repr__(self):
         return f'<CarteRFID statut={self.statut} personne={self.personne_id}>'
 
     def est_valide(self):
-        """Vérifie si la carte est active et utilisable"""
         return self.statut == 'actif'
 
     def revoquer(self, raison):
-        """Révoquer la carte avec une raison"""
         self.statut = 'revoque'
-        self.revoquee_le = datetime.utcnow()
+        self.revoquee_le = datetime.now(timezone.utc)
         self.raison_revocation = raison
 
 
 # ============================================================
 # TABLE : SESSIONS
-# Cours (mode école) ou Périodes de travail (mode entreprise)
+# Cours (mode école) ou Journées de travail (mode entreprise)
 # ============================================================
 class Session(db.Model):
     __tablename__ = 'sessions'
 
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
-    # Nom selon le contexte :
-    # Mode école      → Nom du cours (ex: Cybersécurité G1)
-    # Mode entreprise → Période (ex: Journée du 23/04/2026)
+    # Nom :
+    # Mode école      → "Cybersécurité G1"
+    # Mode entreprise → "Journée 27/04/2026 — Ahmed Benali"
     nom = db.Column(db.String(200), nullable=False)
 
-    # Enseignant ou Manager qui a créé la session
+    # Créateur : enseignant (école) ou système automatique (entreprise)
     cree_par = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
 
-    # Lieu selon le contexte :
-    # Mode école      → Salle de cours (ex: Salle B12)
-    # Mode entreprise → Site (ex: Entrée principale)
+    # Lieu :
+    # Mode école      → "Salle B12"
+    # Mode entreprise → "Bureau principal"
     lieu = db.Column(db.String(200), nullable=True)
 
-    # Date et heure de début
+    # -------------------------------------------------------
+    # DATES ET HEURES
+    # Validations :
+    #   - heure_debut ne peut pas être dans le passé
+    #   - heure_fin > heure_debut obligatoire
+    # -------------------------------------------------------
     heure_debut = db.Column(db.DateTime, nullable=False)
-
-    # Date et heure de fin
-    heure_fin = db.Column(db.DateTime, nullable=True)
-
-    # Date de création
-    cree_le = db.Column(db.DateTime, default=datetime.utcnow)
+    heure_fin = db.Column(db.DateTime, nullable=False)
 
     # -------------------------------------------------------
-    # RELATIONS
+    # TOLÉRANCE RETARD
+    # Définie par l'enseignant lors de la création
+    # Valeur par défaut = tolerance_retard_defaut de Configuration
+    # L'enseignant peut modifier : 5, 10, 15, 20 min selon sa politique
     # -------------------------------------------------------
+    tolerance_retard_minutes = db.Column(db.Integer, nullable=False, default=10)
+
+    # -------------------------------------------------------
+    # TYPE DE SESSION
+    # -------------------------------------------------------
+    # 'cours'    → mode école, créée manuellement par enseignant
+    # 'journee'  → mode entreprise, créée automatiquement par le système
+    type_session = db.Column(db.String(20), nullable=False, default='cours')
+
+    # En mode entreprise : référence vers la personne concernée
+    # En mode école : NULL (session concerne un groupe entier)
+    personne_id = db.Column(db.String(36), db.ForeignKey('personnes.id'), nullable=True)
+
+    # Date de création de la session
+    cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relations
     presences = db.relationship('Presence', backref='session', lazy=True,
                                 cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<Session {self.nom} lieu={self.lieu}>'
+        return f'<Session {self.nom} type={self.type_session}>'
 
     def est_active(self):
         """Vérifie si la session est en cours"""
-        maintenant = datetime.utcnow()
-        return self.heure_debut <= maintenant <= (self.heure_fin or maintenant)
+        maintenant = datetime.now(timezone.utc)
+        return self.heure_debut <= maintenant <= self.heure_fin
+
+    def est_terminee(self):
+        """Vérifie si la session est terminée"""
+        return datetime.now(timezone.utc) > self.heure_fin
 
     def nombre_presences(self):
         """Retourne le nombre de présences validées"""
@@ -452,89 +517,157 @@ class Session(db.Model):
             statut='present'
         ).count()
 
+    def heure_limite_pointage(self):
+        """
+        Retourne l'heure limite après laquelle le pointage
+        est considéré comme un retard.
+        """
+        from datetime import timedelta
+        return self.heure_debut + timedelta(minutes=self.tolerance_retard_minutes)
+
 
 # ============================================================
 # TABLE : PRESENCES
-# Enregistrement de chaque présence validée ou refusée
+# Enregistrement de chaque présence
 # ============================================================
 class Presence(db.Model):
     __tablename__ = 'presences'
 
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
-    # Référence vers la personne (étudiant ou employé)
+    # Références
     personne_id = db.Column(db.String(36), db.ForeignKey('personnes.id'), nullable=False)
-
-    # Référence vers la session (cours ou journée)
     session_id = db.Column(db.String(36), db.ForeignKey('sessions.id'), nullable=False)
-
-    # Référence vers la carte RFID utilisée (nullable si validation manuelle)
     carte_rfid_id = db.Column(db.String(36), db.ForeignKey('cartes_rfid.id'), nullable=True)
 
-    # Date et heure exacte de l'enregistrement
-    horodatage = db.Column(db.DateTime, default=datetime.utcnow)
+    # -------------------------------------------------------
+    # POINTAGE
+    # -------------------------------------------------------
+    # Horodatage du pointage entrée (RFID + visage)
+    horodatage = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # Score de similarité retourné par DeepFace (0 à 1)
+    # Score DeepFace (0 à 1) — stocké pour audit
     score_similarite = db.Column(db.Float, nullable=True)
 
-    # Statut de la présence :
-    # 'present' → présence validée
-    # 'absent'  → marqué automatiquement en fin de session
-    # 'retard'  → arrivée après l'heure prévue
+    # -------------------------------------------------------
+    # STATUT DE PRÉSENCE
+    # -------------------------------------------------------
+    # 'present' → pointage validé dans les délais
+    # 'retard'  → pointage après tolérance
+    # 'absent'  → aucun pointage en fin de session
     # 'refuse'  → tentative rejetée (fraude, score insuffisant)
     statut = db.Column(db.String(20), nullable=False, default='present')
 
     # Méthode de validation :
-    # 'rfid_visage' → automatique par RFID + reconnaissance faciale
-    # 'manuel'      → validation manuelle par l'enseignant (secours)
+    # 'rfid_visage' → automatique
+    # 'manuel'      → modifié par enseignant/manager
     methode_validation = db.Column(db.String(50), default='rfid_visage')
+
+    # -------------------------------------------------------
+    # MODIFICATION MANUELLE PAR ENSEIGNANT / MANAGER
+    # Si l'enseignant constate qu'un étudiant est parti,
+    # il peut modifier le statut avec une justification
+    # -------------------------------------------------------
+    # Qui a modifié le statut
+    modifie_par = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
+
+    # Quand la modification a été faite
+    modifie_le = db.Column(db.DateTime, nullable=True)
+
+    # Justification obligatoire si modification manuelle
+    # Ex: "Étudiant sorti après 20 min — maladie probable"
+    # Ex: "Employé en mission externe"
+    justification_modification = db.Column(db.String(255), nullable=True)
+
+    # -------------------------------------------------------
+    # MODE ENTREPRISE — HEURES TRAVAILLÉES
+    # -------------------------------------------------------
+    # Heures réellement travaillées (calculées automatiquement)
+    # Formule : heure_depart_contractuelle - heure_arrivee_reelle - pause
+    heures_travaillees = db.Column(db.Float, nullable=True)
+
+    # Heures supplémentaires (positif = sup, négatif = déficit)
+    heures_supplementaires = db.Column(db.Float, nullable=True, default=0)
+
+    # Justification d'absence (remplie par le manager)
+    # 'conge_maladie', 'conge_annuel', 'mission', 'ferie', 'injustifie'
+    justification_absence = db.Column(db.String(50), nullable=True)
 
     def __repr__(self):
         return f'<Presence personne={self.personne_id} statut={self.statut}>'
 
     def est_doublon(self):
         """Vérifie si cette personne a déjà une présence dans cette session"""
-        return Presence.query.filter_by(
-            personne_id=self.personne_id,
-            session_id=self.session_id,
-            statut='present'
+        return Presence.query.filter(
+            Presence.personne_id == self.personne_id,
+            Presence.session_id == self.session_id,
+            Presence.statut.in_(['present', 'retard']),
+            Presence.id != self.id
         ).count() > 0
 
 
 # ============================================================
+# TABLE : JOURS FÉRIÉS
+# Gérés par le manager en mode entreprise
+# ============================================================
+class JourFerie(db.Model):
+    __tablename__ = 'jours_feries'
+
+    id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
+
+    # Date du jour férié
+    date = db.Column(db.Date, nullable=False, unique=True)
+
+    # Nom du jour férié
+    # Ex: "Fête du Travail", "Fête du Trône"
+    nom = db.Column(db.String(100), nullable=False)
+
+    # Type :
+    # 'national'   → jours fériés marocains prédéfinis
+    #                (Fête du Trône, Fête du Travail, etc.)
+    # 'ponctuel'   → fermeture exceptionnelle ajoutée par manager/admin
+    #                (panne électrique, réunion exceptionnelle, etc.)
+    # 'academique' → vacances scolaires — mode école uniquement
+    #                (vacances de printemps, été, etc.)
+    type_ferie = db.Column(db.String(20), nullable=False, default='ponctuel')
+
+    # Manager qui a ajouté ce jour (NULL si national)
+    cree_par = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
+
+    # Date de création
+    cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<JourFerie {self.date} — {self.nom}>'
+
+
+# ============================================================
 # TABLE : JOURNAL DE SÉCURITÉ
-# Enregistrement de tous les événements du système
 # ============================================================
 class JournalSecurite(db.Model):
     __tablename__ = 'journal_securite'
 
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
-    # Date et heure de l'événement
-    horodatage = db.Column(db.DateTime, default=datetime.utcnow)
+    # Horodatage
+    horodatage = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Type d'événement
     type_evenement = db.Column(db.String(100), nullable=False)
 
-    # Niveau de gravité :
-    # 'info'     → événement normal
-    # 'warning'  → événement suspect
-    # 'critique' → événement grave
+    # Niveau de gravité : 'info', 'warning', 'critique'
     severite = db.Column(db.String(20), nullable=False, default='info')
 
     # Description détaillée
     description = db.Column(db.Text, nullable=True)
 
-    # Adresse IP de la requête
+    # Adresse IP
     adresse_ip = db.Column(db.String(50), nullable=True)
 
     # Résultat : 'succes', 'echec', 'bloque'
     resultat = db.Column(db.String(20), nullable=True)
 
-    # Destinataire de l'alerte :
-    # 'admin'       → alertes métier
-    # 'developpeur' → alertes techniques
-    # 'les_deux'    → événements très critiques
+    # Destinataire : 'admin', 'developpeur', 'les_deux'
     destinataire = db.Column(db.String(20), nullable=False, default='admin')
 
     # Références optionnelles
@@ -544,75 +677,47 @@ class JournalSecurite(db.Model):
 
     def __repr__(self):
         return f'<JournalSecurite {self.type_evenement} severite={self.severite}>'
-    
-    # ============================================================
+
+
+# ============================================================
 # TABLE : NOTIFICATIONS
 # Notifications internes entre administrateurs
-# Créées automatiquement après chaque action importante
 # ============================================================
 class Notification(db.Model):
     __tablename__ = 'notifications'
 
     id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
 
-    # -------------------------------------------------------
-    # DESTINATAIRE ET EXPÉDITEUR
-    # -------------------------------------------------------
-    # Admin qui reçoit la notification
+    # Admin destinataire
     destinataire_id = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=False)
 
-    # Admin qui a effectué l'action (peut être None pour les alertes système)
+    # Admin expéditeur (None pour alertes système)
     expediteur_id = db.Column(db.String(36), db.ForeignKey('utilisateurs.id'), nullable=True)
 
-    # -------------------------------------------------------
-    # CONTENU
-    # -------------------------------------------------------
-    # Type de notification :
-    # 'validation'      → un compte a été validé
-    # 'rejet'           → un compte a été rejeté
-    # 'changement_role' → un rôle a été modifié
-    # 'desactivation'   → un compte a été désactivé
-    # 'reactivation'    → un compte a été réactivé
-    # 'nouvel_admin'    → un nouvel admin a été créé
-    # 'message'         → message direct entre admins
+    # Type :
+    # 'validation', 'rejet', 'changement_role', 'desactivation',
+    # 'reactivation', 'nouvel_admin', 'message'
     type_notification = db.Column(db.String(50), nullable=False)
 
-    # Titre court affiché dans la cloche de notifications
-    # Ex: "Youssef Benali validé comme Enseignant"
+    # Titre court affiché dans la cloche
     titre = db.Column(db.String(200), nullable=False)
 
-    # Contenu détaillé affiché quand on clique sur la notification
-    # Ex: "Mohammed Alami a validé le compte de Youssef Benali
-    #      et lui a attribué le rôle Enseignant / Manager"
+    # Contenu détaillé
     contenu = db.Column(db.Text, nullable=True)
 
-    # -------------------------------------------------------
-    # STATUT
-    # -------------------------------------------------------
-    # False = non lue (badge rouge sur la cloche)
-    # True  = lue (notification grisée)
+    # Statut de lecture
     est_lue = db.Column(db.Boolean, default=False, nullable=False)
-
-    # Date de lecture de la notification
     lue_le = db.Column(db.DateTime, nullable=True)
 
-    # -------------------------------------------------------
-    # MÉTADONNÉES
-    # -------------------------------------------------------
-    # Date de création de la notification
+    # Date de création
     cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # -------------------------------------------------------
-    # RELATIONS
-    # -------------------------------------------------------
-    # Admin destinataire
+    # Relations
     destinataire = db.relationship(
         'Utilisateur',
         foreign_keys=[destinataire_id],
         backref='notifications_recues'
     )
-
-    # Admin expéditeur
     expediteur = db.relationship(
         'Utilisateur',
         foreign_keys=[expediteur_id],
@@ -620,7 +725,7 @@ class Notification(db.Model):
     )
 
     def __repr__(self):
-        return f'<Notification {self.type_notification} → {self.destinataire_id} lue={self.est_lue}>'
+        return f'<Notification {self.type_notification} lue={self.est_lue}>'
 
     def marquer_lue(self):
         """Marquer la notification comme lue"""
@@ -631,36 +736,15 @@ class Notification(db.Model):
     def notifier_admins(expediteur, type_notification, titre, contenu=None):
         """
         Créer une notification pour tous les autres admins actifs.
-
-        Cette méthode est appelée automatiquement après chaque
-        action importante dans le module admin.
-
-        Args:
-            expediteur       : objet Utilisateur admin qui a effectué l'action
-            type_notification: type de la notification (ex: 'validation')
-            titre            : titre court de la notification
-            contenu          : détails supplémentaires (optionnel)
-
-        Exemple d'utilisation :
-            Notification.notifier_admins(
-                expediteur=current_user,
-                type_notification='validation',
-                titre=f"{current_user.prenom} a validé {utilisateur.nom_complet()}",
-                contenu=f"Rôle attribué : Enseignant"
-            )
+        Appelée automatiquement après chaque action importante.
         """
-        from app import db
-
-        # Récupérer tous les autres admins actifs
         autres_admins = Utilisateur.query.filter(
             Utilisateur.role == 'admin',
             Utilisateur.statut_compte == 'actif',
             Utilisateur.est_actif == True,
-            # Exclure l'admin qui a effectué l'action
             Utilisateur.id != expediteur.id
         ).all()
 
-        # Créer une notification pour chaque admin
         for admin in autres_admins:
             notif = Notification(
                 destinataire_id=admin.id,
@@ -676,16 +760,7 @@ class Notification(db.Model):
 
     @staticmethod
     def compter_non_lues(admin_id):
-        """
-        Retourner le nombre de notifications non lues pour un admin.
-        Utilisé pour afficher le badge sur la cloche de notifications.
-
-        Args:
-            admin_id : UUID de l'admin connecté
-
-        Returns:
-            int : nombre de notifications non lues
-        """
+        """Retourne le nombre de notifications non lues"""
         return Notification.query.filter_by(
             destinataire_id=admin_id,
             est_lue=False
