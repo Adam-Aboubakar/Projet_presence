@@ -724,6 +724,8 @@ class Notification(db.Model):
         backref='notifications_envoyees'
     )
 
+    
+
     def __repr__(self):
         return f'<Notification {self.type_notification} lue={self.est_lue}>'
 
@@ -765,3 +767,130 @@ class Notification(db.Model):
             destinataire_id=admin_id,
             est_lue=False
         ).count()
+    
+    # ============================================================
+# TABLE : EMPLOIS DU TEMPS
+# Emploi du temps hebdomadaire des enseignants (mode école)
+# Permet la génération automatique des sessions chaque semaine
+# ============================================================
+class EmploiDuTemps(db.Model):
+    __tablename__ = 'emplois_du_temps'
+
+    id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
+
+    # -------------------------------------------------------
+    # ENSEIGNANT PROPRIÉTAIRE
+    # -------------------------------------------------------
+    enseignant_id = db.Column(
+        db.String(36),
+        db.ForeignKey('utilisateurs.id'),
+        nullable=False
+    )
+
+    # -------------------------------------------------------
+    # JOUR DE LA SEMAINE
+    # 0 = Lundi, 1 = Mardi, 2 = Mercredi,
+    # 3 = Jeudi, 4 = Vendredi, 5 = Samedi, 6 = Dimanche
+    # -------------------------------------------------------
+    jour_semaine = db.Column(db.Integer, nullable=False)
+
+    # -------------------------------------------------------
+    # INFORMATIONS DU COURS
+    # -------------------------------------------------------
+    # Nom du cours (ex: "Cybersécurité", "Réseaux")
+    nom_cours = db.Column(db.String(200), nullable=False)
+
+    # Groupe ciblé (ex: G1, G2, G3)
+    groupe = db.Column(db.String(50), nullable=True)
+
+    # Salle de cours (ex: B12, A05)
+    salle = db.Column(db.String(100), nullable=True)
+
+    # -------------------------------------------------------
+    # HORAIRES
+    # heure_fin doit être > heure_debut (validé dans le formulaire)
+    # -------------------------------------------------------
+    heure_debut = db.Column(db.Time, nullable=False)
+    heure_fin = db.Column(db.Time, nullable=False)
+
+    # -------------------------------------------------------
+    # TOLÉRANCE RETARD
+    # Définie une fois dans l'emploi du temps
+    # Appliquée automatiquement à chaque session générée
+    # Valeur par défaut = tolerance_retard_defaut de Configuration
+    # -------------------------------------------------------
+    tolerance_retard_minutes = db.Column(
+        db.Integer,
+        nullable=False,
+        default=10
+    )
+
+    # -------------------------------------------------------
+    # STATUT
+    # est_actif = False → cours suspendu temporairement
+    # (ex: enseignant en congé, cours annulé pour ce semestre)
+    # Les sessions ne sont plus générées pour ce créneau
+    # -------------------------------------------------------
+    est_actif = db.Column(db.Boolean, default=True, nullable=False)
+
+    # -------------------------------------------------------
+    # PÉRIODE DE VALIDITÉ
+    # Permet de définir un emploi du temps par semestre
+    # Ex: S1 → 01/09/2025 au 31/01/2026
+    #     S2 → 01/02/2026 au 30/06/2026
+    # Si None → valable indéfiniment
+    # -------------------------------------------------------
+    date_debut_validite = db.Column(db.Date, nullable=True)
+    date_fin_validite = db.Column(db.Date, nullable=True)
+
+    # Date de création
+    cree_le = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    # -------------------------------------------------------
+    # RELATION
+    # -------------------------------------------------------
+    enseignant = db.relationship(
+        'Utilisateur',
+        foreign_keys=[enseignant_id],
+        backref='emplois_du_temps'
+    )
+
+    def __repr__(self):
+        jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi',
+                 'Vendredi', 'Samedi', 'Dimanche']
+        jour = jours[self.jour_semaine] if 0 <= self.jour_semaine <= 6 else '?'
+        return f'<EmploiDuTemps {jour} {self.heure_debut}→{self.heure_fin} {self.nom_cours}>'
+
+    def est_valide_aujourd_hui(self):
+        """
+        Vérifie si cet emploi du temps est valide aujourd'hui.
+        Utilisé par le scheduler avant de générer les sessions.
+        """
+        from datetime import date
+        aujourd_hui = date.today()
+
+        if not self.est_actif:
+            return False
+
+        if self.date_debut_validite and aujourd_hui < self.date_debut_validite:
+            return False
+
+        if self.date_fin_validite and aujourd_hui > self.date_fin_validite:
+            return False
+
+        return True
+
+    def prochain_cours(self):
+        """
+        Retourne la prochaine date de ce cours.
+        Utilisé par le scheduler pour générer la session de la semaine.
+        """
+        from datetime import date, timedelta
+        aujourd_hui = date.today()
+        jours_restants = (self.jour_semaine - aujourd_hui.weekday()) % 7
+        if jours_restants == 0:
+            jours_restants = 7
+        return aujourd_hui + timedelta(days=jours_restants)
