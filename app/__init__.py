@@ -53,4 +53,12 @@ def create_app(config_name='default'):
     from app.personnes import personnes
     app.register_blueprint(personnes)
 
+    # --- Enregistrer le blueprint rfid ---
+    from app.rfid import rfid_bp
+    app.register_blueprint(rfid_bp)
+
+    # --- Enregistrer le blueprint photos ---
+    from app.photos import photos_bp
+    app.register_blueprint(photos_bp)
+
     return app
