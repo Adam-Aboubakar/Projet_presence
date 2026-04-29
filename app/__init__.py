@@ -69,4 +69,8 @@ def create_app(config_name='default'):
     from app.presences import presences_bp
     app.register_blueprint(presences_bp)
 
+    # --- Enregistrer le blueprint rapports ---
+    from app.rapports import rapports_bp
+    app.register_blueprint(rapports_bp)
+
     return app
