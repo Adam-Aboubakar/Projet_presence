@@ -1,0 +1,315 @@
+from flask import request, jsonify
+from datetime import datetime, timezone, timedelta
+from app.sessions import sessions_bp
+from app.models import db, Session, Presence, Personne, EmploiDuTemps, JourFerie, JournalSecurite, Configuration
+from app.auth.decorateurs import role_requis
+from flask_login import current_user
+
+
+def journaliser(type_evenement, description, severite='INFO', personne_id=None):
+    entree = JournalSecurite(
+        type_evenement=type_evenement,
+        description=description,
+        severite=severite,
+        utilisateur_id=current_user.id if current_user.is_authenticated else None,
+        personne_id=personne_id,
+        adresse_ip=request.remote_addr
+    )
+    db.session.add(entree)
+
+
+# ============================================================
+# CAS 1 — Créer une session manuellement (mode école)
+# ============================================================
+@sessions_bp.route('/api/creer', methods=['POST'])
+@role_requis('enseignant')
+def creer_session():
+    data = request.get_json()
+
+    nom = data.get('nom', '').strip()
+    lieu = data.get('lieu', '').strip()
+    heure_debut = data.get('heure_debut')
+    heure_fin = data.get('heure_fin')
+    tolerance = data.get('tolerance_retard_minutes', 10)
+
+    if not nom or not heure_debut or not heure_fin:
+        return jsonify({'succes': False, 'message': 'nom, heure_debut et heure_fin obligatoires'}), 400
+
+    try:
+        debut = datetime.fromisoformat(heure_debut)
+        fin = datetime.fromisoformat(heure_fin)
+    except ValueError:
+        return jsonify({'succes': False, 'message': 'Format datetime invalide. Utiliser ISO 8601'}), 400
+
+    if fin <= debut:
+        return jsonify({'succes': False, 'message': 'heure_fin doit être après heure_debut'}), 400
+
+    session = Session(
+        nom=nom,
+        lieu=lieu,
+        heure_debut=debut,
+        heure_fin=fin,
+        tolerance_retard_minutes=tolerance,
+        type_session='cours',
+        statut='planifiee',
+       # cree_par=current_user.id
+       cree_par=current_user.id if current_user.is_authenticated else None
+    )
+    db.session.add(session)
+
+    journaliser('session_creee', f'Session créée : {nom}')
+    db.session.commit()
+
+    return jsonify({
+        'succes': True,
+        'message': 'Session créée avec succès',
+        'session_id': session.id
+    }), 201
+
+
+# ============================================================
+# CAS 2 — Générer sessions depuis emploi du temps (mode école)
+# ============================================================
+@sessions_bp.route('/api/generer', methods=['POST'])
+@role_requis('enseignant')
+def generer_sessions():
+    """
+    Génère toutes les sessions d'un emploi du temps
+    entre date_debut et date_fin en sautant les jours fériés.
+    """
+    data = request.get_json()
+    emploi_id = data.get('emploi_id')
+
+    emploi = EmploiDuTemps.query.get_or_404(emploi_id)
+
+    # Vérifier que l'enseignant est bien le propriétaire
+    if emploi.enseignant_id != current_user.id:
+        return jsonify({'succes': False, 'message': 'Accès refusé'}), 403
+
+    if not emploi.date_debut_validite or not emploi.date_fin_validite:
+        return jsonify({'succes': False, 'message': 'Dates de validité manquantes dans l\'emploi du temps'}), 400
+
+    # Récupérer les jours fériés
+    jours_feries = {
+        jf.date for jf in JourFerie.query.filter(
+            JourFerie.date >= emploi.date_debut_validite,
+            JourFerie.date <= emploi.date_fin_validite
+        ).all()
+    }
+
+    from datetime import date, timedelta
+    sessions_creees = 0
+    date_courante = emploi.date_debut_validite
+
+    while date_courante <= emploi.date_fin_validite:
+        # Vérifier que c'est le bon jour de la semaine
+        if date_courante.weekday() == emploi.jour_semaine:
+            # Vérifier que ce n'est pas un jour férié
+            if date_courante not in jours_feries:
+                debut = datetime.combine(date_courante, emploi.heure_debut)
+                fin = datetime.combine(date_courante, emploi.heure_fin)
+
+                # Vérifier qu'une session n'existe pas déjà
+                existante = Session.query.filter_by(
+                    nom=emploi.nom_cours,
+                    heure_debut=debut
+                ).first()
+
+                if not existante:
+                    session = Session(
+                        nom=f"{emploi.nom_cours} — {emploi.groupe or 'Tous'}",
+                        lieu=emploi.salle,
+                        heure_debut=debut,
+                        heure_fin=fin,
+                        tolerance_retard_minutes=emploi.tolerance_retard_minutes,
+                        type_session='cours',
+                        statut='planifiee',
+                        #cree_par=current_user.id
+                        cree_par=current_user.id if current_user.is_authenticated else None
+                    )
+                    db.session.add(session)
+                    sessions_creees += 1
+
+        date_courante += timedelta(days=1)
+
+    journaliser('sessions_generees',
+                f'{sessions_creees} sessions générées depuis emploi du temps {emploi.nom_cours}')
+    db.session.commit()
+
+    return jsonify({
+        'succes': True,
+        'message': f'{sessions_creees} sessions générées avec succès',
+        'sessions_creees': sessions_creees
+    }), 201
+
+
+# ============================================================
+# CAS 3 — Ouvrir une session
+# ============================================================
+@sessions_bp.route('/api/<string:session_id>/ouvrir', methods=['PUT'])
+@role_requis('enseignant')
+def ouvrir_session(session_id):
+    session = Session.query.get_or_404(session_id)
+
+    if session.statut == 'en_cours':
+        return jsonify({'succes': False, 'message': 'Session déjà ouverte'}), 400
+    if session.statut == 'terminee':
+        return jsonify({'succes': False, 'message': 'Session déjà terminée'}), 400
+    if session.statut == 'annulee':
+        return jsonify({'succes': False, 'message': 'Session annulée'}), 400
+
+    session.statut = 'en_cours'
+
+    journaliser('session_ouverte', f'Session ouverte : {session.nom}')
+    db.session.commit()
+
+    return jsonify({'succes': True, 'message': 'Session ouverte — pointages acceptés'}), 200
+
+
+# ============================================================
+# CAS 4 — Fermer une session + marquer absents
+# ============================================================
+@sessions_bp.route('/api/<string:session_id>/fermer', methods=['PUT'])
+@role_requis('enseignant')
+def fermer_session(session_id):
+    session = Session.query.get_or_404(session_id)
+
+    if session.statut != 'en_cours':
+        return jsonify({'succes': False, 'message': 'La session doit être en cours pour être fermée'}), 400
+
+    session.statut = 'terminee'
+
+    # Marquer absents tous ceux qui n'ont pas pointé
+    # Mode école : toutes les personnes actives sans présence dans cette session
+    personnes_ayant_pointe = {
+        p.personne_id for p in Presence.query.filter_by(session_id=session_id).all()
+        if p.statut in ['present', 'retard']
+    }
+
+    toutes_personnes = Personne.query.filter_by(est_actif=True).all()
+    absents_count = 0
+
+    for personne in toutes_personnes:
+        if personne.id not in personnes_ayant_pointe:
+            absence = Presence(
+                personne_id=personne.id,
+                session_id=session_id,
+                statut='absent',
+                methode_validation='automatique',
+                horodatage=datetime.now(timezone.utc)
+            )
+            db.session.add(absence)
+            absents_count += 1
+
+            # Vérifier les seuils d'absences
+            _verifier_seuils_absences(personne.id)
+
+    journaliser('session_fermee',
+                f'Session fermée : {session.nom} — {absents_count} absents marqués')
+    db.session.commit()
+
+    return jsonify({
+        'succes': True,
+        'message': f'Session fermée — {absents_count} absents marqués automatiquement'
+    }), 200
+
+
+# ============================================================
+# CAS 5 — Annuler une session
+# ============================================================
+@sessions_bp.route('/api/<string:session_id>/annuler', methods=['PUT'])
+@role_requis('enseignant')
+def annuler_session(session_id):
+    session = Session.query.get_or_404(session_id)
+
+    if session.statut == 'terminee':
+        return jsonify({'succes': False, 'message': 'Impossible d\'annuler une session terminée'}), 400
+    if session.statut == 'en_cours':
+        return jsonify({'succes': False, 'message': 'Fermez d\'abord la session avant de l\'annuler'}), 400
+
+    session.statut = 'annulee'
+    journaliser('session_annulee', f'Session annulée : {session.nom}', severite='WARNING')
+    db.session.commit()
+
+    return jsonify({'succes': True, 'message': 'Session annulée'}), 200
+
+
+# ============================================================
+# GET — Liste des sessions
+# ============================================================
+@sessions_bp.route('/api/liste', methods=['GET'])
+@role_requis('enseignant')
+def liste_sessions():
+    statut = request.args.get('statut')
+    query = Session.query
+
+    if statut:
+        query = query.filter_by(statut=statut)
+
+    sessions = query.order_by(Session.heure_debut.desc()).limit(50).all()
+
+    return jsonify({
+        'succes': True,
+        'sessions': [{
+            'id': s.id,
+            'nom': s.nom,
+            'lieu': s.lieu,
+            'heure_debut': s.heure_debut.isoformat(),
+            'heure_fin': s.heure_fin.isoformat(),
+            'statut': s.statut,
+            'tolerance_retard_minutes': s.tolerance_retard_minutes,
+            'type_session': s.type_session
+        } for s in sessions]
+    }), 200
+
+
+# ============================================================
+# FONCTION INTERNE — Vérifier seuils absences
+# ============================================================
+def _verifier_seuils_absences(personne_id):
+    """
+    Vérifie si la personne a atteint un seuil d'absences
+    et déclenche l'action correspondante.
+    """
+    from app.models import SeuilAbsence
+    from app.auth.email import envoyer_email
+
+    # Compter les absences injustifiées
+    nb_absences = Presence.query.filter_by(
+        personne_id=personne_id,
+        statut='absent',
+        justification_absence=None
+    ).count()
+
+    # Récupérer les seuils actifs triés par niveau
+    seuils = SeuilAbsence.query.filter_by(est_actif=True)\
+        .order_by(SeuilAbsence.niveau.desc()).all()
+
+    personne = Personne.query.get(personne_id)
+    if not personne:
+        return
+
+    for seuil in seuils:
+        if nb_absences >= seuil.nb_absences:
+            # Envoyer email
+            if personne.email:
+                message = seuil.message_email\
+                    .replace('{prenom}', personne.prenom)\
+                    .replace('{nom}', personne.nom)\
+                    .replace('{nb_absences}', str(nb_absences))
+                try:
+                    envoyer_email(
+                        destinataire=personne.email,
+                        sujet=seuil.sujet_email,
+                        corps_html=f"<p>{message}</p>"
+                    )
+                except Exception:
+                    pass
+
+            journaliser(
+                'seuil_absence_atteint',
+                f'{personne.prenom} {personne.nom} — {nb_absences} absences — niveau {seuil.niveau} — action: {seuil.action}',
+                severite='WARNING',
+                personne_id=personne_id
+            )
+            break  # Un seul seuil déclenché à la fois

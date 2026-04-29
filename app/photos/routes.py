@@ -74,7 +74,7 @@ def sauvegarder_photo(donnees_image, personne_id):
 # CAS 1 — Upload photo (fichier)
 # ============================================================
 @photos_bp.route('/api/<string:personne_id>/uploader', methods=['POST'])
-#@role_requis('agent')
+@role_requis('agent')
 def uploader_photo(personne_id):
     personne = Personne.query.get_or_404(personne_id)
 
@@ -130,7 +130,7 @@ def uploader_photo(personne_id):
 # CAS 2 — Capture via caméra (reçoit base64)
 # ============================================================
 @photos_bp.route('/api/<string:personne_id>/capturer', methods=['POST'])
-#@role_requis('agent')
+@role_requis('agent')
 def capturer_photo(personne_id):
     personne = Personne.query.get_or_404(personne_id)
     data = request.get_json()
@@ -182,7 +182,7 @@ def capturer_photo(personne_id):
 # CAS 3 — Définir photo principale
 # ============================================================
 @photos_bp.route('/api/<string:photo_id>/principale', methods=['PUT'])
-#@role_requis('agent')
+@role_requis('agent')
 def definir_principale(photo_id):
     photo = Photo.query.get_or_404(photo_id)
 
@@ -201,7 +201,7 @@ def definir_principale(photo_id):
 # CAS 4 — Supprimer une photo
 # ============================================================
 @photos_bp.route('/api/<string:photo_id>/supprimer', methods=['DELETE'])
-#@role_requis('agent')
+@role_requis('agent')
 def supprimer_photo(photo_id):
     photo = Photo.query.get_or_404(photo_id)
     personne_id = photo.personne_id
@@ -232,7 +232,7 @@ def supprimer_photo(photo_id):
 # GET — Liste des photos d'une personne
 # ============================================================
 @photos_bp.route('/api/<string:personne_id>/liste', methods=['GET'])
-#@role_requis('agent')
+@role_requis('agent')
 def liste_photos(personne_id):
     Personne.query.get_or_404(personne_id)
     photos = Photo.query.filter_by(personne_id=personne_id)\

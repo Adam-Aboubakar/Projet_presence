@@ -61,4 +61,12 @@ def create_app(config_name='default'):
     from app.photos import photos_bp
     app.register_blueprint(photos_bp)
 
+    # --- Enregistrer le blueprint sessions ---
+    from app.sessions import sessions_bp
+    app.register_blueprint(sessions_bp)
+
+    # --- Enregistrer le blueprint presences ---
+    from app.presences import presences_bp
+    app.register_blueprint(presences_bp)
+
     return app

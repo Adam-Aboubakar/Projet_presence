@@ -23,7 +23,7 @@ def journaliser(type_evenement, message, severite='INFO', personne_id=None):
 # CAS 1 — Associer une carte à une personne
 # ============================================================
 @rfid_bp.route('/api/<string:personne_id>/associer', methods=['POST'])
-#@role_requis('agent')
+@role_requis('agent')
 def associer_carte(personne_id):
     personne = Personne.query.get_or_404(personne_id)
     data = request.get_json()
@@ -80,7 +80,7 @@ def associer_carte(personne_id):
 # CAS 2 — Révoquer une carte
 # ============================================================
 @rfid_bp.route('/api/<string:carte_id>/revoquer', methods=['POST'])
-#@role_requis('agent')
+@role_requis('agent')
 def revoquer_carte(carte_id):
     carte = CarteRFID.query.get_or_404(carte_id)
 
@@ -112,7 +112,7 @@ def revoquer_carte(carte_id):
 # CAS 3 — Remplacer une carte
 # ============================================================
 @rfid_bp.route('/api/<string:personne_id>/remplacer', methods=['POST'])
-#@role_requis('agent')
+@role_requis('agent')
 def remplacer_carte(personne_id):
     personne = Personne.query.get_or_404(personne_id)
     data = request.get_json()
@@ -200,7 +200,7 @@ def verifier_carte():
 # GET — Historique des cartes d'une personne
 # ============================================================
 @rfid_bp.route('/api/<string:personne_id>/liste', methods=['GET'])
-#@role_requis('agent')
+@role_requis('agent')
 def liste_cartes(personne_id):
     Personne.query.get_or_404(personne_id)
     cartes = CarteRFID.query.filter_by(personne_id=personne_id).order_by(CarteRFID.attribuee_le.desc()).all()

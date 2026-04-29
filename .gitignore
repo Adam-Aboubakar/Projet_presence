@@ -1,0 +1,37 @@
+# Environnement virtuel
+venv/
+env/
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Variables d'environnement — JAMAIS sur GitHub
+.env
+
+# Base de données locale
+*.db
+*.sqlite3
+
+# Fichiers de logs
+*.log
+
+# Fichiers uploadés
+app/static/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Distribution Python
+*.egg-info/
+dist/
+build/
+
+.env.*

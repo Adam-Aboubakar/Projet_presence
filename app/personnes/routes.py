@@ -220,7 +220,8 @@ def ajouter():
                 niveau_ou_poste=formulaire.niveau_ou_poste.data.strip(),
                 groupe_ou_site=formulaire.groupe_ou_site.data.strip() if formulaire.groupe_ou_site.data else None,
                 est_actif=True,
-                cree_par=current_user.id
+               # cree_par=current_user.id
+               cree_par=current_user.id if current_user.is_authenticated else None
             )
 
             if mode == 'entreprise':
@@ -588,7 +589,8 @@ def importer():
                         niveau_ou_poste=str(ligne.get('niveau_ou_poste', '')).strip() or None,
                         groupe_ou_site=str(ligne.get('groupe_ou_site', '')).strip() or None,
                         est_actif=True,
-                        cree_par=current_user.id
+                       # cree_par=current_user.id
+                       cree_par=current_user.id if current_user.is_authenticated else None
                     )
                     db.session.add(nouvelle_personne)
                     importees += 1
@@ -771,7 +773,8 @@ def api_ajouter():
             niveau_ou_poste=donnees.get('niveau_ou_poste', '').strip() or None,
             groupe_ou_site=donnees.get('groupe_ou_site', '').strip() or None,
             est_actif=True,
-            cree_par=current_user.id
+           # cree_par=current_user.id
+           cree_par=current_user.id if current_user.is_authenticated else None
         )
 
         if mode == 'entreprise':
