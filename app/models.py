@@ -494,6 +494,13 @@ class Session(db.Model):
     # Date de création de la session
     cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    # Statut de la session
+    # 'planifiee' → créée mais pas encore ouverte
+    # 'en_cours'  → ouverte, les pointages sont acceptés
+    # 'terminee'  → fermée, absences générées
+    # 'annulee'   → annulée par l'enseignant
+    statut = db.Column(db.String(20), nullable=False, default='planifiee')
+
     # Relations
     presences = db.relationship('Presence', backref='session', lazy=True,
                                 cascade='all, delete-orphan')
@@ -974,3 +981,41 @@ class HeuresSupplementaires(db.Model):
         if minutes == 0:
             return f"{heures}h"
         return f"{heures}h{minutes:02d}"
+    
+# ============================================================
+# TABLE : SEUILS ABSENCES
+# Règlement de l'école — actions automatiques selon absences
+# Configurable par l'admin
+# ============================================================
+class SeuilAbsence(db.Model):
+    __tablename__ = 'seuils_absences'
+
+    id = db.Column(db.String(36), primary_key=True, default=generer_uuid)
+
+    # Niveau de gravité (1, 2, 3, 4...)
+    niveau = db.Column(db.Integer, nullable=False)
+
+    # Nombre d'absences injustifiées déclenchant ce niveau
+    nb_absences = db.Column(db.Integer, nullable=False)
+
+    # Action déclenchée :
+    # 'email_etudiant'     → email à l'étudiant
+    # 'email_parents'      → email à l'étudiant + parents
+    # 'convocation'        → email + notification scolarité
+    # 'conseil_discipline' → dossier transmis à l'administration
+    action = db.Column(db.String(50), nullable=False)
+
+    # Objet de l'email envoyé automatiquement
+    sujet_email = db.Column(db.String(200), nullable=False)
+
+    # Corps du message email (peut contenir {prenom}, {nom}, {nb_absences})
+    message_email = db.Column(db.Text, nullable=False)
+
+    # Actif ou non
+    est_actif = db.Column(db.Boolean, default=True)
+
+    # Date de création
+    cree_le = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<SeuilAbsence niveau={self.niveau} nb={self.nb_absences} action={self.action}>'
