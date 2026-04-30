@@ -31,6 +31,7 @@ class Configuration(db.Model):
     # -------------------------------------------------------
     # Nom de l'établissement
     nom_etablissement = db.Column(db.String(200), nullable=True)
+    
 
     # Adresse physique
     adresse = db.Column(db.String(255), nullable=True)
