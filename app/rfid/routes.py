@@ -18,6 +18,10 @@ def journaliser(type_evenement, message, severite='INFO', personne_id=None):
     )
     db.session.add(entree)
 
+    # Envoyer alerte email si WARNING ou CRITIQUE
+    from app.journal.routes import envoyer_alerte
+    envoyer_alerte(entree)
+
 
 # ============================================================
 # CAS 1 — Associer une carte à une personne
