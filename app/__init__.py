@@ -77,4 +77,8 @@ def create_app(config_name='default'):
     from app.journal import journal_bp
     app.register_blueprint(journal_bp)
 
+    # --- Enregistrer le blueprint emplois ---
+    from app.emplois import emplois_bp
+    app.register_blueprint(emplois_bp)
+
     return app

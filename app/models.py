@@ -505,6 +505,32 @@ class Session(db.Model):
     # Relations
     presences = db.relationship('Presence', backref='session', lazy=True,
                                 cascade='all, delete-orphan')
+    
+    # -------------------------------------------------------
+    # LIEN AVEC L'EMPLOI DU TEMPS
+    # -------------------------------------------------------
+    # Référence vers l'emploi du temps parent
+    # NULL si séance exceptionnelle
+    emploi_du_temps_id = db.Column(
+        db.String(36),
+        db.ForeignKey('emplois_du_temps.id'),
+        nullable=True
+    )
+
+    # Séance exceptionnelle (rattrapage, cours supplémentaire)
+    est_exceptionnelle = db.Column(db.Boolean, default=False)
+
+    # -------------------------------------------------------
+    # GESTION DE LA PAUSE PAR SÉANCE
+    # -------------------------------------------------------
+    # Pause suspendue pour cette séance uniquement
+    pause_suspendue = db.Column(db.Boolean, default=False)
+
+    # -------------------------------------------------------
+    # SUSPENSION ET REPROGRAMMATION
+    # -------------------------------------------------------
+    # Date de reprogrammation si séance suspendue
+    reprogrammee_le = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f'<Session {self.nom} type={self.type_session}>'
@@ -832,6 +858,20 @@ class EmploiDuTemps(db.Model):
         nullable=False,
         default=10
     )
+
+    # -------------------------------------------------------
+    # PAUSE
+    # Définie une fois dans l'emploi du temps
+    # L'enseignant peut la suspendre pour une séance spécifique
+    # -------------------------------------------------------
+    # L'enseignant a-t-il une pause ?
+    a_pause = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Heure de début de la pause (ex: 09h30)
+    heure_debut_pause = db.Column(db.Time, nullable=True)
+
+    # Durée de la pause en minutes (ex: 20)
+    duree_pause_minutes = db.Column(db.Integer, nullable=True)
 
     # -------------------------------------------------------
     # STATUT
