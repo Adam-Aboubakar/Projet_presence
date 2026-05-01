@@ -387,7 +387,7 @@ class Photo(db.Model):
     chemin_fichier = db.Column(db.String(255), nullable=False)
 
     # Photo principale utilisée par DeepFace
-    est_principale = db.Column(db.Boolean, default=False)
+    est_principale = db.Column(db.Boolean, default=False)  # True = photo active, False = historique
 
     # Score de qualité (0 à 1) — minimum 0.7 requis
     score_qualite = db.Column(db.Float, nullable=True)

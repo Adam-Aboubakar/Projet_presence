@@ -1,5 +1,5 @@
 from flask import request, jsonify, current_app
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 import uuid
 import cv2
@@ -16,6 +16,7 @@ TAILLE_MAX = 5 * 1024 * 1024  # 5MB
 
 
 def journaliser(type_evenement, description, severite='INFO', personne_id=None):
+    """Ajouter une entrée dans le journal de sécurité et envoyer alerte si nécessaire."""
     entree = JournalSecurite(
         type_evenement=type_evenement,
         description=description,
@@ -76,6 +77,7 @@ def sauvegarder_photo(donnees_image, personne_id):
 
 # ============================================================
 # CAS 1 — Upload photo (fichier)
+# Une seule photo active à la fois — l'ancienne va en historique
 # ============================================================
 @photos_bp.route('/api/<string:personne_id>/uploader', methods=['POST'])
 @role_requis('agent')
@@ -105,33 +107,37 @@ def uploader_photo(personne_id):
     if not ok:
         return jsonify({'succes': False, 'message': message}), 400
 
-    # Définir si c'est la photo principale
-    est_principale = Photo.query.filter_by(personne_id=personne_id).count() == 0
+    # Désactiver l'ancienne photo active — elle va en historique
+    Photo.query.filter_by(personne_id=personne_id, est_principale=True)\
+        .update({'est_principale': False})
 
+    # Sauvegarder et chiffrer la nouvelle photo
     chemin = sauvegarder_photo(donnees, personne_id)
 
+    # La nouvelle photo est toujours active
     photo = Photo(
         personne_id=personne_id,
         chemin_fichier=chemin,
-        est_principale=est_principale,
-        cree_le=datetime.utcnow()
+        est_principale=True,
+        cree_le=datetime.now(timezone.utc)
     )
     db.session.add(photo)
 
-    journaliser('photo_ajoutee', f'Photo ajoutée pour {personne.prenom} {personne.nom}',
+    journaliser('photo_ajoutee',
+                f'Photo ajoutée pour {personne.prenom} {personne.nom}',
                 personne_id=personne_id)
     db.session.commit()
 
     return jsonify({
         'succes': True,
         'message': 'Photo uploadée avec succès',
-        'photo_id': photo.id,
-        'est_principale': est_principale
+        'photo_id': photo.id
     }), 201
 
 
 # ============================================================
 # CAS 2 — Capture via caméra (reçoit base64)
+# Une seule photo active à la fois — l'ancienne va en historique
 # ============================================================
 @photos_bp.route('/api/<string:personne_id>/capturer', methods=['POST'])
 @role_requis('agent')
@@ -159,86 +165,71 @@ def capturer_photo(personne_id):
     if not ok:
         return jsonify({'succes': False, 'message': message}), 400
 
-    est_principale = Photo.query.filter_by(personne_id=personne_id).count() == 0
+    # Désactiver l'ancienne photo active — elle va en historique
+    Photo.query.filter_by(personne_id=personne_id, est_principale=True)\
+        .update({'est_principale': False})
+
+    # Sauvegarder et chiffrer la nouvelle photo
     chemin = sauvegarder_photo(donnees, personne_id)
 
+    # La nouvelle photo est toujours active
     photo = Photo(
         personne_id=personne_id,
         chemin_fichier=chemin,
-        est_principale=est_principale,
-        cree_le=datetime.utcnow()
+        est_principale=True,
+        cree_le=datetime.now(timezone.utc)
     )
     db.session.add(photo)
 
-    journaliser('photo_capturee', f'Photo capturée pour {personne.prenom} {personne.nom}',
+    journaliser('photo_capturee',
+                f'Photo capturée pour {personne.prenom} {personne.nom}',
                 personne_id=personne_id)
     db.session.commit()
 
     return jsonify({
         'succes': True,
         'message': 'Photo capturée avec succès',
-        'photo_id': photo.id,
-        'est_principale': est_principale
+        'photo_id': photo.id
     }), 201
 
 
 # ============================================================
-# CAS 3 — Définir photo principale
+# GET — Photo active d'une personne
+# Utilisée par DeepFace lors du pointage
 # ============================================================
-@photos_bp.route('/api/<string:photo_id>/principale', methods=['PUT'])
+@photos_bp.route('/api/<string:personne_id>/active', methods=['GET'])
 @role_requis('agent')
-def definir_principale(photo_id):
-    photo = Photo.query.get_or_404(photo_id)
-
-    # Retirer le statut principal des autres photos
-    Photo.query.filter_by(personne_id=photo.personne_id).update({'est_principale': False})
-    photo.est_principale = True
-
-    journaliser('photo_principale_changee', f'Photo principale changée',
-                personne_id=photo.personne_id)
-    db.session.commit()
-
-    return jsonify({'succes': True, 'message': 'Photo principale définie'}), 200
-
-
-# ============================================================
-# CAS 4 — Supprimer une photo
-# ============================================================
-@photos_bp.route('/api/<string:photo_id>/supprimer', methods=['DELETE'])
-@role_requis('agent')
-def supprimer_photo(photo_id):
-    photo = Photo.query.get_or_404(photo_id)
-    personne_id = photo.personne_id
-    etait_principale = photo.est_principale
-
-    # Supprimer le fichier du disque
-    chemin_complet = os.path.join(current_app.root_path, 'static', photo.chemin_fichier)
-    if os.path.exists(chemin_complet):
-        os.remove(chemin_complet)
-
-    db.session.delete(photo)
-    db.session.flush()
-
-    # Si c'était la principale → définir la plus récente comme principale
-    if etait_principale:
-        nouvelle_principale = Photo.query.filter_by(personne_id=personne_id)\
-            .order_by(Photo.cree_le.desc()).first()
-        if nouvelle_principale:
-            nouvelle_principale.est_principale = True
-
-    journaliser('photo_supprimee', f'Photo supprimée', personne_id=personne_id)
-    db.session.commit()
-
-    return jsonify({'succes': True, 'message': 'Photo supprimée'}), 200
-
-
-# ============================================================
-# GET — Liste des photos d'une personne
-# ============================================================
-@photos_bp.route('/api/<string:personne_id>/liste', methods=['GET'])
-@role_requis('agent')
-def liste_photos(personne_id):
+def photo_active(personne_id):
+    """Retourne uniquement la photo active — utilisée par DeepFace."""
     Personne.query.get_or_404(personne_id)
+
+    photo = Photo.query.filter_by(
+        personne_id=personne_id,
+        est_principale=True
+    ).first()
+
+    if not photo:
+        return jsonify({'succes': False, 'message': 'Aucune photo active'}), 404
+
+    return jsonify({
+        'succes': True,
+        'photo': {
+            'id': photo.id,
+            'cree_le': photo.cree_le.isoformat() if photo.cree_le else None
+        }
+    }), 200
+
+
+# ============================================================
+# GET — Historique des photos d'une personne
+# Toutes les photos — active + anciennes
+# ============================================================
+@photos_bp.route('/api/<string:personne_id>/historique', methods=['GET'])
+@role_requis('agent')
+def historique_photos(personne_id):
+    """Retourne toutes les photos — active + historique."""
+    Personne.query.get_or_404(personne_id)
+
     photos = Photo.query.filter_by(personne_id=personne_id)\
         .order_by(Photo.cree_le.desc()).all()
 
@@ -246,7 +237,7 @@ def liste_photos(personne_id):
         'succes': True,
         'photos': [{
             'id': p.id,
-            'est_principale': p.est_principale,
-            'crtee_le': p.cree_le.isoformat() if p.cree_le else None
+            'est_active': p.est_principale,  # True = photo active actuelle
+            'cree_le': p.cree_le.isoformat() if p.cree_le else None
         } for p in photos]
     }), 200
