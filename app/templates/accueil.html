@@ -123,6 +123,7 @@
 </nav>
 
 <!-- HEADER STATS -->
+<!-- HEADER STATS -->
 <div class="header-stats" style="background:#152030; padding:16px 24px; border-bottom:1px solid rgba(255,255,255,0.08);">
     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
         <div>
@@ -136,6 +137,7 @@
             </div>
         </div>
         <div style="display:flex; gap:28px;">
+            {% if mode == 'ecole' %}
             <div style="text-align:center;">
                 <div style="font-size:26px; font-weight:700; color:#E8620A;">{{ sessions_en_cours|length }}</div>
                 <div style="font-size:11px; color:rgba(255,255,255,0.4);">
@@ -160,12 +162,34 @@
                     <i class="fas fa-user-check" style="margin-right:3px;"></i>{{ _('Étudiants pointés') }}
                 </div>
             </div>
+            {% else %}
+            <div style="text-align:center;">
+                <div style="font-size:26px; font-weight:700; color:#10B981;">{{ nb_presents }}</div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);">
+                    <i class="fas fa-user-check" style="margin-right:3px;"></i>{{ _('Présents') }}
+                </div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:26px; font-weight:700; color:#EF4444;">{{ nb_absents }}</div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);">
+                    <i class="fas fa-user-xmark" style="margin-right:3px;"></i>{{ _('Absents') }}
+                </div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:26px; font-weight:700; color:white;">{{ pointages|length }}</div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);">
+                    <i class="fas fa-fingerprint" style="margin-right:3px;"></i>{{ _('Pointages aujourd\'hui') }}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <!-- CONTENU -->
 <div style="padding:20px 24px; flex:1;">
+
+{% if mode == 'ecole' %}
 
     <!-- Sessions en cours -->
     <div class="section-label">
@@ -258,6 +282,55 @@
         {{ _('Aucune session prévue pour aujourd\'hui') }}
     </div>
     {% endif %}
+
+{% else %}
+
+    <!-- Mode entreprise -->
+    <div class="section-label">
+        <i class="fas fa-circle" style="color:#10B981; font-size:8px;"></i>
+        {{ _('Pointages du jour') }}
+    </div>
+
+    {% if pointages %}
+    <div class="sessions-encours" style="margin-bottom:20px;">
+        {% for pointage in pointages %}
+        <div class="session-card" style="background:rgba(255,255,255,0.06); border:0.5px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:10px; height:10px; background:{{ '#10B981' if pointage.statut == 'present' else '#EF4444' }}; border-radius:50%; flex-shrink:0;"></div>
+                <div>
+                    <div class="nom" style="font-size:14px; font-weight:600; color:white;">
+                        <i class="fas fa-user" style="color:#E8620A; margin-right:6px; font-size:12px;"></i>
+                        {{ pointage.personne.nom_complet() if pointage.personne else 'Inconnu' }}
+                    </div>
+                    <div class="sub" style="font-size:12px; color:rgba(255,255,255,0.45); margin-top:2px;">
+                        <i class="fas fa-building" style="margin-right:4px; font-size:10px;"></i>
+                        {{ pointage.personne.departement if pointage.personne else '' }}
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                <div style="text-align:center;">
+                    <div class="horaire" style="font-size:13px; font-weight:600; color:white;">
+                        <i class="fas fa-clock" style="color:rgba(255,255,255,0.4); margin-right:4px; font-size:11px;"></i>
+                        {{ pointage.horodatage.strftime('%H:%M') if pointage.horodatage else '--' }}
+                    </div>
+                    <div class="label" style="font-size:11px; color:rgba(255,255,255,0.4);">{{ _('Heure') }}</div>
+                </div>
+                <span style="background:{{ 'rgba(16,185,129,0.15)' if pointage.statut == 'present' else 'rgba(239,68,68,0.15)' }}; color:{{ '#10B981' if pointage.statut == 'present' else '#EF4444' }}; font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px;">
+                    {{ pointage.statut | capitalize }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-card" style="background:rgba(255,255,255,0.04); border:0.5px solid rgba(255,255,255,0.08); border-radius:12px; padding:24px; text-align:center; color:rgba(255,255,255,0.4); font-size:13px;">
+        <i class="fas fa-calendar-xmark" style="font-size:20px; display:block; margin-bottom:8px;"></i>
+        {{ _('Aucun pointage pour le moment') }}
+    </div>
+    {% endif %}
+
+{% endif %}
 
 </div>
 
