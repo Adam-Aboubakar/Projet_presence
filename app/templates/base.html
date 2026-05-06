@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,79 +8,306 @@
     
     {{ bootstrap.load_css() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+    /* ── DARK MODE ── */
+/* ── VARIABLES GLOBALES — utilisées par toutes les pages ── */
+:root, [data-theme="light"] {
+  --primary:     #1A3A5C;
+  --primary-mid: #1E4D7B;
+  --accent:      #E8531A;
+  --accent-soft: #FFF0EB;
+  --success:     #0F9D58;
+  --success-soft:#E8F5E9;
+  --warning:     #F4B400;
+  --warning-soft:#FFFDE7;
+  --danger:      #DB4437;
+  --danger-soft: #FCE8E6;
+  --info:        #1A73E8;
+  --info-soft:   #E8F0FE;
+  --bg:          #F0F4F9;
+  --card:        #FFFFFF;
+  --text:        #1C2B3A;
+  --text-muted:  #6B7E8F;
+  --border:      #DDE3EC;
+  --row-border:  #F0F4F9;
+  --row-hover:   #F8FAFD;
+  --input-bg:    #F8FAFD;
+  --icon-dark-bg:#EBF0F7;
+  --radius:      10px;
+  --radius-lg:   14px;
+  --shadow:      0 2px 12px rgba(26,58,92,0.08);
+  --shadow-md:   0 6px 24px rgba(26,58,92,0.12);
+}
+
+[data-theme="dark"] {
+  --primary:     #4A8CC4;
+  --primary-mid: #5A9FD4;
+  --accent:      #E8531A;
+  --accent-soft: #2A1A10;
+  --success:     #1DB864;
+  --success-soft:#0D2A1A;
+  --warning:     #F4B400;
+  --warning-soft:#2A2000;
+  --danger:      #E05545;
+  --danger-soft: #2A0D0A;
+  --info:        #4A90E8;
+  --info-soft:   #0D1E3A;
+  --bg:          #0D1520;
+  --card:        #152030;
+  --text:        #E8EEF4;
+  --text-muted:  #7A93A8;
+  --border:      #1E3048;
+  --row-border:  #1A2D42;
+  --row-hover:   #1A2B3D;
+  --input-bg:    #1A2D42;
+  --icon-dark-bg:#1A2D42;
+  --shadow:      0 2px 12px rgba(0,0,0,0.3);
+  --shadow-md:   0 6px 24px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .main-wrapper {
+    background: var(--bg);
+    color: var(--text);
+}
+[data-theme="dark"] .footer-este {
+    background: var(--card);
+    border-color: var(--border);
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .sidebar {
+    background: #111D2B;
+}
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--body-bg); color: var(--text-main); transition: background 0.2s, color 0.2s; }
+
+    /* ── NAVBAR ── */
+    .navbar-este {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        background: #1C2B3A;
+        padding: 0 24px; height: 56px;
+        display: flex; align-items: center; justify-content: space-between;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .navbar-title {
+        position: absolute; left: 50%; transform: translateX(-50%);
+        font-size: 15px; font-weight: 700; color: white; white-space: nowrap;
+    }
+
+    /* ── LANGUE DROPDOWN ── */
+    .langue-btn {
+        background: rgba(255,255,255,0.1); border: none;
+        color: rgba(255,255,255,0.8); padding: 7px 12px;
+        border-radius: 8px; cursor: pointer;
+        display: flex; align-items: center; gap: 6px;
+        font-size: 12px; font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+    }
+    .langue-btn:hover { background: rgba(255,255,255,0.15); }
+
+    .langue-menu {
+        display: none; position: absolute; top: 42px; right: 0;
+        background: #1C2B3A;
+        border: 0.5px solid rgba(255,255,255,0.15);
+        border-radius: 10px; overflow: hidden;
+        min-width: 130px; z-index: 999;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .langue-menu a {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px; color: white; text-decoration: none;
+        font-size: 13px; font-weight: 500;
+        transition: background 0.15s;
+    }
+    .langue-menu a:hover { background: rgba(255,255,255,0.07); }
+
+    /* ── DARK TOGGLE ── */
+    .dark-btn {
+        background: rgba(255,255,255,0.1); border: none;
+        color: rgba(255,255,255,0.8);
+        width: 34px; height: 34px; border-radius: 8px;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+    }
+    .dark-btn:hover { background: rgba(255,255,255,0.18); }
+
+    /* ── NOTIF BADGE ── */
+    .notif-badge {
+        position: absolute; top: -3px; right: -3px;
+        background: #E8531A; color: white;
+        font-size: 9px; font-weight: 700;
+        width: 16px; height: 16px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+        position: fixed; top: 56px; left: 0; bottom: 0;
+        width: 220px; background: var(--sidebar-bg);
+        overflow-y: auto; z-index: 900;
+        scrollbar-width: none;
+        transition: background 0.2s;
+    }
+    .sidebar::-webkit-scrollbar { display: none; }
+
+    .sidebar-section {
+        display: block; font-size: 10px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px;
+        color: rgba(255,255,255,0.35);
+        padding: 16px 18px 6px;
+    }
+    .sidebar {
+    background: #1A3A5C;  /* toujours sombre, même en mode clair */
+    }
+    .sidebar-link {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 16px; margin: 2px 8px;
+        border-radius: 8px;
+        color: rgba(255,255,255,0.65);
+        text-decoration: none; font-size: 13.5px; font-weight: 500;
+        transition: all 0.15s;
+    }
+    .sidebar-link i { font-size: 14px; width: 16px; flex-shrink: 0; }
+    .sidebar-link:hover { background: var(--sidebar-hover); color: white; }
+    .sidebar-link.actif { background: #E8531A; color: white; }
+
+    /* ── MAIN + FOOTER ── */
+    .main-wrapper {
+        margin-left: 220px; margin-top: 56px;
+        min-height: calc(100vh - 56px - 44px);
+        background: var(--body-bg);
+        transition: background 0.2s;
+    }
+
+    .footer-este {
+        margin-left: 220px; height: 44px;
+        background: var(--card-bg);
+        border-top: 1px solid var(--border-col);
+        display: flex; align-items: center;
+        justify-content: space-between;
+        padding: 0 28px; font-size: 12px; color: var(--text-muted);
+        transition: background 0.2s, border-color 0.2s;
+    }
+    .footer-badge { font-size: 11px; font-weight: 700; color: #E8531A; letter-spacing: 0.5px; }
+
+    /* ── ALERTS ── */
+    .main-wrapper > .alert { margin: 16px 28px 0; border-radius: 10px; font-size: 13.5px; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+        .navbar-title { display: none; }
+        .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+        .sidebar.show { transform: translateX(0); }
+        .main-wrapper, .footer-este { margin-left: 0; }
+    }
+    </style>
+
     {% block head %}{% endblock %}
 </head>
 <body>
 
-<!-- NAVBAR -->
+<!-- ═══════════ NAVBAR ═══════════ -->
 <nav class="navbar-este">
-    <div class="d-flex align-items-center gap-3">
-        <button class="navbar-icon-btn d-md-none" id="sidebarToggle">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
+
+    <!-- Gauche : hamburger + logo -->
+    <div style="min-width:95px; display:flex; align-items:center; gap:10px;">
+        <button class="dark-btn d-md-none" id="sidebarToggle">
+            <i class="fas fa-bars" style="font-size:15px;"></i>
         </button>
-        <a href="{{ url_for('main.index') }}" style="display:flex; align-items:center; min-width:95px;">
+        <a href="{{ url_for('main.index') }}" style="display:flex; align-items:center;">
             {% if config and config.logo_path %}
                 <img src="{{ url_for('static', filename=config.logo_path) }}"
-                    alt="Logo" style="height:34px; max-width:85px; object-fit:contain;">
+                     alt="Logo" style="height:34px; max-width:85px; object-fit:contain;">
             {% else %}
-                <div class="navbar-logo-placeholder">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                    </svg>
+                <div style="width:38px; height:38px; background:#E8620A; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-school" style="color:white; font-size:16px;"></i>
                 </div>
             {% endif %}
         </a>
     </div>
 
+    <!-- Centre : titre -->
     <div class="navbar-title">
+        <i class="fas fa-calendar-check" style="color:#E8620A; margin-right:8px;"></i>
         Gestion de Présence —
-        {% if config and config.nom_etablissement %}
-            {{ config.nom_etablissement }}
-        {% else %}
-            ESTE Essaouira
-        {% endif %}
+        {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}
     </div>
 
-    <div class="d-flex align-items-center gap-2">
-        <div class="navbar-icon-btn position-relative">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            {% if nb_notifs and nb_notifs > 0 %}
-                <span class="notif-badge">{{ nb_notifs }}</span>
-            {% endif %}
+    <!-- Droite : langue + dark + notifs + user + déconnexion -->
+    <div style="display:flex; align-items:center; gap:8px;">
+
+        <!-- Langue dropdown -->
+        <div style="position:relative;" id="langueDropdown">
+            <button class="langue-btn" onclick="toggleLangue()">
+                <i class="fas fa-globe" style="font-size:13px;"></i>
+                {{ session.get('langue', 'fr')|upper }}
+                <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+            </button>
+            <div class="langue-menu" id="langueMenu">
+                <a href="{{ url_for('main.changer_langue', code='fr') }}"
+                   style="background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'fr' else 'transparent' }};">
+                    <span style="font-size:16px;">🇫🇷</span> Français
+                    {% if session.get('langue','fr') == 'fr' %}<i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>{% endif %}
+                </a>
+                <a href="{{ url_for('main.changer_langue', code='en') }}"
+                   style="background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'en' else 'transparent' }};">
+                    <span style="font-size:16px;">🇬🇧</span> English
+                    {% if session.get('langue','fr') == 'en' %}<i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>{% endif %}
+                </a>
+                <a href="{{ url_for('main.changer_langue', code='ar') }}"
+                   style="background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'ar' else 'transparent' }};">
+                    <span style="font-size:16px;">🇲🇦</span> العربية
+                    {% if session.get('langue','fr') == 'ar' %}<i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>{% endif %}
+                </a>
+            </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <div class="navbar-avatar">
+
+        <!-- Dark mode -->
+        <button class="dark-btn" id="toggleDark" onclick="toggleDarkMode()">
+            <i id="iconDark" class="fas fa-moon" style="font-size:13px;"></i>
+        </button>
+
+        <!-- Notifications -->
+        <div style="position:relative;">
+            <button class="dark-btn">
+                <i class="fas fa-bell" style="font-size:14px;"></i>
+                {% if nb_notifs and nb_notifs > 0 %}
+                    <span class="notif-badge">{{ nb_notifs }}</span>
+                {% endif %}
+            </button>
+        </div>
+
+        <!-- Utilisateur -->
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:34px; height:34px; border-radius:50%; background:#E8531A; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:white;">
                 {{ current_user.prenom[0] }}{{ current_user.nom[0] }}
             </div>
             <div class="d-none d-md-block">
-                <div style="font-size:13px; color:white; font-weight:600;">
+                <div style="font-size:13px; color:white; font-weight:600; line-height:1.2;">
                     {{ current_user.prenom }} {{ current_user.nom }}
                 </div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.5);">
+                <div style="font-size:10px; color:rgba(255,255,255,0.45);">
                     {{ current_user.role | capitalize }}
                 </div>
             </div>
         </div>
-        <a href="{{ url_for('auth.deconnexion') }}" class="navbar-icon-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
+
+        <!-- Déconnexion -->
+        <a href="{{ url_for('auth.deconnexion') }}"
+           style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); font-size:12px; font-weight:500; padding:7px 14px; border-radius:8px; text-decoration:none; display:flex; align-items:center; gap:6px;">
+            <i class="fas fa-right-from-bracket" style="font-size:13px;"></i>
+            <span class="d-none d-md-inline">Déconnexion</span>
         </a>
+
     </div>
-    
 </nav>
 
-<!-- SIDEBAR -->
+<!-- ═══════════ SIDEBAR ═══════════ -->
 <aside class="sidebar" id="sidebar">
     <ul class="list-unstyled mb-0 py-2">
 
@@ -88,99 +315,87 @@
         <li><span class="sidebar-section">Administration</span></li>
         <li>
             <a href="{{ url_for('admin.configuration') }}"
-            class="sidebar-link {{ 'actif' if request.endpoint == 'admin.configuration' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-                Configuration
+               class="sidebar-link {{ 'actif' if request.endpoint == 'admin.configuration' }}">
+                <i class="fas fa-gear"></i> Configuration
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.tableau_de_bord') }}"
-               class="sidebar-link {{ 'actif' if request.endpoint == 'admin.tableau_de_bord' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                </svg>
-                Tableau de bord
+            class="sidebar-link {{ 'actif' if request.endpoint == 'admin.tableau_de_bord' }}">
+                <i class="fas fa-table-cells-large"></i> {{ _('Tableau de bord') }}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.liste_utilisateurs') }}"
                class="sidebar-link {{ 'actif' if request.endpoint == 'admin.liste_utilisateurs' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                Utilisateurs
+                <i class="fas fa-users"></i> Utilisateurs
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'journal.liste_logs' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-                Journal sécurité
+            <a href="{{ url_for('admin.comptes_attente') }}"
+               class="sidebar-link {{ 'actif' if request.endpoint == 'admin.comptes_attente' }}">
+                <i class="fas fa-user-check"></i> Comptes en attente
+                {% if stats and stats.comptes_attente > 0 %}
+                    <span style="margin-left:auto; background:#E8531A; color:white; border-radius:50px; padding:1px 7px; font-size:10px; font-weight:700;">{{ stats.comptes_attente }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('journal.liste_logs') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint == 'journal.liste_logs' }}">
+                <i class="fas fa-shield-halved"></i> {{ _('Journal sécurité') }}
+                {% if stats and stats.get('critiques_24h', 0) > 0 %}
+                    <span style="margin-left:auto; background:#DB4437; color:white; border-radius:50px; padding:1px 7px; font-size:10px; font-weight:700;">{{ stats.critiques_24h }}</span>
+                {% elif stats and stats.get('warnings_24h', 0) > 0 %}
+                    <span style="margin-left:auto; background:#F4B400; color:white; border-radius:50px; padding:1px 7px; font-size:10px; font-weight:700;">{{ stats.warnings_24h }}</span>
+                {% endif %}
             </a>
         </li>
 
         {% elif current_user.role == 'agent' %}
-        <li><span class="sidebar-section">Scolarité</span></li>
+        <li><span class="sidebar-section">
+            {% if config and config.mode == 'entreprise' %}Ressources Humaines{% else %}Scolarité{% endif %}
+        </span></li>
         <li>
             <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'personnes.liste_personnes' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                </svg>
-                Étudiants
+                <i class="fas fa-users"></i>
+                {% if config and config.mode == 'entreprise' %}Employés{% else %}Étudiants{% endif %}
             </a>
         </li>
         <li>
             <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'rfid.liste_cartes' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                    <line x1="1" y1="10" x2="23" y2="10"/>
-                </svg>
-                Cartes RFID
+                <i class="fas fa-credit-card"></i> Cartes RFID
+            </a>
+        </li>
+        <li>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-camera"></i> Photos
             </a>
         </li>
 
         {% elif current_user.role == 'enseignant' %}
-        <li><span class="sidebar-section">Enseignement</span></li>
+        <li><span class="sidebar-section">
+            {% if config and config.mode == 'entreprise' %}Management{% else %}Enseignement{% endif %}
+        </span></li>
         <li>
             <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'emplois.liste_emplois' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                Emploi du temps
+                <i class="fas fa-calendar-week"></i>
+                {% if config and config.mode == 'entreprise' %}Planning{% else %}Emploi du temps{% endif %}
             </a>
         </li>
         <li>
             <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'sessions.liste_sessions' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                Sessions
+                <i class="fas fa-clock"></i> Sessions
+            </a>
+        </li>
+        <li>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-chart-bar"></i> Présences
             </a>
         </li>
         <li>
             <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'rapports.liste' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="20" x2="18" y2="10"/>
-                    <line x1="12" y1="20" x2="12" y2="4"/>
-                    <line x1="6" y1="20" x2="6" y2="14"/>
-                </svg>
-                Rapports
+                <i class="fas fa-file-chart-column"></i> Rapports
             </a>
         </li>
         {% endif %}
@@ -193,7 +408,7 @@
      style="display:none!important; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:899;"
      onclick="closeSidebar()"></div>
 
-<!-- CONTENU -->
+<!-- ═══════════ CONTENU ═══════════ -->
 <main class="main-wrapper">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -209,14 +424,15 @@
     {% block content %}{% endblock %}
 </main>
 
-<!-- FOOTER -->
+<!-- ═══════════ FOOTER ═══════════ -->
 <footer class="footer-este">
-    <span>© 2026 Système de Gestion de Présence — ESTE Essaouira</span>
+    <span>© 2026 Système de Gestion de Présence</span>
     <span class="footer-badge">PresencePro</span>
 </footer>
 
 {{ bootstrap.load_js() }}
 <script>
+// ── Sidebar mobile ──────────────────────────────────
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('sidebarOverlay');
 
@@ -224,11 +440,39 @@ document.getElementById('sidebarToggle')?.addEventListener('click', () => {
     sidebar.classList.toggle('show');
     overlay.style.display = sidebar.classList.contains('show') ? 'block' : 'none';
 });
-
 function closeSidebar() {
     sidebar.classList.remove('show');
     overlay.style.display = 'none';
 }
+
+// ── Dark mode ───────────────────────────────────────
+const html    = document.documentElement;
+const iconDark = document.getElementById('iconDark');
+const savedTheme = localStorage.getItem('theme') || 'light';
+html.setAttribute('data-theme', savedTheme);
+updateDarkIcon(savedTheme);
+
+function toggleDarkMode() {
+    const current = html.getAttribute('data-theme');
+    const next    = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateDarkIcon(next);
+}
+function updateDarkIcon(theme) {
+    iconDark.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// ── Langue dropdown ─────────────────────────────────
+function toggleLangue() {
+    const menu = document.getElementById('langueMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', (e) => {
+    if (!document.getElementById('langueDropdown').contains(e.target)) {
+        document.getElementById('langueMenu').style.display = 'none';
+    }
+});
 </script>
 {% block scripts %}{% endblock %}
 

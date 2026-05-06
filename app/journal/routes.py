@@ -8,6 +8,7 @@ from app.auth.decorateurs import role_requis
 from flask_login import current_user
 from flask_mail import Message
 from app import mail
+from flask import request, jsonify, Response, render_template
 
 
 # ============================================================
@@ -82,79 +83,78 @@ def envoyer_alerte(log):
 # CAS 1 — Liste des logs avec filtres
 # Accessible uniquement par l'admin
 # ============================================================
+@journal_bp.route('/')
 @journal_bp.route('/api/liste', methods=['GET'])
 @role_requis('admin')
 def liste_logs():
-    """
-    Retourne les logs filtrés et paginés.
-
-    Paramètres GET optionnels :
-        severite    → INFO, WARNING, CRITIQUE
-        type        → type_evenement exact
-        date_debut  → YYYY-MM-DD
-        date_fin    → YYYY-MM-DD
-        page        → numéro de page (défaut: 1)
-        par_page    → résultats par page (défaut: 20)
-    """
     # Récupérer les paramètres de filtrage
-    severite = request.args.get('severite')
+    severite       = request.args.get('severite')
     type_evenement = request.args.get('type')
     date_debut_str = request.args.get('date_debut')
-    date_fin_str = request.args.get('date_fin')
-    page = int(request.args.get('page', 1))
-    par_page = int(request.args.get('par_page', 20))
+    date_fin_str   = request.args.get('date_fin')
+    page           = int(request.args.get('page', 1))
+    par_page       = int(request.args.get('par_page', 20))
 
-    # Construire la requête avec les filtres
     query = JournalSecurite.query
 
     if severite:
         query = query.filter_by(severite=severite.upper())
-
     if type_evenement:
         query = query.filter_by(type_evenement=type_evenement)
-
     if date_debut_str:
         try:
             date_debut = datetime.strptime(date_debut_str, '%Y-%m-%d')
             query = query.filter(JournalSecurite.horodatage >= date_debut)
         except ValueError:
-            return jsonify({'succes': False, 'message': 'Format date_debut invalide'}), 400
-
+            pass
     if date_fin_str:
         try:
-            # Inclure toute la journée de date_fin
             date_fin = datetime.strptime(date_fin_str, '%Y-%m-%d') + timedelta(days=1)
             query = query.filter(JournalSecurite.horodatage <= date_fin)
         except ValueError:
-            return jsonify({'succes': False, 'message': 'Format date_fin invalide'}), 400
+            pass
 
-    # Trier par date décroissante — les plus récents en premier
     query = query.order_by(JournalSecurite.horodatage.desc())
-
-    # Pagination
     total = query.count()
-    logs = query.offset((page - 1) * par_page).limit(par_page).all()
+    logs  = query.offset((page - 1) * par_page).limit(par_page).all()
+    pages = (total + par_page - 1) // par_page
 
-    return jsonify({
-        'succes': True,
-        'pagination': {
-            'page': page,
-            'par_page': par_page,
-            'total': total,
-            'pages': (total + par_page - 1) // par_page
-        },
-        'logs': [{
-            'id': log.id,
-            'horodatage': log.horodatage.strftime('%d/%m/%Y %H:%M:%S'),
-            'type_evenement': log.type_evenement,
-            'severite': log.severite,
-            'description': log.description,
-            'adresse_ip': log.adresse_ip,
-            'utilisateur_id': log.utilisateur_id,
-            'personne_id': log.personne_id
-        } for log in logs]
-    }), 200
+    # Stats 24h
+    depuis_24h    = datetime.utcnow() - timedelta(hours=24)
+    infos_24h     = JournalSecurite.query.filter(JournalSecurite.horodatage >= depuis_24h, JournalSecurite.severite == 'INFO').count()
+    warnings_24h  = JournalSecurite.query.filter(JournalSecurite.horodatage >= depuis_24h, JournalSecurite.severite == 'WARNING').count()
+    critiques_24h = JournalSecurite.query.filter(JournalSecurite.horodatage >= depuis_24h, JournalSecurite.severite == 'CRITIQUE').count()
 
+    config = Configuration.get_config()
+
+    # Si requête API → JSON
+    if request.headers.get('Accept') == 'application/json' or request.args.get('format') == 'json':
+        return jsonify({
+            'succes': True,
+            'pagination': {'page': page, 'par_page': par_page, 'total': total, 'pages': pages},
+            'logs': [{'id': l.id, 'horodatage': l.horodatage.strftime('%d/%m/%Y %H:%M:%S'),
+                      'type_evenement': l.type_evenement, 'severite': l.severite,
+                      'description': l.description, 'adresse_ip': l.adresse_ip,
+                      'utilisateur_id': l.utilisateur_id} for l in logs]
+        }), 200
+
+    # Sinon → template HTML
+    return render_template(
+        'journal/liste_logs.html',
+        logs=logs,
+        total=total,
+        page=page,
+        pages=pages,
+        par_page=par_page,
+        infos_24h=infos_24h,
+        warnings_24h=warnings_24h,
+        critiques_24h=critiques_24h,
+        severite=severite,
+        type_evenement=type_evenement,
+        date_debut_str=date_debut_str,
+        date_fin_str=date_fin_str,
+        config=config
+    )
 
 # ============================================================
 # CAS 2 — Statistiques de sécurité

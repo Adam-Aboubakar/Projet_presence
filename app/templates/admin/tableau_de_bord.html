@@ -1,131 +1,316 @@
-{% extends 'base.html' %}
-{% block title %}Tableau de bord — Admin{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord — Administration{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <div>
-        <h4 class="fw-bold mb-0" style="color:#1E293B;">Tableau de bord</h4>
-        <p class="text-muted mb-0" style="font-size:13px;">
-            Bienvenue {{ current_user.prenom }} {{ current_user.nom }} !
-        </p>
-    </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+ 
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); transition: background 0.2s, color 0.2s; }
+
+  /* PAGE HEADER */
+  .page-header {
+    padding: 20px 28px 0;
+    display: flex; align-items: flex-start;
+    justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .page-header h1 { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: -0.3px; }
+  .page-header p  { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+  /* MODE BADGE */
+  .mode-badge { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:50px; font-size:12px; font-weight:600; }
+  .mode-badge.ecole      { background: var(--info-soft);    color: var(--info);    border: 1.5px solid var(--border); }
+  .mode-badge.entreprise { background: var(--success-soft); color: var(--success); border: 1.5px solid var(--border); }
+  .mode-dot { width:7px; height:7px; border-radius:50%; background:currentColor; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.85)} }
+
+  /* LAYOUT */
+  .dashboard-body { padding: 18px 28px 36px; display:flex; flex-direction:column; gap:20px; }
+
+  /* STAT CARDS */
+  .stat-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+  .stat-card {
+    background: var(--card); border-radius: var(--radius); padding: 12px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .stat-card.blue::before   { background: var(--info); }
+  .stat-card.green::before  { background: var(--success); }
+  .stat-card.orange::before { background: var(--accent); }
+  .stat-card.red::before    { background: var(--danger); }
+  .stat-card.gold::before   { background: var(--warning); }
+  .stat-card.dark::before   { background: var(--primary); }
+
+  .stat-icon { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; margin-bottom:8px; }
+  .stat-card.blue   .stat-icon { background: var(--info-soft);    color: var(--info); }
+  .stat-card.green  .stat-icon { background: var(--success-soft); color: var(--success); }
+  .stat-card.orange .stat-icon { background: var(--accent-soft);  color: var(--accent); }
+  .stat-card.red    .stat-icon { background: var(--danger-soft);  color: var(--danger); }
+  .stat-card.gold .stat-icon { background: #FEF08A; color: #92400E; }
+  .stat-card.dark   .stat-icon { background: var(--icon-dark-bg); color: var(--primary); }
+
+  .stat-value { font-size:18px; font-weight:700; letter-spacing:-0.3px; line-height:1; color:var(--text); font-family:'JetBrains Mono',monospace; }
+  .stat-label { font-size:11px; color:var(--text-muted); margin-top:3px; font-weight:500; }
+  .stat-sub   { font-size:10.5px; color:var(--text-muted); margin-top:7px; padding-top:7px; border-top:1px solid var(--border); display:flex; align-items:center; gap:4px; }
+  .stat-sub .up   { color: var(--success); }
+  .stat-sub .down { color: var(--danger); }
+
+  /* 2 COLONNES */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+  /* PANEL */
+  .panel { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; transition:background 0.2s, border-color 0.2s; }
+  .panel-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .panel-title  { font-size:13.5px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:7px; }
+  .panel-title i { color:var(--primary); font-size:15px; }
+  .panel-link   { font-size:12px; color:var(--info); text-decoration:none; font-weight:500; display:flex; align-items:center; gap:4px; transition:gap .15s; }
+  .panel-link:hover { gap:7px; }
+  .panel-body   { padding:4px 0; }
+
+  /* TABLE */
+  .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .data-table th { padding:9px 18px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); background:var(--bg); border-bottom:1px solid var(--border); }
+  .data-table td { padding:10px 18px; border-bottom:1px solid var(--row-border); vertical-align:middle; color:var(--text); }
+  .data-table tr:last-child td { border-bottom:none; }
+  .data-table tr:hover td { background:var(--row-hover); }
+
+  .user-info { display:flex; align-items:center; gap:9px; }
+  .avatar    { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:white; flex-shrink:0; }
+  .avatar.admin      { background: #1A3A5C; }
+  .avatar.agent      { background: #0F9D58; }
+  .avatar.enseignant { background: #1A73E8; }
+  .user-name { font-weight:600; font-size:13px; color:var(--text); }
+  .user-role { font-size:11.5px; color:var(--text-muted); margin-top:1px; }
+
+  /* BADGES */
+  .badge         { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-success { background:var(--success-soft); color:var(--success); }
+  .badge-danger  { background:var(--danger-soft);  color:var(--danger); }
+  .badge-warning { background:var(--warning-soft); color:var(--warning); }
+  .badge-info    { background:var(--info-soft);    color:var(--info); }
+  .badge-neutral { background:var(--icon-dark-bg); color:var(--text-muted); }
+
+  /* LOGS */
+  .log-item { padding:10px 18px; display:flex; align-items:flex-start; gap:10px; border-bottom:1px solid var(--row-border); transition:background .15s; }
+  .log-item:last-child { border-bottom:none; }
+  .log-item:hover { background:var(--row-hover); }
+  .log-icon-wrap { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .log-icon-wrap.info    { background:var(--info-soft);    color:var(--info); }
+  .log-icon-wrap.warning { background:var(--warning-soft); color:var(--warning); }
+  .log-icon-wrap.danger  { background:var(--danger-soft);  color:var(--danger); }
+  .log-icon-wrap.success { background:var(--success-soft); color:var(--success); }
+  .log-text    { flex:1; min-width:0; }
+  .log-message { font-size:13px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .log-meta    { font-size:11px; color:var(--text-muted); margin-top:2px; display:flex; gap:8px; }
+
+  /* PROGRESS */
+  .progress-row   { padding:10px 18px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--row-border); }
+  .progress-row:last-child { border-bottom:none; }
+  .progress-label { font-size:12.5px; font-weight:500; color:var(--text); width:130px; flex-shrink:0; }
+  .progress-track { flex:1; height:6px; background:var(--border); border-radius:50px; overflow:hidden; }
+  .progress-fill  { height:100%; border-radius:50px; transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+  .progress-pct   { font-size:12px; font-weight:600; width:34px; text-align:right; font-family:'JetBrains Mono',monospace; color:var(--text); }
+
+  /* EMPTY STATE */
+  .empty-state   { padding:30px 18px; text-align:center; color:var(--text-muted); }
+  .empty-state i { font-size:28px; opacity:.3; display:block; margin-bottom:8px; }
+  .empty-state p { font-size:13px; }
+
+  @media (max-width: 1100px) { .stat-grid { grid-template-columns: repeat(3,1fr); } }
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: repeat(2,1fr); }
+    .dashboard-body { padding: 16px 14px 32px; }
+    .page-header    { padding: 16px 14px 0; }
+  }
+</style>
+
+<!-- EN-TÊTE PAGE -->
+<div class="page-header">
+  <div>
+    <h1>{{ _('Tableau de bord') }}</h1>
+    <p>
+      {{ config.nom_etablissement or 'Établissement' }} &mdash;
+      {% if config.mode == 'ecole' %}Vue d'ensemble du système de présence
+      {% else %}Vue d'ensemble du système de pointage{% endif %}
+    </p>
+  </div>
+  <div class="mode-badge {{ config.mode }}">
+    <span class="mode-dot"></span>
+    {% if config.mode == 'ecole' %}
+      <i class="bi bi-mortarboard-fill"></i> {{ _('Mode École') }}
+    {% else %}
+      <i class="bi bi-building-fill"></i> {{ _('Mode Entreprise') }}
+    {% endif %}
+  </div>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="stat-card-bar orange"></div>
-            <div class="stat-card-body d-flex align-items-center gap-3">
-                <div class="stat-icon orange">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="stat-label">Utilisateurs</div>
-                    <div class="stat-value">{{ stats.utilisateurs_actifs }}</div>
-                </div>
-            </div>
-        </div>
+<div class="dashboard-body">
+
+  <!-- ══════════════════ STATS MODE ÉCOLE ══════════════════ -->
+  {% if config.mode == 'ecole' %}
+  <div class="stat-grid">
+
+    <div class="stat-card blue">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-value">{{ stats.nb_etudiants_actifs }}</div>
+      <div class="stat-label">{{ _('Étudiants actifs') }}</div>
+      <div class="stat-sub"><i class="bi bi-circle-fill" style="font-size:7px;color:var(--success)"></i> {{ _('Enregistrés dans le système') }}</div>
     </div>
 
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="stat-card-bar vert"></div>
-            <div class="stat-card-body d-flex align-items-center gap-3">
-                <div class="stat-icon vert">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="stat-label">Étudiants</div>
-                    <div class="stat-value">{{ stats.nombre_personnes }}</div>
-                </div>
-            </div>
-        </div>
+    <div class="stat-card green">
+      <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+      <div class="stat-value">{{ stats.sessions_aujourd_hui }}</div>
+      <div class="stat-label">{{ _('Sessions aujourd\'hui') }}</div>
+      <div class="stat-sub">
+        {% if stats.sessions_en_cours > 0 %}
+          <span class="up"><i class="bi bi-record-circle-fill" style="font-size:8px;"></i></span> {{ stats.sessions_en_cours }} en cours
+        {% else %}
+          <i class="bi bi-dash"></i> Aucune en cours
+        {% endif %}
+      </div>
     </div>
 
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="stat-card-bar bleu"></div>
-            <div class="stat-card-body d-flex align-items-center gap-3">
-                <div class="stat-icon bleu">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="stat-label">En attente</div>
-                    <div class="stat-value">{{ stats.comptes_attente }}</div>
-                </div>
-            </div>
-        </div>
+    <div class="stat-card orange">
+      <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
+      <div class="stat-value">{{ stats.taux_presence_global }}%</div>
+      <div class="stat-label">{{ _('Taux de présence global') }}</div>
+      <div class="stat-sub">
+        {% if stats.taux_presence_global >= 80 %}<span class="up"><i class="bi bi-arrow-up-short"></i> {{ _('Bon niveau') }}</span>
+        {% elif stats.taux_presence_global >= 60 %}<span style="color:var(--warning)"><i class="bi bi-dash"></i> {{ _('Moyen') }}</span>
+        {% else %}<span class="down"><i class="bi bi-arrow-down-short"></i> {{ _('Insuffisant') }}</span>{% endif %}
+      </div>
     </div>
 
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="stat-card-bar rouge"></div>
-            <div class="stat-card-body d-flex align-items-center gap-3">
-                <div class="stat-icon rouge">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="stat-label">Notifications</div>
-                    <div class="stat-value">{{ stats.notifications_non_lues }}</div>
-                </div>
-            </div>
-        </div>
+    <div class="stat-card red">
+      <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="stat-value">{{ stats.absences_critiques }}</div>
+      <div class="stat-label">{{ _('Absences critiques') }}</div>
+      <div class="stat-sub"><i class="bi bi-info-circle"></i> {{ _('Seuil dépassé — alerte envoyée') }}</div>
     </div>
+
+    <div class="stat-card gold">
+    <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
+    <div class="stat-value">{{ stats.comptes_attente }}</div>
+    <div class="stat-label">{{ _('Comptes en attente') }}</div>
+    <div class="stat-sub"><i class="bi bi-clock"></i> {{ _('Validation requise') }}</div>
+    </div>
+
+    <div class="stat-card dark">
+      <div class="stat-icon"><i class="bi bi-shield-lock-fill"></i></div>
+      <div class="stat-value">{{ stats.admins_actifs }}</div>
+      <div class="stat-label">{{ _('Administrateurs') }}</div>
+      <div class="stat-sub"><i class="bi bi-people"></i> {{ _('Limite : 3 comptes admin') }}</div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════ STATS MODE ENTREPRISE ══════════════════ -->
+  {% else %}
+  <div class="stat-grid">
+
+    <div class="stat-card blue">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-value">{{ stats.nb_employes_actifs }}</div>
+      <div class="stat-label">{{ _('Employés actifs') }}</div>
+      <div class="stat-sub"><i class="bi bi-circle-fill" style="font-size:7px;color:var(--success)"></i> {{ _('Tous sites confondus') }}</div>
+    </div>
+
+    <div class="stat-card green">
+      <div class="stat-icon"><i class="bi bi-fingerprint"></i></div>
+      <div class="stat-value">{{ stats.pointages_aujourd_hui }}</div>
+      <div class="stat-label">{{ _('Pointages aujourd\'hui') }}</div>
+      <div class="stat-sub"><i class="bi bi-clock-history"></i> {{ _('Entrées + sorties') }}</div>
+    </div>
+
+    <div class="stat-card orange">
+      <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-value">{{ stats.heures_travaillees_mois }}h</div>
+      <div class="stat-label">{{ _('Heures ce mois') }}</div>
+      <div class="stat-sub"><i class="bi bi-calendar3"></i> {{ _('Total des employés actifs') }}</div>
+    </div>
+
+    <div class="stat-card red">
+      <div class="stat-icon"><i class="bi bi-alarm-fill"></i></div>
+      <div class="stat-value">{{ stats.retards_aujourd_hui }}</div>
+      <div class="stat-label">{{ _('Retards aujourd\'hui') }}</div>
+      <div class="stat-sub">
+        {% if stats.retards_aujourd_hui == 0 %}<span class="up"><i class="bi bi-check-circle"></i> {{ _('Excellent') }}</span>
+        {% else %}<span class="down"><i class="bi bi-arrow-up-short"></i> {{ _('À traiter') }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="stat-card gold">
+    <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="stat-value">{{ stats.comptes_attente }}</div>
+    <div class="stat-label">{{ _('Comptes en attente') }}</div>
+    <div class="stat-sub"><i class="bi bi-clock"></i> {{ _('Validation requise') }}</div>
+    </div>
+
+    <div class="stat-card dark">
+      <div class="stat-icon"><i class="bi bi-shield-lock-fill"></i></div>
+      <div class="stat-value">{{ stats.admins_actifs }}</div>
+      <div class="stat-label">{{ _('Administrateurs') }}</div>
+      <div class="stat-sub"><i class="bi bi-people"></i> {{ _('Limite : 3 comptes admin') }}</div>
+    </div>
+
+  </div>
+  {% endif %}
+
+  <!-- ══════════════════ ROW 3 : PRÉSENCE PAR GROUPE + ACTIONS ══════════════════ -->
+  <div class="two-col">
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">
+          {% if config.mode == 'ecole' %}<i class="bi bi-diagram-3-fill"></i> {{ _('Présence par groupe') }}
+          {% else %}<i class="bi bi-building"></i> {{ _('Présence par site') }}{% endif %}
+        </span>
+      </div>
+      <div class="panel-body">
+        {% if stats_par_groupe %}
+          {% for item in stats_par_groupe %}
+          <div class="progress-row">
+            <div class="progress-label">{{ item.label }}</div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:{{ item.taux }}%; background:{% if item.taux >= 80 %}var(--success){% elif item.taux >= 60 %}var(--warning){% else %}var(--danger){% endif %};"></div>
+            </div>
+            <div class="progress-pct">{{ item.taux }}%</div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="empty-state"><i class="bi bi-bar-chart"></i><p>{{ _('Aucune donnée de présence disponible') }}</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
 </div>
 
-{% if notifications_recentes %}
-<div class="card-este mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Notifications récentes</span>
-        <a href="#" class="btn btn-este btn-sm">Voir tout</a>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="font-size:11px;">TYPE</th>
-                    <th style="font-size:11px;">MESSAGE</th>
-                    <th style="font-size:11px;">DATE</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for notif in notifications_recentes %}
-                <tr>
-                    <td><span class="badge badge-este rounded-pill">{{ notif.type_notification }}</span></td>
-                    <td style="font-size:13px;">{{ notif.titre }}</td>
-                    <td style="font-size:12px; color:#64748B;">{{ notif.cree_le.strftime('%d/%m/%Y %H:%M') }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% endif %}
+<script>
+document.querySelectorAll('.stat-card').forEach((card, i) => {
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(18px)';
+  setTimeout(() => {
+    card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+  }, 60 + i * 60);
+});
 
-<div class="card-este">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Administrateurs</span>
-        <span class="badge badge-este">{{ stats.nombre_admins }}/{{ stats.limite_admins }}</span>
-    </div>
-    <div class="p-3">
-        <p class="mb-0 text-muted" style="font-size:13px;">
-            {{ stats.nombre_admins }} administrateur(s) actif(s) sur {{ stats.limite_admins }} maximum.
-        </p>
-    </div>
-</div>
+document.querySelectorAll('.progress-fill, .limit-fill').forEach(bar => {
+  const w = bar.style.width;
+  bar.style.width = '0%';
+  setTimeout(() => { bar.style.width = w; }, 400);
+});
+</script>
 
 {% endblock %}

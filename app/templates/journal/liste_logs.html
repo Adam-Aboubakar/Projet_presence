@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Journal sécurité') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+  .page-header p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+  .journal-body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  /* STAT MINI CARDS */
+  .mini-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .mini-card {
+    background:var(--card); border-radius:var(--radius); padding:12px 14px;
+    border:1px solid var(--border); box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:12px;
+  }
+  .mini-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .mini-icon.info    { background:var(--info-soft);    color:var(--info); }
+  .mini-icon.warning { background:var(--warning-soft); color:var(--warning); }
+  .mini-icon.danger  { background:var(--danger-soft);  color:var(--danger); }
+  .mini-icon.neutral { background:var(--icon-dark-bg); color:var(--text-muted); }
+  .mini-val   { font-size:18px; font-weight:700; color:var(--text); font-family:'JetBrains Mono',monospace; line-height:1; }
+  .mini-label { font-size:11px; color:var(--text-muted); margin-top:2px; font-weight:500; }
+
+  /* FILTRES */
+  .filters-bar {
+    background:var(--card); border-radius:var(--radius-lg);
+    border:1px solid var(--border); box-shadow:var(--shadow);
+    padding:12px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .filter-select, .filter-input {
+    background:var(--input-bg); border:1.5px solid var(--border);
+    border-radius:var(--radius); padding:7px 11px;
+    font-size:12.5px; color:var(--text); font-family:'DM Sans',sans-serif;
+    transition:border-color 0.15s; outline:none;
+  }
+  .filter-select:focus, .filter-input:focus { border-color:var(--info); }
+  .filter-select option { background:var(--card); }
+  .filter-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+
+  .btn-filter {
+    background:var(--accent); color:white; border:none;
+    padding:7px 16px; border-radius:var(--radius);
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:'DM Sans',sans-serif;
+    display:flex; align-items:center; gap:6px;
+    transition:background 0.15s;
+  }
+  .btn-filter:hover { background:#D4400E; }
+
+  .btn-export {
+    background:var(--input-bg); color:var(--text);
+    border:1.5px solid var(--border); padding:7px 14px;
+    border-radius:var(--radius); font-size:12.5px; font-weight:600;
+    cursor:pointer; font-family:'DM Sans',sans-serif;
+    display:flex; align-items:center; gap:6px;
+    text-decoration:none; transition:background 0.15s;
+  }
+  .btn-export:hover { background:var(--border); }
+
+  .btn-reset {
+    background:transparent; color:var(--text-muted);
+    border:none; padding:7px 10px; border-radius:var(--radius);
+    font-size:12.5px; cursor:pointer; font-family:'DM Sans',sans-serif;
+    transition:color 0.15s;
+  }
+  .btn-reset:hover { color:var(--text); }
+
+  /* TABLE */
+  .table-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .table-header { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .table-title  { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:7px; }
+  .table-count  { font-size:12px; color:var(--text-muted); }
+
+  .data-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .data-table th { padding:9px 16px; text-align:left; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); background:var(--bg); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .data-table td { padding:10px 16px; border-bottom:1px solid var(--row-border); vertical-align:middle; color:var(--text); }
+  .data-table tr:last-child td { border-bottom:none; }
+  .data-table tr:hover td { background:var(--row-hover); }
+
+  /* SEVERITE BADGE */
+  .sev { display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:50px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .sev.info     { background:var(--info-soft);    color:var(--info); }
+  .sev.warning  { background:var(--warning-soft); color:var(--warning); }
+  .sev.critique { background:var(--danger-soft);  color:var(--danger); }
+
+  /* TYPE EVENT */
+  .type-event { font-size:12px; font-family:'JetBrains Mono',monospace; color:var(--text-muted); background:var(--bg); padding:2px 7px; border-radius:5px; }
+
+  /* IP */
+  .ip-text { font-size:11.5px; font-family:'JetBrains Mono',monospace; color:var(--text-muted); }
+
+  /* DESCRIPTION */
+  .desc-text { max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12.5px; }
+
+  /* HORODATAGE */
+  .time-text { font-size:12px; font-family:'JetBrains Mono',monospace; color:var(--text-muted); white-space:nowrap; }
+
+  /* PAGINATION */
+  .pagination-bar { padding:12px 18px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .pagination-info { font-size:12px; color:var(--text-muted); }
+  .pagination-btns { display:flex; gap:4px; }
+  .page-btn {
+    width:30px; height:30px; border-radius:7px; border:1.5px solid var(--border);
+    background:var(--input-bg); color:var(--text); font-size:12.5px;
+    font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    text-decoration:none; transition:all 0.15s; font-family:'DM Sans',sans-serif;
+  }
+  .page-btn:hover  { background:var(--border); }
+  .page-btn.actif  { background:var(--accent); color:white; border-color:var(--accent); }
+  .page-btn.disabled { opacity:0.4; pointer-events:none; }
+
+  /* EMPTY */
+  .empty-state { padding:40px; text-align:center; color:var(--text-muted); }
+  .empty-state i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
+
+  @media (max-width:900px) {
+    .mini-grid { grid-template-columns:repeat(2,1fr); }
+    .journal-body { padding:14px 14px 28px; }
+    .page-header  { padding:14px 14px 0; }
+  }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <h1>{{ _('Journal de sécurité') }}</h1>
+    <p>{{ _('Historique de tous les événements système') }}</p>
+  </div>
+  <a href="{{ url_for('journal.export_csv') }}{% if request.query_string %}?{{ request.query_string.decode() }}{% endif %}"
+     class="btn-export">
+    <i class="fas fa-file-csv"></i> {{ _('Exporter CSV') }}
+  </a>
+</div>
+
+<div class="journal-body">
+
+  <!-- STATS 24H -->
+  <div class="mini-grid">
+    <div class="mini-card">
+      <div class="mini-icon neutral"><i class="fas fa-list"></i></div>
+      <div>
+        <div class="mini-val">{{ total }}</div>
+        <div class="mini-label">{{ _('Total logs') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon info"><i class="fas fa-circle-info"></i></div>
+      <div>
+        <div class="mini-val">{{ infos_24h }}</div>
+        <div class="mini-label">{{ _('Info — 24h') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon warning"><i class="fas fa-triangle-exclamation"></i></div>
+      <div>
+        <div class="mini-val">{{ warnings_24h }}</div>
+        <div class="mini-label">{{ _('Warning — 24h') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon danger"><i class="fas fa-circle-xmark"></i></div>
+      <div>
+        <div class="mini-val">{{ critiques_24h }}</div>
+        <div class="mini-label">{{ _('Critique — 24h') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <form method="GET" action="{{ url_for('journal.liste_logs') }}">
+    <div class="filters-bar">
+      <span class="filter-label">{{ _('Filtres') }}</span>
+
+      <select name="severite" class="filter-select">
+        <option value="">{{ _('Toutes sévérités') }}</option>
+        <option value="INFO"     {{ 'selected' if severite == 'INFO' }}>INFO</option>
+        <option value="WARNING"  {{ 'selected' if severite == 'WARNING' }}>WARNING</option>
+        <option value="CRITIQUE" {{ 'selected' if severite == 'CRITIQUE' }}>CRITIQUE</option>
+      </select>
+
+      <input type="text" name="type" class="filter-input"
+             placeholder="{{ _('Type événement') }}"
+             value="{{ type_evenement or '' }}" style="width:160px;">
+
+      <span class="filter-label">{{ _('Du') }}</span>
+      <input type="date" name="date_debut" class="filter-input"
+             value="{{ date_debut_str or '' }}">
+
+      <span class="filter-label">{{ _('Au') }}</span>
+      <input type="date" name="date_fin" class="filter-input"
+             value="{{ date_fin_str or '' }}">
+
+      <button type="submit" class="btn-filter">
+        <i class="fas fa-magnifying-glass"></i> {{ _('Filtrer') }}
+      </button>
+      <a href="{{ url_for('journal.liste_logs') }}" class="btn-reset">
+        <i class="fas fa-xmark"></i> {{ _('Réinitialiser') }}
+      </a>
+    </div>
+  </form>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title">
+        <i class="fas fa-shield-halved" style="color:var(--primary);"></i>
+        {{ _('Événements') }}
+      </span>
+      <span class="table-count">{{ total }} {{ _('résultats') }}</span>
+    </div>
+
+    {% if logs %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ _('Date / Heure') }}</th>
+          <th>{{ _('Sévérité') }}</th>
+          <th>{{ _('Type événement') }}</th>
+          <th>{{ _('Description') }}</th>
+          <th>{{ _('Adresse IP') }}</th>
+          <th>{{ _('Résultat') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>
+            <span class="time-text">
+              {{ log.horodatage.strftime('%d/%m/%Y') }}<br>
+              <span style="opacity:.7;">{{ log.horodatage.strftime('%H:%M:%S') }}</span>
+            </span>
+          </td>
+          <td>
+            {% if log.severite == 'INFO' %}
+              <span class="sev info"><i class="fas fa-circle-info"></i> INFO</span>
+            {% elif log.severite == 'WARNING' %}
+              <span class="sev warning"><i class="fas fa-triangle-exclamation"></i> WARNING</span>
+            {% elif log.severite == 'CRITIQUE' %}
+              <span class="sev critique"><i class="fas fa-circle-xmark"></i> CRITIQUE</span>
+            {% else %}
+              <span class="sev info">{{ log.severite }}</span>
+            {% endif %}
+          </td>
+          <td><span class="type-event">{{ log.type_evenement }}</span></td>
+          <td><span class="desc-text" title="{{ log.description or '' }}">{{ log.description or '—' }}</span></td>
+          <td><span class="ip-text">{{ log.adresse_ip or '—' }}</span></td>
+          <td>
+            {% if log.resultat == 'succes' %}
+              <span class="sev info"><i class="fas fa-check"></i> {{ _('Succès') }}</span>
+            {% elif log.resultat == 'echec' %}
+              <span class="sev warning"><i class="fas fa-xmark"></i> {{ _('Échec') }}</span>
+            {% elif log.resultat == 'bloque' %}
+              <span class="sev critique"><i class="fas fa-ban"></i> {{ _('Bloqué') }}</span>
+            {% else %}
+              <span style="color:var(--text-muted); font-size:12px;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- PAGINATION -->
+    <div class="pagination-bar">
+      <span class="pagination-info">
+        {{ _('Page') }} {{ page }} / {{ pages }} — {{ total }} {{ _('entrées') }}
+      </span>
+      <div class="pagination-btns">
+        <a href="?page={{ page - 1 }}&severite={{ severite or '' }}&type={{ type_evenement or '' }}&date_debut={{ date_debut_str or '' }}&date_fin={{ date_fin_str or '' }}"
+           class="page-btn {{ 'disabled' if page <= 1 }}">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% for p in range([1, page-2]|max, [pages+1, page+3]|min) %}
+          <a href="?page={{ p }}&severite={{ severite or '' }}&type={{ type_evenement or '' }}&date_debut={{ date_debut_str or '' }}&date_fin={{ date_fin_str or '' }}"
+             class="page-btn {{ 'actif' if p == page }}">{{ p }}</a>
+        {% endfor %}
+        <a href="?page={{ page + 1 }}&severite={{ severite or '' }}&type={{ type_evenement or '' }}&date_debut={{ date_debut_str or '' }}&date_fin={{ date_fin_str or '' }}"
+           class="page-btn {{ 'disabled' if page >= pages }}">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-shield-halved"></i>
+      <p>{{ _('Aucun événement trouvé') }}</p>
+    </div>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}

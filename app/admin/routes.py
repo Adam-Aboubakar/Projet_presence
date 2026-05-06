@@ -35,8 +35,8 @@ Sécurité :
 """
 
 from flask import request, jsonify, redirect, url_for, flash, render_template, current_app
-from flask_login import current_user, logout_user
-from datetime import datetime, timezone
+from flask_login import current_user
+from datetime import datetime, timezone, date
 import secrets
 
 from app import db, bcrypt
@@ -53,7 +53,6 @@ from app.admin.email import (
 from app.auth.email import (
     envoyer_email_validation,
     envoyer_email_rejet,
-    envoyer_alerte_developpeur
 )
 
 
@@ -64,17 +63,6 @@ from app.auth.email import (
 def journaliser(type_evenement, severite, description,
                 destinataire='admin', utilisateur_id=None,
                 resultat=None):
-    """
-    Enregistrer un événement dans le journal de sécurité.
-
-    Args:
-        type_evenement (str) : ex: 'compte_valide', 'compte_rejete'
-        severite       (str) : 'info', 'warning' ou 'critique'
-        description    (str) : description lisible de l'événement
-        destinataire   (str) : 'admin', 'developpeur' ou 'les_deux'
-        utilisateur_id (str) : ID de l'utilisateur concerné (optionnel)
-        resultat       (str) : 'succes', 'echec' ou 'bloque'
-    """
     try:
         log = JournalSecurite(
             type_evenement=type_evenement,
@@ -92,67 +80,144 @@ def journaliser(type_evenement, severite, description,
 
 
 def verifier_action_sur_admin(utilisateur_cible):
-    """
-    Vérifier qu'un admin ne tente pas d'agir sur un autre admin
-    ou sur lui-même.
-
-    Returns:
-        tuple (bool, str) : (action_autorisee, message_erreur)
-    """
-    # Vérification 1 : pas d'action sur soi-même
     if utilisateur_cible.id == current_user.id:
-        return False, "Vous ne pouvez pas effectuer cette action sur votre propre compte. Contactez le développeur."
-
-    # Vérification 2 : pas d'action sur un autre admin
+        return False, "Vous ne pouvez pas effectuer cette action sur votre propre compte."
     if utilisateur_cible.role == 'admin':
         return False, "Action non autorisée. Les administrateurs sont indépendants."
-
     return True, None
 
 
 def get_statistiques():
     """
-    Récupérer les statistiques pour le tableau de bord admin.
-
-    Returns:
-        dict : dictionnaire contenant toutes les statistiques
+    Statistiques pour le tableau de bord admin.
+    Adaptées aux 2 modes (école / entreprise).
     """
-    from app.models import Personne, Session, Presence
+    from app.models import Personne, Session, Presence, Configuration
+    from sqlalchemy import func
 
-    return {
-        # Nombre d'admins actifs / limite
-        'nombre_admins': Utilisateur.nombre_admins(),
-        'limite_admins': 3,
+    config      = Configuration.get_config()
+    aujourd_hui = date.today()
 
-        # Comptes en attente de validation
-        'comptes_attente': Utilisateur.query.filter_by(
-            statut_compte='email_verifie'
-        ).count(),
+    # ── Commun aux 2 modes ──────────────────────────────────
+    admins_actifs          = Utilisateur.nombre_admins()
+    comptes_attente        = Utilisateur.query.filter_by(statut_compte='email_verifie').count()
+    utilisateurs_actifs    = Utilisateur.query.filter(
+        Utilisateur.statut_compte == 'actif',
+        Utilisateur.role.in_(['enseignant', 'agent'])
+    ).count()
+    utilisateurs_desactives = Utilisateur.query.filter_by(statut_compte='desactive').count()
+    notifications_non_lues  = Notification.compter_non_lues(current_user.id)
+    autres_admins           = Utilisateur.query.filter(
+        Utilisateur.role == 'admin',
+        Utilisateur.statut_compte == 'actif',
+        Utilisateur.id != current_user.id
+    ).all()
 
-        # Utilisateurs actifs (enseignants + agents)
-        'utilisateurs_actifs': Utilisateur.query.filter(
-            Utilisateur.statut_compte == 'actif',
-            Utilisateur.role.in_(['enseignant', 'agent'])
-        ).count(),
+    # ── Mode École ──────────────────────────────────────────
+    # Remplace tout le bloc Mode École dans get_statistiques()
 
-        # Utilisateurs désactivés
-        'utilisateurs_desactives': Utilisateur.query.filter_by(
-            statut_compte='desactive'
-        ).count(),
+    if config.mode == 'ecole':
+        nb_personnes         = Personne.query.filter_by(est_actif=True).count()
+        sessions_aujourd_hui = Session.query.filter(
+            func.date(Session.heure_debut) == aujourd_hui
+        ).count()
+        sessions_en_cours    = Session.query.filter(
+            func.date(Session.heure_debut) == aujourd_hui,
+            Session.statut == 'en_cours'
+        ).count()
 
-        # Personnes dans le système (étudiants/employés)
-        'nombre_personnes': Personne.query.filter_by(est_actif=True).count(),
+        debut_mois = date(aujourd_hui.year, aujourd_hui.month, 1)
+        total_p    = Presence.query.filter(
+            func.date(Presence.horodatage) >= debut_mois
+        ).count()
+        ok_p       = Presence.query.filter(
+            func.date(Presence.horodatage) >= debut_mois,
+            Presence.statut.in_(['present', 'retard'])
+        ).count()
+        taux_presence      = round((ok_p / total_p * 100) if total_p > 0 else 0)
+        absences_critiques = Presence.query.filter(
+            func.date(Presence.horodatage) == aujourd_hui,
+            Presence.statut == 'absent'
+        ).count()
 
-        # Notifications non lues pour l'admin connecté
-        'notifications_non_lues': Notification.compter_non_lues(current_user.id),
+        return {
+            'nombre_admins':           admins_actifs,
+            'limite_admins':           3,
+            'comptes_attente':         comptes_attente,
+            'utilisateurs_actifs':     utilisateurs_actifs,
+            'utilisateurs_desactives': utilisateurs_desactives,
+            'nombre_personnes':        nb_personnes,
+            'notifications_non_lues':  notifications_non_lues,
+            'autres_admins':           autres_admins,
+            'nb_etudiants_actifs':     nb_personnes,
+            'sessions_aujourd_hui':    sessions_aujourd_hui,
+            'sessions_en_cours':       sessions_en_cours,
+            'taux_presence_global':    taux_presence,
+            'absences_critiques':      absences_critiques,
+            'admins_actifs':           admins_actifs,
+        }
 
-        # Liste des autres admins pour la section contact
-        'autres_admins': Utilisateur.query.filter(
-            Utilisateur.role == 'admin',
-            Utilisateur.statut_compte == 'actif',
-            Utilisateur.id != current_user.id
-        ).all()
-    }
+    # Remplace tout le bloc Mode Entreprise dans get_statistiques()
+
+    else:
+        nb_personnes          = Personne.query.filter_by(est_actif=True).count()
+        pointages_aujourd_hui = Presence.query.filter(
+            func.date(Presence.horodatage) == aujourd_hui
+        ).count()
+
+        debut_mois    = date(aujourd_hui.year, aujourd_hui.month, 1)
+        heures_result = db.session.query(
+            func.sum(Presence.heures_travaillees)
+        ).filter(
+            func.date(Presence.horodatage) >= debut_mois,
+            Presence.heures_travaillees.isnot(None)
+        ).scalar()
+        heures_mois = round(heures_result or 0, 1)
+
+        retards = Presence.query.filter(
+            func.date(Presence.horodatage) == aujourd_hui,
+            Presence.statut == 'retard'
+        ).count()
+
+        return {
+            'nombre_admins':            admins_actifs,
+            'limite_admins':            3,
+            'comptes_attente':          comptes_attente,
+            'utilisateurs_actifs':      utilisateurs_actifs,
+            'utilisateurs_desactives':  utilisateurs_desactives,
+            'nombre_personnes':         nb_personnes,
+            'notifications_non_lues':   notifications_non_lues,
+            'autres_admins':            autres_admins,
+            'nb_employes_actifs':       nb_personnes,
+            'pointages_aujourd_hui':    pointages_aujourd_hui,
+            'heures_travaillees_mois':  heures_mois,
+            'retards_aujourd_hui':      retards,
+            'admins_actifs':            admins_actifs,
+        }
+
+def _presence_par_groupe():
+    """Taux de présence groupé par groupe_ou_site (max 6 lignes)."""
+    from app.models import Personne, Presence
+    try:
+        groupes = (
+            db.session.query(Personne.groupe_ou_site)
+            .filter(Personne.est_actif == True, Personne.groupe_ou_site.isnot(None))
+            .distinct().all()
+        )
+        result = []
+        for (groupe,) in groupes:
+            total = Presence.query.join(Personne, Presence.personne_id == Personne.id).filter(
+                Personne.groupe_ou_site == groupe
+            ).count()
+            ok = Presence.query.join(Personne, Presence.personne_id == Personne.id).filter(
+                Personne.groupe_ou_site == groupe,
+                Presence.statut.in_(['present', 'retard'])
+            ).count()
+            taux = round((ok / total * 100) if total > 0 else 0)
+            result.append({'label': groupe, 'taux': taux})
+        return result[:6]
+    except Exception:
+        return []
 
 
 # ============================================================
@@ -161,9 +226,14 @@ def get_statistiques():
 @admin.route('/tableau-de-bord')
 @role_requis('admin')
 def tableau_de_bord():
-    from app.models import Configuration
+    from app.models import Configuration, JournalSecurite
+
     config = Configuration.get_config()
-    stats = get_statistiques()
+    stats  = get_statistiques()
+ 
+
+    stats_par_groupe = _presence_par_groupe()
+
     notifications_recentes = Notification.query.filter_by(
         destinataire_id=current_user.id,
         est_lue=False
@@ -171,9 +241,10 @@ def tableau_de_bord():
 
     return render_template(
         'admin/tableau_de_bord.html',
+        config=config,
         stats=stats,
+        stats_par_groupe=stats_par_groupe,
         notifications_recentes=notifications_recentes,
-        config=config
     )
 
 
@@ -183,16 +254,10 @@ def tableau_de_bord():
 @admin.route('/comptes-attente')
 @role_requis('admin')
 def comptes_attente():
-    """
-    Liste des comptes avec statut = 'email_verifie'.
-    Ces comptes ont vérifié leur email et attendent la validation de l'admin.
-    L'admin choisit le rôle via boutons radio et valide ou rejette.
-    """
     comptes = Utilisateur.query.filter_by(
         statut_compte='email_verifie'
     ).order_by(Utilisateur.cree_le.asc()).all()
 
-    # Trier du plus ancien au plus récent (FIFO — premier arrivé, premier servi)
     return render_template(
         'admin/comptes_attente.html',
         comptes=comptes,
@@ -206,47 +271,29 @@ def comptes_attente():
 @admin.route('/valider/<string:utilisateur_id>', methods=['POST'])
 @role_requis('admin')
 def valider_compte(utilisateur_id):
-    """
-    Valider un compte en attente et lui attribuer un rôle.
-
-    L'admin choisit le rôle via boutons radio dans le formulaire :
-        ○ enseignant — Enseignant / Manager
-        ○ agent      — Agent de scolarité / RH
-
-    Sécurité :
-        - Vérification Optimistic Locking (version)
-        - Le compte doit être en statut 'email_verifie'
-        - Le rôle doit être 'enseignant' ou 'agent'
-    """
     utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
 
-    # Vérifier que le compte est bien en attente de validation
     if utilisateur.statut_compte != 'email_verifie':
         flash("Ce compte n'est plus en attente de validation.", 'warning')
         return redirect(url_for('admin.comptes_attente'))
 
-    # Récupérer le rôle choisi par l'admin
-    role_choisi = request.formulaire.get('role')
+    role_choisi = request.form.get('role')
 
-    # Vérifier qu'un rôle a bien été sélectionné
     if not role_choisi or role_choisi not in ['enseignant', 'agent']:
         flash("Veuillez sélectionner un rôle avant de valider.", 'danger')
         return redirect(url_for('admin.comptes_attente'))
 
     try:
-        # Mettre à jour le compte
         utilisateur.statut_compte = 'actif'
-        utilisateur.role = role_choisi
-        utilisateur.valide_par = current_user.id
-        utilisateur.valide_le = datetime.now(timezone.utc)
-        # L'Optimistic Locking incrémente automatiquement la version
-        utilisateur.version += 1
+        utilisateur.est_actif     = True
+        utilisateur.role          = role_choisi
+        utilisateur.valide_par    = current_user.id
+        utilisateur.valide_le     = datetime.now(timezone.utc)
+        utilisateur.version      += 1
         db.session.commit()
 
-        # Envoyer email à l'utilisateur
         envoyer_email_validation(utilisateur)
 
-        # Notifier les autres admins
         roles_affiches = {'enseignant': 'Enseignant', 'agent': 'Agent de scolarité'}
         Notification.notifier_admins(
             expediteur=current_user,
@@ -255,7 +302,6 @@ def valider_compte(utilisateur_id):
             contenu=f"Rôle attribué : {roles_affiches.get(role_choisi, role_choisi)}"
         )
 
-        # Journaliser
         journaliser(
             type_evenement='compte_valide',
             severite='info',
@@ -268,8 +314,6 @@ def valider_compte(utilisateur_id):
 
     except Exception as e:
         db.session.rollback()
-
-        # Vérifier si c'est un conflit Optimistic Locking
         if 'StaleDataError' in str(type(e)) or 'version' in str(e).lower():
             flash("Ce compte a déjà été traité par un autre administrateur.", 'warning')
         else:
@@ -285,40 +329,29 @@ def valider_compte(utilisateur_id):
 @admin.route('/rejeter/<string:utilisateur_id>', methods=['POST'])
 @role_requis('admin')
 def rejeter_compte(utilisateur_id):
-    """
-    Rejeter un compte en attente avec une raison obligatoire.
-
-    L'admin doit saisir une raison de rejet.
-    L'utilisateur reçoit un email avec la raison.
-    """
     utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
 
-    # Vérifier que le compte est bien en attente
     if utilisateur.statut_compte != 'email_verifie':
         flash("Ce compte n'est plus en attente de validation.", 'warning')
         return redirect(url_for('admin.comptes_attente'))
 
-    # Récupérer la raison du rejet
-    raison = request.formulaire.get('raison', '').strip()
+    raison = request.form.get('raison', '').strip()
 
-    # La raison est obligatoire
     if not raison:
         flash("Veuillez indiquer une raison de rejet.", 'danger')
         return redirect(url_for('admin.comptes_attente'))
 
     try:
-        # Mettre à jour le compte
         utilisateur.statut_compte = 'rejete'
-        utilisateur.raison_rejet = raison
-        utilisateur.valide_par = current_user.id
-        utilisateur.valide_le = datetime.now(timezone.utc)
-        utilisateur.version += 1
+        utilisateur.est_actif     = False
+        utilisateur.raison_rejet  = raison
+        utilisateur.valide_par    = current_user.id
+        utilisateur.valide_le     = datetime.now(timezone.utc)
+        utilisateur.version      += 1
         db.session.commit()
 
-        # Envoyer email à l'utilisateur avec la raison
         envoyer_email_rejet(utilisateur, raison)
 
-        # Notifier les autres admins
         Notification.notifier_admins(
             expediteur=current_user,
             type_notification='rejet',
@@ -326,7 +359,6 @@ def rejeter_compte(utilisateur_id):
             contenu=f"Raison : {raison}"
         )
 
-        # Journaliser
         journaliser(
             type_evenement='compte_rejete',
             severite='warning',
@@ -351,16 +383,8 @@ def rejeter_compte(utilisateur_id):
 @admin.route('/utilisateurs')
 @role_requis('admin')
 def liste_utilisateurs():
-    """
-    Liste de tous les enseignants et agents du système.
-    L'admin peut voir leurs informations, changer leur rôle,
-    désactiver ou réactiver leur compte.
-
-    Note : les autres admins ne sont PAS affichés ici.
-    """
-    # Récupérer uniquement enseignants et agents (pas les admins)
     utilisateurs = Utilisateur.query.filter(
-        Utilisateur.role.in_(['enseignant', 'agent']),
+        Utilisateur.role.in_(['enseignant', 'agent'])
     ).order_by(Utilisateur.cree_le.desc()).all()
 
     return render_template(
@@ -376,47 +400,32 @@ def liste_utilisateurs():
 @admin.route('/desactiver/<string:utilisateur_id>', methods=['POST'])
 @role_requis('admin')
 def desactiver_compte(utilisateur_id):
-    """
-    Désactiver le compte d'un enseignant ou agent.
-
-    Sécurité :
-        - Un admin ne peut pas désactiver son propre compte
-        - Un admin ne peut pas désactiver un autre admin
-        - L'utilisateur est déconnecté automatiquement
-        - Un email de notification lui est envoyé
-    """
     utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
 
-    # Vérifier les restrictions de sécurité
     autorise, message_erreur = verifier_action_sur_admin(utilisateur)
     if not autorise:
         flash(message_erreur, 'danger')
         return redirect(url_for('admin.liste_utilisateurs'))
 
-    # Vérifier que le compte n'est pas déjà désactivé
     if not utilisateur.est_actif or utilisateur.statut_compte == 'desactive':
         flash("Ce compte est déjà désactivé.", 'warning')
         return redirect(url_for('admin.liste_utilisateurs'))
 
     try:
-        # Désactiver le compte
-        utilisateur.est_actif = False
+        utilisateur.est_actif     = False
         utilisateur.statut_compte = 'desactive'
-        utilisateur.version += 1
+        utilisateur.version      += 1
         db.session.commit()
 
-        # Envoyer email à l'utilisateur
         envoyer_email_desactivation(utilisateur)
 
-        # Notifier les autres admins
         Notification.notifier_admins(
             expediteur=current_user,
             type_notification='desactivation',
             titre=f"{current_user.prenom} a désactivé le compte de {utilisateur.nom_complet()}",
-            contenu=f"Rôle : {utilisateur.role} — Email : {utilisateur.email}"
+            contenu=f"Rôle : {utilisateur.role}"
         )
 
-        # Journaliser
         journaliser(
             type_evenement='compte_desactive',
             severite='warning',
@@ -441,43 +450,32 @@ def desactiver_compte(utilisateur_id):
 @admin.route('/reactiver/<string:utilisateur_id>', methods=['POST'])
 @role_requis('admin')
 def reactiver_compte(utilisateur_id):
-    """
-    Réactiver le compte d'un enseignant ou agent désactivé.
-
-    L'utilisateur reçoit un email et peut se reconnecter.
-    """
     utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
 
-    # Vérifier les restrictions de sécurité
     autorise, message_erreur = verifier_action_sur_admin(utilisateur)
     if not autorise:
         flash(message_erreur, 'danger')
         return redirect(url_for('admin.liste_utilisateurs'))
 
-    # Vérifier que le compte est bien désactivé
     if utilisateur.est_actif and utilisateur.statut_compte == 'actif':
         flash("Ce compte est déjà actif.", 'warning')
         return redirect(url_for('admin.liste_utilisateurs'))
 
     try:
-        # Réactiver le compte
-        utilisateur.est_actif = True
+        utilisateur.est_actif     = True
         utilisateur.statut_compte = 'actif'
-        utilisateur.version += 1
+        utilisateur.version      += 1
         db.session.commit()
 
-        # Envoyer email à l'utilisateur
         envoyer_email_reactivation(utilisateur)
 
-        # Notifier les autres admins
         Notification.notifier_admins(
             expediteur=current_user,
             type_notification='reactivation',
             titre=f"{current_user.prenom} a réactivé le compte de {utilisateur.nom_complet()}",
-            contenu=f"Rôle : {utilisateur.role} — Email : {utilisateur.email}"
+            contenu=f"Rôle : {utilisateur.role}"
         )
 
-        # Journaliser
         journaliser(
             type_evenement='compte_reactive',
             severite='info',
@@ -502,52 +500,31 @@ def reactiver_compte(utilisateur_id):
 @admin.route('/changer-role/<string:utilisateur_id>', methods=['POST'])
 @role_requis('admin')
 def changer_role(utilisateur_id):
-    """
-    Changer le rôle d'un enseignant ou agent.
-
-    Après changement :
-        - L'utilisateur est déconnecté automatiquement
-        - Il reçoit un email l'informant du changement
-        - À sa reconnexion il voit ses nouvelles fonctionnalités
-
-    Sécurité :
-        - Pas d'action sur soi-même
-        - Pas d'action sur un autre admin
-        - Le nouveau rôle doit être différent de l'ancien
-    """
     utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
 
-    # Vérifier les restrictions de sécurité
     autorise, message_erreur = verifier_action_sur_admin(utilisateur)
     if not autorise:
         flash(message_erreur, 'danger')
         return redirect(url_for('admin.liste_utilisateurs'))
 
-    # Récupérer le nouveau rôle
-    nouveau_role = request.formulaire.get('nouveau_role')
+    nouveau_role = request.form.get('nouveau_role')
 
-    # Vérifier que le rôle est valide
     if not nouveau_role or nouveau_role not in ['enseignant', 'agent']:
         flash("Rôle invalide.", 'danger')
         return redirect(url_for('admin.liste_utilisateurs'))
 
-    # Vérifier que le rôle est différent de l'actuel
     if nouveau_role == utilisateur.role:
         flash("L'utilisateur a déjà ce rôle.", 'warning')
         return redirect(url_for('admin.liste_utilisateurs'))
 
     try:
-        ancien_role = utilisateur.role
-
-        # Mettre à jour le rôle
+        ancien_role      = utilisateur.role
         utilisateur.role = nouveau_role
         utilisateur.version += 1
         db.session.commit()
 
-        # Envoyer email à l'utilisateur
         envoyer_email_changement_role(utilisateur, ancien_role, nouveau_role)
 
-        # Notifier les autres admins
         roles_affiches = {'enseignant': 'Enseignant', 'agent': 'Agent de scolarité'}
         Notification.notifier_admins(
             expediteur=current_user,
@@ -556,7 +533,6 @@ def changer_role(utilisateur_id):
             contenu=f"{roles_affiches.get(ancien_role)} → {roles_affiches.get(nouveau_role)}"
         )
 
-        # Journaliser
         journaliser(
             type_evenement='changement_role',
             severite='info',
@@ -584,26 +560,7 @@ def changer_role(utilisateur_id):
 # ============================================================
 @admin.route('/creer-admin', methods=['POST'])
 def creer_admin():
-    """
-    Créer un nouveau compte administrateur.
-
-    Accès : développeur uniquement via token secret dans le header.
-    Ce n'est PAS une route admin normale — elle est accessible
-    sans être connecté mais nécessite le token secret.
-
-    Header requis :
-        X-Admin-Secret: [valeur de ADMIN_SECRET_TOKEN dans .env]
-
-    Body JSON :
-        { prenom, nom, email, departement }
-
-    Sécurité :
-        - Token secret vérifié avant tout
-        - Limite de 3 admins vérifiée
-        - Accessible uniquement par le développeur
-    """
-    # Vérifier le token secret
-    token_recu = request.headers.get('X-Admin-Secret', '')
+    token_recu    = request.headers.get('X-Admin-Secret', '')
     token_attendu = current_app.config.get('ADMIN_SECRET_TOKEN', '')
 
     if not token_attendu or token_recu != token_attendu:
@@ -614,12 +571,8 @@ def creer_admin():
             destinataire='developpeur',
             resultat='bloque'
         )
-        return jsonify({
-            'succes': False,
-            'message': 'Accès non autorisé.'
-        }), 403
+        return jsonify({'succes': False, 'message': 'Accès non autorisé.'}), 403
 
-    # Vérifier la limite de 3 admins
     if not Utilisateur.peut_ajouter_admin():
         return jsonify({
             'succes': False,
@@ -628,31 +581,17 @@ def creer_admin():
 
     donnees = request.get_json()
 
-    # Vérifier les données requises
-    champs_requis = ['prenom', 'nom', 'email', 'departement']
-    for champ in champs_requis:
+    for champ in ['prenom', 'nom', 'email', 'departement']:
         if not donnees or not donnees.get(champ):
-            return jsonify({
-                'succes': False,
-                'message': f"Champ requis manquant : {champ}"
-            }), 400
+            return jsonify({'succes': False, 'message': f"Champ requis manquant : {champ}"}), 400
 
-    # Vérifier que l'email n'existe pas déjà
     if Utilisateur.query.filter_by(email=donnees['email'].lower()).first():
-        return jsonify({
-            'succes': False,
-            'message': "Cette adresse email est déjà utilisée."
-        }), 400
+        return jsonify({'succes': False, 'message': "Cette adresse email est déjà utilisée."}), 400
 
     try:
-        # Générer un mot de passe temporaire sécurisé
-        # Format : Lettre majuscule + minuscules + chiffres + caractère spécial
-        mot_de_passe_temp = f"Admin@{secrets.token_hex(4).upper()}"
-        mot_de_passe_hache = bcrypt.generate_password_hash(
-            mot_de_passe_temp
-        ).decode('utf-8')
+        mot_de_passe_temp  = f"Admin@{secrets.token_hex(4).upper()}"
+        mot_de_passe_hache = bcrypt.generate_password_hash(mot_de_passe_temp).decode('utf-8')
 
-        # Créer le compte admin
         nouvel_admin = Utilisateur(
             prenom=donnees['prenom'].strip(),
             nom=donnees['nom'].strip(),
@@ -669,10 +608,8 @@ def creer_admin():
         db.session.add(nouvel_admin)
         db.session.commit()
 
-        # Envoyer les identifiants par email au nouvel admin
         envoyer_email_nouvel_admin(nouvel_admin, mot_de_passe_temp)
 
-        # Notifier les autres admins existants
         Notification.notifier_admins(
             expediteur=nouvel_admin,
             type_notification='nouvel_admin',
@@ -680,7 +617,6 @@ def creer_admin():
             contenu=f"{nouvel_admin.nom_complet()} ({nouvel_admin.email})"
         )
 
-        # Journaliser
         journaliser(
             type_evenement='nouvel_admin_cree',
             severite='info',
@@ -699,10 +635,7 @@ def creer_admin():
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Erreur création admin : {str(e)}")
-        return jsonify({
-            'succes': False,
-            'message': "Une erreur est survenue."
-        }), 500
+        return jsonify({'succes': False, 'message': "Une erreur est survenue."}), 500
 
 
 # ============================================================
@@ -711,10 +644,6 @@ def creer_admin():
 @admin.route('/notifications')
 @role_requis('admin')
 def liste_notifications():
-    """
-    Page listant toutes les notifications de l'admin connecté.
-    Triées de la plus récente à la plus ancienne.
-    """
     notifications = Notification.query.filter_by(
         destinataire_id=current_user.id
     ).order_by(Notification.cree_le.desc()).all()
@@ -732,12 +661,8 @@ def liste_notifications():
 @admin.route('/notifications/lire/<string:notif_id>', methods=['POST'])
 @role_requis('admin')
 def marquer_notification_lue(notif_id):
-    """
-    Marquer une notification spécifique comme lue.
-    """
     notification = Notification.query.get_or_404(notif_id)
 
-    # Vérifier que la notification appartient bien à l'admin connecté
     if notification.destinataire_id != current_user.id:
         return jsonify({'succes': False, 'message': 'Non autorisé.'}), 403
 
@@ -756,9 +681,6 @@ def marquer_notification_lue(notif_id):
 @admin.route('/notifications/lire-tout', methods=['POST'])
 @role_requis('admin')
 def marquer_tout_lu():
-    """
-    Marquer toutes les notifications non lues comme lues.
-    """
     Notification.query.filter_by(
         destinataire_id=current_user.id,
         est_lue=False
@@ -778,31 +700,22 @@ def marquer_tout_lu():
 @admin.route('/contacter/<string:admin_id>', methods=['POST'])
 @role_requis('admin')
 def contacter_admin(admin_id):
-    """
-    Envoyer un email à un autre administrateur.
-
-    Utilisé pour se consulter avant une action sensible
-    (changement de rôle, désactivation, etc.)
-    """
     admin_destinataire = Utilisateur.query.get_or_404(admin_id)
 
-    # Vérifier que c'est bien un admin
     if admin_destinataire.role != 'admin':
         flash("Cet utilisateur n'est pas un administrateur.", 'danger')
         return redirect(url_for('admin.tableau_de_bord'))
 
-    # Vérifier qu'on ne s'envoie pas un email à soi-même
     if admin_destinataire.id == current_user.id:
         flash("Vous ne pouvez pas vous envoyer un email à vous-même.", 'warning')
         return redirect(url_for('admin.tableau_de_bord'))
 
-    message = request.formulaire.get('message', '').strip()
+    message = request.form.get('message', '').strip()
 
     if not message:
         flash("Le message ne peut pas être vide.", 'danger')
         return redirect(url_for('admin.tableau_de_bord'))
 
-    # Envoyer l'email
     succes = envoyer_email_contact_admin(current_user, admin_destinataire, message)
 
     if succes:
@@ -819,21 +732,16 @@ def contacter_admin(admin_id):
 @admin.route('/api/statistiques')
 @api_role_requis('admin')
 def api_statistiques():
-    """
-    API REST — Statistiques du tableau de bord.
-    Utilisée par l'application mobile future.
-    """
     stats = get_statistiques()
-
     return jsonify({
         'succes': True,
         'statistiques': {
-            'admins': f"{stats['nombre_admins']}/{stats['limite_admins']}",
-            'comptes_attente': stats['comptes_attente'],
-            'utilisateurs_actifs': stats['utilisateurs_actifs'],
+            'admins':                  f"{stats['nombre_admins']}/{stats['limite_admins']}",
+            'comptes_attente':         stats['comptes_attente'],
+            'utilisateurs_actifs':     stats['utilisateurs_actifs'],
             'utilisateurs_desactives': stats['utilisateurs_desactives'],
-            'nombre_personnes': stats['nombre_personnes'],
-            'notifications_non_lues': stats['notifications_non_lues']
+            'nombre_personnes':        stats['nombre_personnes'],
+            'notifications_non_lues':  stats['notifications_non_lues']
         }
     }), 200
 
@@ -844,23 +752,20 @@ def api_statistiques():
 @admin.route('/api/comptes-attente')
 @api_role_requis('admin')
 def api_comptes_attente():
-    """
-    API REST — Liste des comptes en attente de validation.
-    """
     comptes = Utilisateur.query.filter_by(
         statut_compte='email_verifie'
     ).order_by(Utilisateur.cree_le.asc()).all()
 
     return jsonify({
         'succes': True,
-        'total': len(comptes),
+        'total':  len(comptes),
         'comptes': [
             {
-                'id': u.id,
+                'id':          u.id,
                 'nom_complet': u.nom_complet(),
-                'email': u.email,
+                'email':       u.email,
                 'departement': u.departement,
-                'cree_le': u.cree_le.isoformat() if u.cree_le else None
+                'cree_le':     u.cree_le.isoformat() if u.cree_le else None
             }
             for u in comptes
         ]
@@ -873,35 +778,24 @@ def api_comptes_attente():
 @admin.route('/api/valider/<string:utilisateur_id>', methods=['POST'])
 @api_role_requis('admin')
 def api_valider_compte(utilisateur_id):
-    """
-    API REST — Valider un compte et attribuer un rôle.
-
-    Body JSON :
-        { "role": "enseignant" ou "agent" }
-    """
     utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
 
     if utilisateur.statut_compte != 'email_verifie':
-        return jsonify({
-            'succes': False,
-            'message': "Ce compte n'est plus en attente."
-        }), 400
+        return jsonify({'succes': False, 'message': "Ce compte n'est plus en attente."}), 400
 
-    donnees = request.get_json()
+    donnees    = request.get_json()
     role_choisi = donnees.get('role') if donnees else None
 
     if not role_choisi or role_choisi not in ['enseignant', 'agent']:
-        return jsonify({
-            'succes': False,
-            'message': "Rôle invalide. Choisissez 'enseignant' ou 'agent'."
-        }), 400
+        return jsonify({'succes': False, 'message': "Rôle invalide. Choisissez 'enseignant' ou 'agent'."}), 400
 
     try:
         utilisateur.statut_compte = 'actif'
-        utilisateur.role = role_choisi
-        utilisateur.valide_par = current_user.id
-        utilisateur.valide_le = datetime.now(timezone.utc)
-        utilisateur.version += 1
+        utilisateur.est_actif     = True
+        utilisateur.role          = role_choisi
+        utilisateur.valide_par    = current_user.id
+        utilisateur.valide_le     = datetime.now(timezone.utc)
+        utilisateur.version      += 1
         db.session.commit()
 
         envoyer_email_validation(utilisateur)
@@ -913,17 +807,11 @@ def api_valider_compte(utilisateur_id):
             contenu=f"Rôle : {role_choisi}"
         )
 
-        return jsonify({
-            'succes': True,
-            'message': f"Compte validé avec le rôle {role_choisi}."
-        }), 200
+        return jsonify({'succes': True, 'message': f"Compte validé avec le rôle {role_choisi}."}), 200
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({
-            'succes': False,
-            'message': "Erreur lors de la validation."
-        }), 500
+        return jsonify({'succes': False, 'message': "Erreur lors de la validation."}), 500
 
 
 # ============================================================
@@ -932,25 +820,22 @@ def api_valider_compte(utilisateur_id):
 @admin.route('/api/utilisateurs')
 @api_role_requis('admin')
 def api_utilisateurs():
-    """
-    API REST — Liste des enseignants et agents.
-    """
     utilisateurs = Utilisateur.query.filter(
         Utilisateur.role.in_(['enseignant', 'agent'])
     ).order_by(Utilisateur.cree_le.desc()).all()
 
     return jsonify({
         'succes': True,
-        'total': len(utilisateurs),
+        'total':  len(utilisateurs),
         'utilisateurs': [
             {
-                'id': u.id,
-                'nom_complet': u.nom_complet(),
-                'email': u.email,
-                'role': u.role,
-                'departement': u.departement,
-                'statut_compte': u.statut_compte,
-                'est_actif': u.est_actif,
+                'id':                u.id,
+                'nom_complet':       u.nom_complet(),
+                'email':             u.email,
+                'role':              u.role,
+                'departement':       u.departement,
+                'statut_compte':     u.statut_compte,
+                'est_actif':         u.est_actif,
                 'derniere_connexion': u.derniere_connexion.isoformat() if u.derniere_connexion else None
             }
             for u in utilisateurs
@@ -964,24 +849,21 @@ def api_utilisateurs():
 @admin.route('/api/notifications')
 @api_role_requis('admin')
 def api_notifications():
-    """
-    API REST — Notifications de l'admin connecté.
-    """
     notifications = Notification.query.filter_by(
         destinataire_id=current_user.id
     ).order_by(Notification.cree_le.desc()).limit(20).all()
 
     return jsonify({
-        'succes': True,
-        'non_lues': Notification.compter_non_lues(current_user.id),
+        'succes':    True,
+        'non_lues':  Notification.compter_non_lues(current_user.id),
         'notifications': [
             {
-                'id': n.id,
-                'type': n.type_notification,
-                'titre': n.titre,
-                'contenu': n.contenu,
-                'est_lue': n.est_lue,
-                'cree_le': n.cree_le.isoformat() if n.cree_le else None
+                'id':                n.id,
+                'type':              n.type_notification,
+                'titre':             n.titre,
+                'contenu':           n.contenu,
+                'est_lue':           n.est_lue,
+                'cree_le':           n.cree_le.isoformat() if n.cree_le else None
             }
             for n in notifications
         ]
@@ -994,9 +876,6 @@ def api_notifications():
 @admin.route('/api/notifications/lire/<string:notif_id>', methods=['POST'])
 @api_role_requis('admin')
 def api_marquer_notification_lue(notif_id):
-    """
-    API REST — Marquer une notification comme lue.
-    """
     notification = Notification.query.get_or_404(notif_id)
 
     if notification.destinataire_id != current_user.id:
@@ -1006,12 +885,13 @@ def api_marquer_notification_lue(notif_id):
     db.session.commit()
 
     return jsonify({
-        'succes': True,
+        'succes':   True,
         'non_lues': Notification.compter_non_lues(current_user.id)
     }), 200
 
+
 # ============================================================
-# CONFIGURATION SYSTÈME
+# 20. CONFIGURATION SYSTÈME
 # ============================================================
 @admin.route('/configuration', methods=['GET', 'POST'])
 @role_requis('admin')
@@ -1021,20 +901,18 @@ def configuration():
 
     if request.method == 'POST':
         try:
-            config.nom_etablissement = request.form.get('nom_etablissement', '').strip()
-            config.adresse = request.form.get('adresse', '').strip()
-            config.ville = request.form.get('ville', '').strip()
-            config.telephone = request.form.get('telephone', '').strip()
-            config.site_web = request.form.get('site_web', '').strip()
+            config.nom_etablissement      = request.form.get('nom_etablissement', '').strip()
+            config.adresse                = request.form.get('adresse', '').strip()
+            config.ville                  = request.form.get('ville', '').strip()
+            config.telephone              = request.form.get('telephone', '').strip()
+            config.site_web               = request.form.get('site_web', '').strip()
             config.domaine_email_autorise = request.form.get('domaine_email_autorise', '').strip()
-            config.email_admin = request.form.get('email_admin', '').strip()
-            config.email_developpeur = request.form.get('email_developpeur', '').strip()
-            config.seuil_similarite = float(request.form.get('seuil_similarite', 0.9))
-            config.max_tentatives = int(request.form.get('max_tentatives', 5))
+            config.seuil_similarite       = float(request.form.get('seuil_similarite', 0.9))
+            config.max_tentatives         = int(request.form.get('max_tentatives', 5))
             config.tolerance_retard_defaut = int(request.form.get('tolerance_retard_defaut', 15))
-            config.duree_retention_jours = int(request.form.get('duree_retention_jours', 365))
+            config.duree_retention_jours  = int(request.form.get('duree_retention_jours', 365))
+            config.langue_defaut          = request.form.get('langue_defaut', 'fr')
 
-            # Gestion upload logo
             if 'logo' in request.files:
                 fichier = request.files['logo']
                 if fichier.filename != '':
@@ -1059,6 +937,7 @@ def configuration():
 
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(f"Erreur configuration : {str(e)}")
             flash('Erreur lors de la sauvegarde.', 'danger')
 
         return redirect(url_for('admin.configuration'))

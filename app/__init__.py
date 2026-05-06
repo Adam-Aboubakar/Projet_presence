@@ -45,6 +45,15 @@ def create_app(config_name='default'):
     login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
     login_manager.login_message_category = 'warning'
 
+    @app.context_processor
+    def inject_config():
+        try:
+            from app.models import Configuration
+            config = Configuration.get_config()
+            return {'config': config}
+        except Exception:
+            return {'config': None}
+
     from app.routes import main
     app.register_blueprint(main)
 

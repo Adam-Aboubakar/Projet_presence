@@ -1,136 +1,304 @@
-{% extends 'base.html' %}
-{% block title %}Configuration — Admin{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}{{ _('Configuration') }} — ESTE{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <div>
-        <h4 class="fw-bold mb-0" style="color:#1E293B;">Configuration système</h4>
-        <p class="text-muted mb-0" style="font-size:13px;">Paramètres généraux du système</p>
-    </div>
+<style>
+  /* LAYOUT */
+  .config-body { padding: 18px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  .page-header { padding: 18px 28px 0; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+  .page-header p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+  /* SECTION CARD */
+  .section-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; transition:background 0.2s, border-color 0.2s; }
+
+  .section-header { padding:11px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:9px; }
+  .section-icon { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .section-icon.blue   { background:var(--info-soft);    color:var(--info); }
+  .section-icon.green  { background:var(--success-soft); color:var(--success); }
+  .section-icon.orange { background:var(--accent-soft);  color:var(--accent); }
+  .section-icon.purple { background:#F3E8FF; color:#7C3AED; }
+  [data-theme="dark"] .section-icon.purple { background:#1E0D3A; color:#A855F7; }
+
+  .section-title    { font-size:13px; font-weight:600; color:var(--text); }
+  .section-subtitle { font-size:11px; color:var(--text-muted); margin-top:1px; }
+  .section-body { padding:16px; }
+
+  /* FORM */
+  .form-grid       { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+  .form-grid.three { grid-template-columns:1fr 1fr 1fr; }
+  .form-group      { display:flex; flex-direction:column; gap:5px; }
+  .form-group.full { grid-column:1/-1; }
+
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+  .form-input {
+    background:var(--input-bg); border:1.5px solid var(--border);
+    border-radius:var(--radius); padding:8px 11px;
+    font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif;
+    transition:border-color 0.15s, background 0.2s; width:100%;
+  }
+  .form-input:focus { outline:none; border-color:var(--info); }
+  .form-input::placeholder { color:var(--text-muted); font-size:12px; }
+  select.form-input { cursor:pointer; }
+  select.form-input option { background:var(--card); color:var(--text); }
+
+  .form-hint { font-size:11px; color:var(--text-muted); }
+
+  /* LOGO */
+  .logo-zone {
+    border:2px dashed var(--border); border-radius:var(--radius);
+    padding:14px; text-align:center; cursor:pointer;
+    transition:border-color 0.15s; background:var(--input-bg);
+    display:flex; align-items:center; justify-content:center; gap:10px;
+  }
+  .logo-zone:hover { border-color:var(--accent); }
+  .logo-zone i { font-size:20px; color:var(--text-muted); }
+  .logo-zone p { font-size:12px; color:var(--text-muted); }
+  .logo-preview { height:36px; max-width:120px; object-fit:contain; }
+
+  /* RANGE */
+  .range-wrap { display:flex; align-items:center; gap:10px; }
+  .range-wrap input[type="range"] { flex:1; accent-color:var(--accent); height:4px; }
+  .range-val {
+    font-size:12px; font-weight:700; min-width:44px; text-align:center;
+    font-family:'JetBrains Mono',monospace; color:var(--accent);
+    background:var(--accent-soft); padding:2px 7px; border-radius:6px;
+  }
+
+  /* ACTIONS */
+  .form-actions { display:flex; justify-content:flex-end; gap:8px; padding-top:14px; border-top:1px solid var(--border); margin-top:4px; }
+
+  .btn-save {
+    background:var(--accent); color:white; border:none;
+    padding:8px 20px; border-radius:var(--radius);
+    font-size:13px; font-weight:600; cursor:pointer;
+    font-family:'DM Sans',sans-serif;
+    display:flex; align-items:center; gap:7px; transition:background 0.15s;
+  }
+  .btn-save:hover { background:#D4400E; }
+
+  /* MODE BADGE (lecture seule) */
+  .mode-badge { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:50px; font-size:12px; font-weight:600; }
+  .mode-badge.ecole      { background:var(--info-soft);    color:var(--info);    border:1.5px solid var(--border); }
+  .mode-badge.entreprise { background:var(--success-soft); color:var(--success); border:1.5px solid var(--border); }
+  .mode-dot { width:7px; height:7px; border-radius:50%; background:currentColor; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.85)} }
+
+  @media (max-width:900px) {
+    .form-grid, .form-grid.three { grid-template-columns:1fr; }
+    .config-body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+  }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <h1>{{ _('Configuration') }}</h1>
+    <p>{{ _('Paramètres du système de présence') }}</p>
+  </div>
+  <div class="mode-badge {{ config.mode }}">
+    <span class="mode-dot"></span>
+    {% if config.mode == 'ecole' %}
+      <i class="fas fa-graduation-cap"></i> {{ _('Mode École') }}
+    {% else %}
+      <i class="fas fa-building"></i> {{ _('Mode Entreprise') }}
+    {% endif %}
+  </div>
 </div>
 
-<form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="config-body">
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('admin.configuration') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="row g-3">
-
-        <!-- Établissement -->
-        <div class="col-12 col-md-6">
-            <div class="card-este">
-                <div class="card-header">Établissement</div>
-                <div class="p-3">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Nom établissement</label>
-                        <input type="text" name="nom_etablissement" class="form-control"
-                               value="{{ config.nom_etablissement or '' }}" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Adresse</label>
-                        <input type="text" name="adresse" class="form-control"
-                               value="{{ config.adresse or '' }}" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Ville</label>
-                        <input type="text" name="ville" class="form-control"
-                               value="{{ config.ville or '' }}" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Téléphone</label>
-                        <input type="text" name="telephone" class="form-control"
-                               value="{{ config.telephone or '' }}" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Site web</label>
-                        <input type="text" name="site_web" class="form-control"
-                               value="{{ config.site_web or '' }}" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Logo établissement</label>
-                        {% if config.logo_path %}
-                            <div class="mb-2">
-                                <img src="{{ url_for('static', filename=config.logo_path) }}"
-                                     alt="Logo" style="height:40px;">
-                            </div>
-                        {% endif %}
-                        <input type="file" name="logo" class="form-control"
-                               accept="image/*" style="font-size:13px;">
-                        <div class="form-text">PNG ou SVG recommandé avec fond transparent</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Paramètres techniques -->
-        <div class="col-12 col-md-6">
-            <div class="card-este mb-3">
-                <div class="card-header">Sécurité & Accès</div>
-                <div class="p-3">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Domaine email autorisé</label>
-                        <input type="text" name="domaine_email_autorise" class="form-control"
-                               value="{{ config.domaine_email_autorise or '' }}"
-                               placeholder="uca.ac.ma" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Tentatives connexion max</label>
-                        <input type="number" name="max_tentatives" class="form-control"
-                               value="{{ config.max_tentatives or 5 }}"
-                               min="3" max="10" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Rétention logs (jours)</label>
-                        <input type="number" name="duree_retention_jours" class="form-control"
-                               value="{{ config.duree_retention_jours or 365 }}"
-                               min="30" style="font-size:13px;">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-este mb-3">
-                <div class="card-header">Présence & Pointage</div>
-                <div class="p-3">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">
-                            Seuil similarité DeepFace (%)
-                        </label>
-                        <input type="number" name="seuil_similarite" class="form-control"
-                               value="{{ (config.seuil_similarite * 100)|int if config.seuil_similarite else 90 }}"
-                               min="70" max="100" style="font-size:13px;">
-                        <div class="form-text">Recommandé : 90%</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">
-                            Tolérance retard par défaut (minutes)
-                        </label>
-                        <input type="number" name="tolerance_retard_defaut" class="form-control"
-                               value="{{ config.tolerance_retard_defaut or 15 }}"
-                               min="0" max="60" style="font-size:13px;">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-este">
-                <div class="card-header">Contacts système</div>
-                <div class="p-3">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Email administrateur</label>
-                        <input type="email" name="email_admin" class="form-control"
-                               value="{{ config.email_admin or '' }}" style="font-size:13px;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px;">Email développeur</label>
-                        <input type="email" name="email_developpeur" class="form-control"
-                               value="{{ config.email_developpeur or '' }}" style="font-size:13px;">
-                    </div>
-                </div>
-            </div>
-        </div>
+  <!-- ══ ÉTABLISSEMENT ══ -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon orange"><i class="fas fa-building"></i></div>
+      <div>
+        <div class="section-title">{{ _('Informations établissement') }}</div>
+        <div class="section-subtitle">{{ _('Nom, coordonnées et logo') }}</div>
+      </div>
     </div>
+    <div class="section-body">
+      <div class="form-grid">
 
-    <div class="mt-3">
-        <button type="submit" class="btn btn-este px-4">
-            Sauvegarder la configuration
+        <div class="form-group full">
+          <label class="form-label">{{ _('Nom établissement') }}</label>
+          <input type="text" name="nom_etablissement" class="form-input"
+                 value="{{ config.nom_etablissement or '' }}"
+                 placeholder="Ex: École Supérieure de Technologie">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Adresse') }}</label>
+          <input type="text" name="adresse" class="form-input"
+                 value="{{ config.adresse or '' }}" placeholder="Ex: Rue Mohamed V">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Ville') }}</label>
+          <input type="text" name="ville" class="form-input"
+                 value="{{ config.ville or '' }}" placeholder="Ex: Essaouira">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Téléphone') }}</label>
+          <input type="text" name="telephone" class="form-input"
+                 value="{{ config.telephone or '' }}" placeholder="Ex: +212 5XX-XXXXXX">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Site web') }}</label>
+          <input type="text" name="site_web" class="form-input"
+                 value="{{ config.site_web or '' }}" placeholder="Ex: https://este.ma">
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">{{ _('Logo') }}</label>
+          <div class="logo-zone" onclick="document.getElementById('logoInput').click()">
+            {% if config.logo_path %}
+              <img src="{{ url_for('static', filename=config.logo_path) }}"
+                   class="logo-preview" alt="Logo">
+              <p>{{ _('Cliquer pour changer') }}</p>
+            {% else %}
+              <i class="fas fa-image"></i>
+              <p>{{ _('Cliquer pour uploader un logo') }} — PNG, JPG</p>
+            {% endif %}
+          </div>
+          <input type="file" id="logoInput" name="logo" accept="image/*"
+                 style="display:none" onchange="previewLogo(this)">
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-save">
+          <i class="fas fa-floppy-disk"></i> {{ _('Sauvegarder') }}
         </button>
+      </div>
     </div>
+  </div>
+
+  <!-- ══ SÉCURITÉ & ACCÈS ══ -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon purple"><i class="fas fa-shield-halved"></i></div>
+      <div>
+        <div class="section-title">{{ _('Sécurité et accès') }}</div>
+        <div class="section-subtitle">{{ _('Domaine email, tentatives de connexion, rétention logs') }}</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Domaine email autorisé') }}</label>
+          <input type="text" name="domaine_email_autorise" class="form-input"
+                 value="{{ config.domaine_email_autorise or '' }}"
+                 placeholder="Ex: este.ac.ma">
+          <span class="form-hint">{{ _('Seuls les emails de ce domaine peuvent s\'inscrire') }}</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Tentatives de connexion max') }}</label>
+          <div class="range-wrap">
+            <input type="range" name="max_tentatives" min="3" max="10" step="1"
+                   value="{{ config.max_tentatives or 5 }}"
+                   oninput="document.getElementById('valTentatives').textContent = this.value">
+            <span class="range-val" id="valTentatives">{{ config.max_tentatives or 5 }}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Rétention des logs (jours)') }}</label>
+          <div class="range-wrap">
+            <input type="range" name="duree_retention_jours" min="30" max="730" step="30"
+                   value="{{ config.duree_retention_jours or 365 }}"
+                   oninput="document.getElementById('valRetention').textContent = this.value + ' j'">
+            <span class="range-val" id="valRetention">{{ config.duree_retention_jours or 365 }} j</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-save">
+          <i class="fas fa-floppy-disk"></i> {{ _('Sauvegarder') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PRÉSENCE & RECONNAISSANCE ══ -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon green"><i class="fas fa-person-circle-check"></i></div>
+      <div>
+        <div class="section-title">{{ _('Présence et reconnaissance') }}</div>
+        <div class="section-subtitle">{{ _('Seuil DeepFace, tolérance retard, langue') }}</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="form-grid three">
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Seuil similarité DeepFace') }}</label>
+          <div class="range-wrap">
+            <input type="range" name="seuil_similarite" min="0.5" max="1.0" step="0.05"
+                   value="{{ config.seuil_similarite or 0.9 }}"
+                   oninput="document.getElementById('valSeuil').textContent = (this.value*100).toFixed(0)+'%'">
+            <span class="range-val" id="valSeuil">{{ ((config.seuil_similarite or 0.9)*100)|int }}%</span>
+          </div>
+          <span class="form-hint">{{ _('Plus haut = plus strict') }}</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Tolérance retard (min)') }}</label>
+          <div class="range-wrap">
+            <input type="range" name="tolerance_retard_defaut" min="0" max="60" step="5"
+                   value="{{ config.tolerance_retard_defaut or 15 }}"
+                   oninput="document.getElementById('valRetard').textContent = this.value+' min'">
+            <span class="range-val" id="valRetard">{{ config.tolerance_retard_defaut or 15 }} min</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Langue par défaut') }}</label>
+          <select name="langue_defaut" class="form-input">
+            <option value="fr" {{ 'selected' if config.langue_defaut == 'fr' }}>🇫🇷 Français</option>
+            <option value="en" {{ 'selected' if config.langue_defaut == 'en' }}>🇬🇧 English</option>
+            <option value="ar" {{ 'selected' if config.langue_defaut == 'ar' }}>🇲🇦 العربية</option>
+          </select>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-save">
+          <i class="fas fa-floppy-disk"></i> {{ _('Sauvegarder') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
 </form>
+</div>
+
+<script>
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const zone = document.querySelector('.logo-zone');
+            zone.innerHTML = `
+                <img src="${e.target.result}" class="logo-preview" alt="Preview">
+                <p>{{ _('Cliquer pour changer') }}</p>
+            `;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
 {% endblock %}

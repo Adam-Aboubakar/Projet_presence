@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Utilisateurs') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+  .page-header p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+  .users-body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  /* MINI STATS */
+  .mini-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .mini-card { background:var(--card); border-radius:var(--radius); padding:12px 14px; border:1px solid var(--border); box-shadow:var(--shadow); display:flex; align-items:center; gap:12px; }
+  .mini-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .mini-icon.blue    { background:var(--info-soft);    color:var(--info); }
+  .mini-icon.green   { background:var(--success-soft); color:var(--success); }
+  .mini-icon.orange  { background:var(--accent-soft);  color:var(--accent); }
+  .mini-icon.red     { background:var(--danger-soft);  color:var(--danger); }
+  .mini-val   { font-size:18px; font-weight:700; color:var(--text); font-family:'JetBrains Mono',monospace; line-height:1; }
+  .mini-label { font-size:11px; color:var(--text-muted); margin-top:2px; font-weight:500; }
+
+  /* FILTRES */
+  .filters-bar { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); padding:12px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .filter-select, .filter-input { background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:7px 11px; font-size:12.5px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .filter-select:focus, .filter-input:focus { border-color:var(--info); }
+  .filter-select option { background:var(--card); }
+  .filter-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+  .btn-filter { background:var(--accent); color:white; border:none; padding:7px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
+  .btn-filter:hover { background:#D4400E; }
+  .btn-reset { background:transparent; color:var(--text-muted); border:none; padding:7px 10px; border-radius:var(--radius); font-size:12.5px; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; }
+  .btn-reset:hover { color:var(--text); }
+
+  /* TABLE */
+  .table-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .table-header { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .table-title  { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:7px; }
+  .table-count  { font-size:12px; color:var(--text-muted); }
+
+  .data-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .data-table th { padding:9px 16px; text-align:left; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); background:var(--bg); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .data-table td { padding:10px 16px; border-bottom:1px solid var(--row-border); vertical-align:middle; color:var(--text); }
+  .data-table tr:last-child td { border-bottom:none; }
+  .data-table tr:hover td { background:var(--row-hover); }
+
+  /* USER INFO */
+  .user-info  { display:flex; align-items:center; gap:10px; }
+  .avatar     { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:white; flex-shrink:0; }
+  .avatar.enseignant { background:#1A73E8; }
+  .avatar.agent      { background:#0F9D58; }
+  .user-name  { font-weight:600; font-size:13px; color:var(--text); }
+  .user-dept  { font-size:11px; color:var(--text-muted); margin-top:1px; }
+
+  /* BADGES */
+  .badge { display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-success { background:var(--success-soft); color:var(--success); }
+  .badge-danger  { background:var(--danger-soft);  color:var(--danger); }
+  .badge-warning { background:var(--warning-soft); color:var(--warning); }
+  .badge-info    { background:var(--info-soft);    color:var(--info); }
+  .badge-neutral { background:var(--icon-dark-bg); color:var(--text-muted); }
+
+  /* ACTIONS */
+  .actions { display:flex; align-items:center; gap:6px; }
+  .btn-action {
+    width:28px; height:28px; border-radius:7px; border:none;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:12px; transition:all 0.15s; text-decoration:none;
+  }
+  .btn-action.desactiver { background:var(--danger-soft);  color:var(--danger); }
+  .btn-action.desactiver:hover { background:var(--danger); color:white; }
+  .btn-action.reactiver  { background:var(--success-soft); color:var(--success); }
+  .btn-action.reactiver:hover  { background:var(--success); color:white; }
+  .btn-action.role       { background:var(--info-soft);    color:var(--info); }
+  .btn-action.role:hover { background:var(--info); color:white; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:24px; width:100%; max-width:420px; }
+  .modal-title { font-size:15px; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .modal-body  { font-size:13px; color:var(--text-muted); margin-bottom:18px; line-height:1.6; }
+  .modal-input { background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:8px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; width:100%; margin-top:10px; outline:none; }
+  .modal-input:focus { border-color:var(--info); }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; }
+  .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-confirm.danger { background:var(--danger); }
+  .btn-confirm.success { background:var(--success); }
+  .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  /* LAST CONN */
+  .last-conn { font-size:11.5px; font-family:'JetBrains Mono',monospace; color:var(--text-muted); }
+
+  /* EMPTY */
+  .empty-state { padding:40px; text-align:center; color:var(--text-muted); }
+  .empty-state i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
+
+  @media (max-width:900px) {
+    .mini-grid { grid-template-columns:repeat(2,1fr); }
+    .users-body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+  }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <h1>{{ _('Utilisateurs') }}</h1>
+    <p>{{ _('Gestion des enseignants et agents') }}</p>
+  </div>
+</div>
+
+<div class="users-body">
+
+  <!-- MINI STATS -->
+  <div class="mini-grid">
+    <div class="mini-card">
+      <div class="mini-icon blue"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="mini-val">{{ stats.utilisateurs_actifs }}</div>
+        <div class="mini-label">{{ _('Actifs') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon red"><i class="fas fa-user-slash"></i></div>
+      <div>
+        <div class="mini-val">{{ stats.utilisateurs_desactives }}</div>
+        <div class="mini-label">{{ _('Désactivés') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon green"><i class="fas fa-chalkboard-teacher"></i></div>
+      <div>
+        <div class="mini-val">{{ utilisateurs | selectattr('role','eq','enseignant') | list | length }}</div>
+        <div class="mini-label">
+          {% if config.mode == 'entreprise' %}{{ _('Managers') }}{% else %}{{ _('Enseignants') }}{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon orange"><i class="fas fa-id-badge"></i></div>
+      <div>
+        <div class="mini-val">{{ utilisateurs | selectattr('role','eq','agent') | list | length }}</div>
+        <div class="mini-label">
+          {% if config.mode == 'entreprise' %}{{ _('Agents RH') }}{% else %}{{ _('Agents scolarité') }}{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <form method="GET" action="{{ url_for('admin.liste_utilisateurs') }}">
+    <div class="filters-bar">
+      <span class="filter-label">{{ _('Filtres') }}</span>
+      <select name="role" class="filter-select">
+        <option value="">{{ _('Tous les rôles') }}</option>
+        <option value="enseignant" {{ 'selected' if request.args.get('role') == 'enseignant' }}>
+          {% if config.mode == 'entreprise' %}{{ _('Manager') }}{% else %}{{ _('Enseignant') }}{% endif %}
+        </option>
+        <option value="agent" {{ 'selected' if request.args.get('role') == 'agent' }}>
+          {% if config.mode == 'entreprise' %}{{ _('Agent RH') }}{% else %}{{ _('Agent scolarité') }}{% endif %}
+        </option>
+      </select>
+      <select name="statut" class="filter-select">
+        <option value="">{{ _('Tous les statuts') }}</option>
+        <option value="actif"    {{ 'selected' if request.args.get('statut') == 'actif' }}>{{ _('Actif') }}</option>
+        <option value="desactive" {{ 'selected' if request.args.get('statut') == 'desactive' }}>{{ _('Désactivé') }}</option>
+      </select>
+      <input type="text" name="q" class="filter-input"
+             placeholder="{{ _('Rechercher nom, prénom...') }}"
+             value="{{ request.args.get('q','') }}" style="width:180px;">
+      <button type="submit" class="btn-filter">
+        <i class="fas fa-magnifying-glass"></i> {{ _('Filtrer') }}
+      </button>
+      <a href="{{ url_for('admin.liste_utilisateurs') }}" class="btn-reset">
+        <i class="fas fa-xmark"></i> {{ _('Réinitialiser') }}
+      </a>
+    </div>
+  </form>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title">
+        <i class="fas fa-users" style="color:var(--primary);"></i>
+        {{ _('Liste des utilisateurs') }}
+      </span>
+      <span class="table-count">{{ utilisateurs | length }} {{ _('utilisateurs') }}</span>
+    </div>
+
+    {% if utilisateurs %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ _('Utilisateur') }}</th>
+          <th>{{ _('Rôle') }}</th>
+          <th>{{ _('Statut') }}</th>
+          <th>{{ _('Dernière connexion') }}</th>
+          <th>{{ _('Inscrit le') }}</th>
+          <th>{{ _('Actions') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in utilisateurs %}
+        <tr>
+          <td>
+            <div class="user-info">
+              <div class="avatar {{ u.role }}">{{ u.prenom[0]|upper }}{{ u.nom[0]|upper }}</div>
+              <div>
+                <div class="user-name">{{ u.prenom }} {{ u.nom }}</div>
+                <div class="user-dept">{{ u.departement or '—' }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            {% if u.role == 'enseignant' %}
+              <span class="badge badge-info">
+                <i class="fas fa-chalkboard-teacher"></i>
+                {% if config.mode == 'entreprise' %}{{ _('Manager') }}{% else %}{{ _('Enseignant') }}{% endif %}
+              </span>
+            {% elif u.role == 'agent' %}
+              <span class="badge badge-success">
+                <i class="fas fa-id-badge"></i>
+                {% if config.mode == 'entreprise' %}{{ _('Agent RH') }}{% else %}{{ _('Agent scolarité') }}{% endif %}
+              </span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.statut_compte == 'actif' %}
+              <span class="badge badge-success"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Actif') }}</span>
+            {% elif u.statut_compte == 'desactive' %}
+              <span class="badge badge-danger"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Désactivé') }}</span>
+            {% else %}
+              <span class="badge badge-neutral">{{ u.statut_compte }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="last-conn">
+              {% if u.derniere_connexion %}
+                {{ u.derniere_connexion.strftime('%d/%m/%Y') }}<br>
+                <span style="opacity:.7;">{{ u.derniere_connexion.strftime('%H:%M') }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </span>
+          </td>
+          <td>
+            <span class="last-conn">{{ u.cree_le.strftime('%d/%m/%Y') if u.cree_le else '—' }}</span>
+          </td>
+          <td>
+            <div class="actions">
+              <!-- Changer rôle -->
+              <button class="btn-action role" title="{{ _('Changer le rôle') }}"
+                      onclick="ouvrirModalRole('{{ u.id }}', '{{ u.prenom }} {{ u.nom }}', '{{ u.role }}')">
+                <i class="fas fa-arrow-right-arrow-left"></i>
+              </button>
+
+              <!-- Désactiver / Réactiver -->
+              {% if u.statut_compte == 'actif' %}
+                <button class="btn-action desactiver" title="{{ _('Désactiver') }}"
+                        onclick="ouvrirModalDesactiver('{{ u.id }}', '{{ u.prenom }} {{ u.nom }}')">
+                  <i class="fas fa-user-slash"></i>
+                </button>
+              {% else %}
+                <button class="btn-action reactiver" title="{{ _('Réactiver') }}"
+                        onclick="ouvrirModalReactiver('{{ u.id }}', '{{ u.prenom }} {{ u.nom }}')">
+                  <i class="fas fa-user-check"></i>
+                </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-users"></i>
+      <p>{{ _('Aucun utilisateur trouvé') }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- MODAL CHANGER RÔLE -->
+<div class="modal-overlay" id="modalRole">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-arrow-right-arrow-left" style="color:var(--info);"></i> {{ _('Changer le rôle') }}</div>
+    <div class="modal-body">
+      {{ _('Changer le rôle de') }} <strong id="roleNom"></strong> ?
+      <br>{{ _('L\'utilisateur sera déconnecté et devra se reconnecter.') }}
+      <select id="nouveauRole" class="modal-input" style="margin-top:12px;">
+        <option value="enseignant">
+          {% if config.mode == 'entreprise' %}{{ _('Manager') }}{% else %}{{ _('Enseignant') }}{% endif %}
+        </option>
+        <option value="agent">
+          {% if config.mode == 'entreprise' %}{{ _('Agent RH') }}{% else %}{{ _('Agent scolarité') }}{% endif %}
+        </option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <form id="formRole" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="nouveau_role" id="inputNouveauRole">
+        <button type="submit" class="btn-confirm"
+                onclick="document.getElementById('inputNouveauRole').value = document.getElementById('nouveauRole').value">
+          {{ _('Confirmer') }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DÉSACTIVER -->
+<div class="modal-overlay" id="modalDesactiver">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-user-slash" style="color:var(--danger);"></i> {{ _('Désactiver le compte') }}</div>
+    <div class="modal-body">
+      {{ _('Désactiver le compte de') }} <strong id="desactiverNom"></strong> ?
+      <br>{{ _('L\'utilisateur ne pourra plus se connecter.') }}
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <form id="formDesactiver" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-confirm danger">{{ _('Désactiver') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RÉACTIVER -->
+<div class="modal-overlay" id="modalReactiver">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-user-check" style="color:var(--success);"></i> {{ _('Réactiver le compte') }}</div>
+    <div class="modal-body">
+      {{ _('Réactiver le compte de') }} <strong id="reactiverNom"></strong> ?
+      <br>{{ _('L\'utilisateur pourra se reconnecter.') }}
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <form id="formReactiver" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-confirm success">{{ _('Réactiver') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function ouvrirModalRole(id, nom, roleActuel) {
+    document.getElementById('roleNom').textContent = nom;
+    document.getElementById('formRole').action = `/admin/changer-role/${id}`;
+    const sel = document.getElementById('nouveauRole');
+    sel.value = roleActuel === 'enseignant' ? 'agent' : 'enseignant';
+    document.getElementById('modalRole').classList.add('show');
+}
+
+function ouvrirModalDesactiver(id, nom) {
+    document.getElementById('desactiverNom').textContent = nom;
+    document.getElementById('formDesactiver').action = `/admin/desactiver/${id}`;
+    document.getElementById('modalDesactiver').classList.add('show');
+}
+
+function ouvrirModalReactiver(id, nom) {
+    document.getElementById('reactiverNom').textContent = nom;
+    document.getElementById('formReactiver').action = `/admin/reactiver/${id}`;
+    document.getElementById('modalReactiver').classList.add('show');
+}
+
+function fermerModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+// Fermer en cliquant dehors
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', (e) => {
+        if (e.target === m) fermerModals();
+    });
+});
+</script>
+
+{% endblock %}

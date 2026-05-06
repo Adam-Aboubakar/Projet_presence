@@ -662,3 +662,11 @@ def api_statut_compte():
         'statut': utilisateur.statut_compte,
         'role': utilisateur.role
     }), 200
+
+@auth.route('/langue/<string:lang>', methods=['POST'])
+@login_required
+def changer_langue(lang):
+    from flask import session
+    if lang in ['fr', 'ar', 'en']:
+        session['langue'] = lang
+    return jsonify({'succes': True})
