@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — ESTE Essaouira</title>
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="page-auth">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <div class="auth-logo">
+                {% if config and config.logo_path %}
+                    <img src="{{ url_for('static', filename=config.logo_path) }}" alt="Logo" style="height:30px;">
+                {% else %}
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                {% endif %}
+            </div>
+            <h1>
+                {% if config and config.nom_etablissement %}
+                    {{ config.nom_etablissement }}
+                {% else %}
+                    ESTE Essaouira
+                {% endif %}
+            </h1>
+            <p>Connectez-vous à votre compte</p>
+        </div>
+
+        <div class="p-4">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for categorie, message in messages %}
+                        <div class="alert alert-{{ 'success' if categorie == 'success' else 'danger' if categorie == 'danger' else 'warning' if categorie == 'warning' else 'info' }} alert-dismissible fade show py-2" role="alert" style="font-size:13px;">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('auth.connexion') }}">
+                {{ formulaire.hidden_tag() }}
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:13px;">Adresse email</label>
+                    <input type="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="votre@email.com"
+                           value="{{ formulaire.email.data or '' }}"
+                           style="font-size:13px;"
+                           required>
+                    {% if formulaire.email.errors %}
+                        <div class="text-danger mt-1" style="font-size:12px;">{{ formulaire.email.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" style="font-size:13px;">Mot de passe</label>
+                    <div class="input-group">
+                        <input type="password"
+                               id="mot_de_passe"
+                               name="mot_de_passe"
+                               class="form-control"
+                               placeholder="••••••••"
+                               style="font-size:13px;"
+                               required>
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                onclick="togglePassword()"
+                                style="border-color:#dee2e6;">
+                            <svg id="icon-eye" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% if formulaire.mot_de_passe.errors %}
+                        <div class="text-danger mt-1" style="font-size:12px;">{{ formulaire.mot_de_passe.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-este w-100 py-2">
+                    Se connecter
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center pb-3" style="font-size:13px; color:#64748B;">
+            Pas encore de compte ?
+            <a href="{{ url_for('auth.inscription') }}" style="color:var(--este-primary); font-weight:600;">
+                S'inscrire
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{{ bootstrap.load_js() }}
+<script>
+function togglePassword() {
+    const input = document.getElementById('mot_de_passe');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+</script>
+</body>
+</html>

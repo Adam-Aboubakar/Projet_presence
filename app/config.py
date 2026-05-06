@@ -44,7 +44,11 @@ class Config:
 
     # Token secret pour la création d'admin par le développeur
     ADMIN_SECRET_TOKEN = os.getenv('ADMIN_SECRET_TOKEN')
-
+    # --- Internationalisation ---
+    LANGUAGES = ['fr', 'en', 'ar']
+    BABEL_DEFAULT_LOCALE = 'fr'
+    BABEL_DEFAULT_TIMEZONE = 'Africa/Casablanca'
+    BABEL_TRANSLATION_DIRECTORIES = os.path.join(os.path.dirname(__file__), 'translations')
 
 class DevelopmentConfig(Config):
     DEBUG = True

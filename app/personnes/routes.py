@@ -437,7 +437,7 @@ def desactiver(personne_id):
         current_app.logger.error(f"Erreur désactivation : {str(e)}")
         flash("Une erreur est survenue.", 'danger')
 
-    return redirect(url_for('personnes.liste'))
+    return redirect(url_for('personnes.liste_personnes'))
 
 
 # ============================================================
@@ -494,7 +494,7 @@ def fin_contrat(personne_id):
     """
     if get_mode() != 'entreprise':
         flash("Cette fonctionnalité n'est disponible qu'en mode entreprise.", 'warning')
-        return redirect(url_for('personnes.liste'))
+        return redirect(url_for('personnes.liste_personnes'))
 
     personne = Personne.query.get_or_404(personne_id)
     formulaire = FormulaireFinContrat()

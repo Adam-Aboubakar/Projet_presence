@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}Configuration — Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold mb-0" style="color:#1E293B;">Configuration système</h4>
+        <p class="text-muted mb-0" style="font-size:13px;">Paramètres généraux du système</p>
+    </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row g-3">
+
+        <!-- Établissement -->
+        <div class="col-12 col-md-6">
+            <div class="card-este">
+                <div class="card-header">Établissement</div>
+                <div class="p-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Nom établissement</label>
+                        <input type="text" name="nom_etablissement" class="form-control"
+                               value="{{ config.nom_etablissement or '' }}" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Adresse</label>
+                        <input type="text" name="adresse" class="form-control"
+                               value="{{ config.adresse or '' }}" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Ville</label>
+                        <input type="text" name="ville" class="form-control"
+                               value="{{ config.ville or '' }}" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Téléphone</label>
+                        <input type="text" name="telephone" class="form-control"
+                               value="{{ config.telephone or '' }}" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Site web</label>
+                        <input type="text" name="site_web" class="form-control"
+                               value="{{ config.site_web or '' }}" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Logo établissement</label>
+                        {% if config.logo_path %}
+                            <div class="mb-2">
+                                <img src="{{ url_for('static', filename=config.logo_path) }}"
+                                     alt="Logo" style="height:40px;">
+                            </div>
+                        {% endif %}
+                        <input type="file" name="logo" class="form-control"
+                               accept="image/*" style="font-size:13px;">
+                        <div class="form-text">PNG ou SVG recommandé avec fond transparent</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paramètres techniques -->
+        <div class="col-12 col-md-6">
+            <div class="card-este mb-3">
+                <div class="card-header">Sécurité & Accès</div>
+                <div class="p-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Domaine email autorisé</label>
+                        <input type="text" name="domaine_email_autorise" class="form-control"
+                               value="{{ config.domaine_email_autorise or '' }}"
+                               placeholder="uca.ac.ma" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Tentatives connexion max</label>
+                        <input type="number" name="max_tentatives" class="form-control"
+                               value="{{ config.max_tentatives or 5 }}"
+                               min="3" max="10" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Rétention logs (jours)</label>
+                        <input type="number" name="duree_retention_jours" class="form-control"
+                               value="{{ config.duree_retention_jours or 365 }}"
+                               min="30" style="font-size:13px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-este mb-3">
+                <div class="card-header">Présence & Pointage</div>
+                <div class="p-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">
+                            Seuil similarité DeepFace (%)
+                        </label>
+                        <input type="number" name="seuil_similarite" class="form-control"
+                               value="{{ (config.seuil_similarite * 100)|int if config.seuil_similarite else 90 }}"
+                               min="70" max="100" style="font-size:13px;">
+                        <div class="form-text">Recommandé : 90%</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">
+                            Tolérance retard par défaut (minutes)
+                        </label>
+                        <input type="number" name="tolerance_retard_defaut" class="form-control"
+                               value="{{ config.tolerance_retard_defaut or 15 }}"
+                               min="0" max="60" style="font-size:13px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-este">
+                <div class="card-header">Contacts système</div>
+                <div class="p-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Email administrateur</label>
+                        <input type="email" name="email_admin" class="form-control"
+                               value="{{ config.email_admin or '' }}" style="font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Email développeur</label>
+                        <input type="email" name="email_developpeur" class="form-control"
+                               value="{{ config.email_developpeur or '' }}" style="font-size:13px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-este px-4">
+            Sauvegarder la configuration
+        </button>
+    </div>
+</form>
+{% endblock %}

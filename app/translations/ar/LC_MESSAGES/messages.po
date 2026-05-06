@@ -1,0 +1,72 @@
+# Arabic translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-05-05 23:30+0100\n"
+"PO-Revision-Date: 2026-05-05 23:36+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ar\n"
+"Language-Team: ar <LL@li.org>\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : "
+"n%100>=3 && n%100<=10 ? 3 : n%100>=0 && n%100<=2 ? 4 : 5);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "Accueil"
+msgstr "الرئيسية"
+
+msgid "Gestion de Présence"
+msgstr "إدارة الحضور"
+
+msgid "Mon espace"
+msgstr "فضائي"
+
+msgid "Déconnexion"
+msgstr "تسجيل الخروج"
+
+msgid "Tableau de bord en temps réel"
+msgstr "لوحة القيادة في الوقت الفعلي"
+
+msgid "Rafraîchissement automatique toutes les 30s"
+msgstr "تحديث تلقائي كل 30 ثانية"
+
+msgid "Sessions actives"
+msgstr "الجلسات النشطة"
+
+msgid "À venir"
+msgstr "القادمة"
+
+msgid "Étudiants pointés"
+msgstr "الطلاب المسجلون"
+
+msgid "Sessions en cours"
+msgstr "الجلسات الجارية"
+
+msgid "Horaire"
+msgstr "التوقيت"
+
+msgid "Présents"
+msgstr "الحاضرون"
+
+msgid "En cours"
+msgstr "جارية"
+
+msgid "Aucune session en cours pour le moment"
+msgstr "لا توجد جلسة جارية في الوقت الحالي"
+
+msgid "Sessions à venir aujourd'hui"
+msgstr "الجلسات القادمة اليوم"
+
+msgid "Aucune session prévue pour aujourd'hui"
+msgstr "لا توجد جلسات مخططة لهذا اليوم"
+
+msgid "Système de Gestion de Présence"
+msgstr "نظام إدارة الحضور"
+

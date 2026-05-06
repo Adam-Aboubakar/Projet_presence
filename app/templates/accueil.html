@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('langue', 'fr') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Accueil') }} — ESTE Essaouira</title>
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta http-equiv="refresh" content="30">
+    <style>
+        body { background:#1C2B3A; margin:0; font-family:'Plus Jakarta Sans',sans-serif; display:flex; flex-direction:column; min-height:100vh; transition: background 0.3s; }
+        body.light { background:#F1F5F9; }
+        body.light nav { background:#1C2B3A !important; }
+        body.light .header-stats { background:#152030 !important; }
+        body.light .session-card { background:white !important; border-color:#E2E8F0 !important; }
+        body.light .session-card .nom { color:#1E293B !important; }
+        body.light .session-card .sub { color:#64748B !important; }
+        body.light .session-card .horaire { color:#1E293B !important; }
+        body.light .session-card .label { color:#64748B !important; }
+        body.light .session-avenir-card { background:white !important; border-color:#E2E8F0 !important; }
+        body.light .session-avenir-card .nom { color:#1E293B !important; }
+        body.light .session-avenir-card .sub { color:#64748B !important; }
+        body.light .session-avenir-card .horaire { color:#64748B !important; }
+        body.light .section-label { color:#64748B !important; }
+        body.light .empty-card { background:#F8FAFC !important; border-color:#E2E8F0 !important; color:#94A3B8 !important; }
+        body.light footer { border-color:#E2E8F0 !important; }
+        body.light footer span { color:#94A3B8 !important; }
+        .sessions-encours { max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+        .sessions-avenir { display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; -webkit-overflow-scrolling:touch; }
+        .session-avenir-card { min-width:220px; flex-shrink:0; background:rgba(255,255,255,0.06); border:0.5px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px 16px; }
+        .section-label { font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+        @media (min-width:769px) { *{ scrollbar-width:none; } ::-webkit-scrollbar{ width:0; background:transparent; } }
+        @media (max-width:768px) { .navbar-title{ display:none; } }
+    </style>
+</head>
+<body id="mainBody">
+
+<!-- NAVBAR -->
+<nav style="background:#1C2B3A; padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; position:relative; border-bottom:1px solid rgba(255,255,255,0.08);">
+
+    <!-- Logo -->
+    <div style="min-width:95px; display:flex; align-items:center;">
+        <a href="{{ url_for('main.index') }}" style="display:flex; align-items:center;">
+            {% if config and config.logo_path %}
+                <img src="{{ url_for('static', filename=config.logo_path) }}"
+                    alt="Logo" style="height:34px; max-width:85px; object-fit:contain;">
+            {% else %}
+                <div style="width:38px; height:38px; background:#E8620A; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-school" style="color:white; font-size:16px;"></i>
+                </div>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- Titre centré -->
+    <div class="navbar-title" style="position:absolute; left:50%; transform:translateX(-50%); font-size:15px; font-weight:700; color:white; white-space:nowrap;">
+        <i class="fas fa-calendar-check" style="color:#E8620A; margin-right:8px;"></i>
+        {{ _('Gestion de Présence') }} —
+        {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}
+    </div>
+
+    <!-- Droite : langue + dark + mon espace + déconnexion -->
+    <div style="display:flex; align-items:center; gap:8px;">
+
+            <!-- Langue avec dropdown -->
+            <div style="position:relative;" id="langueDropdown">
+                <button onclick="toggleLangue()"
+                        style="background:rgba(255,255,255,0.1); border:none; color:rgba(255,255,255,0.8); padding:7px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600;">
+                    <i class="fas fa-globe" style="font-size:13px;"></i>
+                    {{ session.get('langue', 'fr')|upper }}
+                    <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+                </button>
+
+                <div id="langueMenu"
+                    style="display:none; position:absolute; top:42px; right:0; background:#1C2B3A; border:0.5px solid rgba(255,255,255,0.15); border-radius:10px; overflow:hidden; min-width:120px; z-index:999; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+                    <a href="{{ url_for('main.changer_langue', code='fr') }}"
+                    style="display:flex; align-items:center; gap:10px; padding:10px 14px; color:white; text-decoration:none; font-size:13px; font-weight:500;
+                            background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'fr' else 'transparent' }};">
+                        <span style="font-size:16px;">🇫🇷</span> Français
+                        {% if session.get('langue','fr') == 'fr' %}
+                            <i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('main.changer_langue', code='en') }}"
+                    style="display:flex; align-items:center; gap:10px; padding:10px 14px; color:white; text-decoration:none; font-size:13px; font-weight:500;
+                            background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'en' else 'transparent' }};">
+                        <span style="font-size:16px;">🇬🇧</span> English
+                        {% if session.get('langue','fr') == 'en' %}
+                            <i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('main.changer_langue', code='ar') }}"
+                    style="display:flex; align-items:center; gap:10px; padding:10px 14px; color:white; text-decoration:none; font-size:13px; font-weight:500;
+                            background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'ar' else 'transparent' }};">
+                        <span style="font-size:16px;">🇲🇦</span> العربية
+                        {% if session.get('langue','fr') == 'ar' %}
+                            <i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+
+        <!-- Mode dark/light -->
+        <button id="toggleDark" onclick="toggleDarkMode()"
+                style="background:rgba(255,255,255,0.1); border:none; color:rgba(255,255,255,0.8); width:34px; height:34px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <i id="iconDark" class="fas fa-moon" style="font-size:13px;"></i>
+        </button>
+
+        <!-- Mon espace -->
+        <a href="{{ url_for('main.mon_espace') }}"
+           style="background:#E8620A; color:white; font-size:12px; font-weight:600; padding:7px 16px; border-radius:8px; text-decoration:none;">
+            {{ _('Mon espace') }}
+        </a>
+
+        <!-- Déconnexion -->
+        <a href="{{ url_for('auth.deconnexion') }}"
+           style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); font-size:12px; font-weight:500; padding:7px 14px; border-radius:8px; text-decoration:none; display:flex; align-items:center; gap:6px;">
+            <i class="fas fa-right-from-bracket" style="font-size:13px;"></i>
+            {{ _('Déconnexion') }}
+        </a>
+    </div>
+</nav>
+
+<!-- HEADER STATS -->
+<div class="header-stats" style="background:#152030; padding:16px 24px; border-bottom:1px solid rgba(255,255,255,0.08);">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div>
+            <div style="font-size:17px; font-weight:700; color:white; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-chart-line" style="color:#E8620A;"></i>
+                {{ _('Tableau de bord en temps réel') }}
+            </div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:3px;">
+                <i class="fas fa-calendar" style="margin-right:4px;"></i>{{ date_formatee }}
+                <i class="fas fa-rotate" style="margin:0 4px;"></i>{{ _('Rafraîchissement automatique toutes les 30s') }}
+            </div>
+        </div>
+        <div style="display:flex; gap:28px;">
+            <div style="text-align:center;">
+                <div style="font-size:26px; font-weight:700; color:#E8620A;">{{ sessions_en_cours|length }}</div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);">
+                    <i class="fas fa-circle-play" style="margin-right:3px;"></i>{{ _('Sessions actives') }}
+                </div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:26px; font-weight:700; color:#10B981;">{{ sessions_a_venir|length }}</div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);">
+                    <i class="fas fa-clock" style="margin-right:3px;"></i>{{ _('À venir') }}
+                </div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:26px; font-weight:700; color:white;">
+                    {% set ns = namespace(total=0) %}
+                    {% for s in sessions_en_cours %}
+                        {% set ns.total = ns.total + (s.presences|selectattr('statut','equalto','present')|list|length) %}
+                    {% endfor %}
+                    {{ ns.total }}
+                </div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);">
+                    <i class="fas fa-user-check" style="margin-right:3px;"></i>{{ _('Étudiants pointés') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTENU -->
+<div style="padding:20px 24px; flex:1;">
+
+    <!-- Sessions en cours -->
+    <div class="section-label">
+        <i class="fas fa-circle" style="color:#10B981; font-size:8px;"></i>
+        {{ _('Sessions en cours') }}
+    </div>
+
+    {% if sessions_en_cours %}
+    <div class="sessions-encours" style="margin-bottom:20px;">
+        {% for session in sessions_en_cours %}
+        {% set nb_presents = session.presences|selectattr('statut','equalto','present')|list|length %}
+        <div class="session-card" style="background:rgba(255,255,255,0.06); border:0.5px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:10px; height:10px; background:#10B981; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 3px rgba(16,185,129,0.2);"></div>
+                <div>
+                    <div class="nom" style="font-size:14px; font-weight:600; color:white;">
+                        <i class="fas fa-book-open" style="color:#E8620A; margin-right:6px; font-size:12px;"></i>
+                        {{ session.nom }}
+                    </div>
+                    <div class="sub" style="font-size:12px; color:rgba(255,255,255,0.45); margin-top:2px;">
+                        {% if session.emploi_du_temps %}
+                            <i class="fas fa-building-columns" style="margin-right:4px; font-size:10px;"></i>
+                            {{ session.emploi_du_temps.departement or '' }}
+                            {% if session.emploi_du_temps.groupe_ou_site %}
+                                <i class="fas fa-users" style="margin:0 4px; font-size:10px;"></i>
+                                {{ session.emploi_du_temps.groupe_ou_site }}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                <div style="text-align:center;">
+                    <div class="horaire" style="font-size:13px; font-weight:600; color:white;">
+                        <i class="fas fa-clock" style="color:rgba(255,255,255,0.4); margin-right:4px; font-size:11px;"></i>
+                        {{ session.heure_debut.strftime('%H:%M') if session.heure_debut else '--' }} → {{ session.heure_fin.strftime('%H:%M') if session.heure_fin else '--' }}
+                    </div>
+                    <div class="label" style="font-size:11px; color:rgba(255,255,255,0.4);">{{ _('Horaire') }}</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:13px; font-weight:600; color:#10B981;">
+                        <i class="fas fa-user-check" style="margin-right:4px; font-size:11px;"></i>{{ nb_presents }}
+                    </div>
+                    <div class="label" style="font-size:11px; color:rgba(255,255,255,0.4);">{{ _('Présents') }}</div>
+                </div>
+                <span style="background:rgba(16,185,129,0.15); color:#10B981; font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px;">
+                    <i class="fas fa-circle" style="font-size:7px; margin-right:4px;"></i>{{ _('En cours') }}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-card" style="background:rgba(255,255,255,0.04); border:0.5px solid rgba(255,255,255,0.08); border-radius:12px; padding:24px; text-align:center; color:rgba(255,255,255,0.4); font-size:13px; margin-bottom:20px;">
+        <i class="fas fa-calendar-xmark" style="font-size:20px; display:block; margin-bottom:8px;"></i>
+        {{ _('Aucune session en cours pour le moment') }}
+    </div>
+    {% endif %}
+
+    <!-- Sessions à venir -->
+    <div class="section-label">
+        <i class="fas fa-clock" style="color:rgba(255,255,255,0.4); font-size:11px;"></i>
+        {{ _('Sessions à venir aujourd\'hui') }}
+    </div>
+
+    {% if sessions_a_venir %}
+    <div class="sessions-avenir">
+        {% for session in sessions_a_venir %}
+        <div class="session-avenir-card">
+            <div class="nom" style="font-size:13px; font-weight:600; color:white; margin-bottom:4px;">
+                <i class="fas fa-book" style="color:#E8620A; margin-right:6px; font-size:11px;"></i>
+                {{ session.nom }}
+            </div>
+            {% if session.emploi_du_temps %}
+            <div class="sub" style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:8px;">
+                <i class="fas fa-users" style="margin-right:4px; font-size:10px;"></i>
+                {{ session.emploi_du_temps.groupe_ou_site or '' }}
+            </div>
+            {% endif %}
+            <div class="horaire" style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:6px;">
+                <i class="fas fa-clock" style="margin-right:4px; font-size:10px;"></i>
+                {{ session.heure_debut.strftime('%H:%M') if session.heure_debut else '--' }} → {{ session.heure_fin.strftime('%H:%M') if session.heure_fin else '--' }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-card" style="background:rgba(255,255,255,0.04); border:0.5px solid rgba(255,255,255,0.08); border-radius:12px; padding:24px; text-align:center; color:rgba(255,255,255,0.4); font-size:13px;">
+        <i class="fas fa-calendar-days" style="font-size:20px; display:block; margin-bottom:8px;"></i>
+        {{ _('Aucune session prévue pour aujourd\'hui') }}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- FOOTER -->
+<footer style="padding:12px 24px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:11px; color:rgba(255,255,255,0.3);">
+        <i class="fas fa-copyright" style="margin-right:4px;"></i>
+        2026 {{ _('Système de Gestion de Présence') }} — ESTE Essaouira
+    </span>
+    <span style="font-size:10px; font-weight:700; color:#E8620A; background:rgba(232,98,10,0.15); padding:3px 8px; border-radius:6px;">
+        <i class="fas fa-fingerprint" style="margin-right:4px;"></i>PresencePro
+    </span>
+</footer>
+ 
+<script>
+function toggleLangue() {
+    const menu = document.getElementById('langueMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('langueDropdown');
+    if (!dropdown.contains(e.target)) {
+        document.getElementById('langueMenu').style.display = 'none';
+    }
+});
+
+function toggleDarkMode() {
+    const body = document.getElementById('mainBody');
+    const icon = document.getElementById('iconDark');
+    const isLight = body.classList.contains('light');
+    if (isLight) {
+        body.classList.remove('light');
+        icon.className = 'fas fa-moon';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        body.classList.add('light');
+        icon.className = 'fas fa-sun';
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+    document.getElementById('mainBody').classList.add('light');
+    document.getElementById('iconDark').className = 'fas fa-sun';
+}
+</script>
+
+{{ bootstrap.load_js() }}
+</body>
+</html>

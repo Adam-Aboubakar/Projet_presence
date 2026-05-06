@@ -1,0 +1,70 @@
+# English translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-05-05 23:30+0100\n"
+"PO-Revision-Date: 2026-05-05 23:36+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "Accueil"
+msgstr "Home"
+
+msgid "Gestion de Présence"
+msgstr "Attendance Management"
+
+msgid "Mon espace"
+msgstr "My space"
+
+msgid "Déconnexion"
+msgstr "Logout"
+
+msgid "Tableau de bord en temps réel"
+msgstr "Real-time dashboard"
+
+msgid "Rafraîchissement automatique toutes les 30s"
+msgstr "Auto-refresh every 30s"
+
+msgid "Sessions actives"
+msgstr "Active sessions"
+
+msgid "À venir"
+msgstr "Upcoming"
+
+msgid "Étudiants pointés"
+msgstr "Students checked in"
+
+msgid "Sessions en cours"
+msgstr "Ongoing sessions"
+
+msgid "Horaire"
+msgstr "Schedule"
+
+msgid "Présents"
+msgstr "Present"
+
+msgid "En cours"
+msgstr "In progress"
+
+msgid "Aucune session en cours pour le moment"
+msgstr "No session in progress at the moment"
+
+msgid "Sessions à venir aujourd'hui"
+msgstr "Upcoming sessions today"
+
+msgid "Aucune session prévue pour aujourd'hui"
+msgstr "No session planned for today"
+
+msgid "Système de Gestion de Présence"
+msgstr "Attendance Management System"

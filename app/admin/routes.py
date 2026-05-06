@@ -161,13 +161,9 @@ def get_statistiques():
 @admin.route('/tableau-de-bord')
 @role_requis('admin')
 def tableau_de_bord():
-    """
-    Page principale de l'admin.
-    Affiche les statistiques globales et les notifications récentes.
-    """
+    from app.models import Configuration
+    config = Configuration.get_config()
     stats = get_statistiques()
-
-    # Récupérer les 5 dernières notifications non lues
     notifications_recentes = Notification.query.filter_by(
         destinataire_id=current_user.id,
         est_lue=False
@@ -176,7 +172,8 @@ def tableau_de_bord():
     return render_template(
         'admin/tableau_de_bord.html',
         stats=stats,
-        notifications_recentes=notifications_recentes
+        notifications_recentes=notifications_recentes,
+        config=config
     )
 
 
@@ -229,7 +226,7 @@ def valider_compte(utilisateur_id):
         return redirect(url_for('admin.comptes_attente'))
 
     # Récupérer le rôle choisi par l'admin
-    role_choisi = request.form.get('role')
+    role_choisi = request.formulaire.get('role')
 
     # Vérifier qu'un rôle a bien été sélectionné
     if not role_choisi or role_choisi not in ['enseignant', 'agent']:
@@ -302,7 +299,7 @@ def rejeter_compte(utilisateur_id):
         return redirect(url_for('admin.comptes_attente'))
 
     # Récupérer la raison du rejet
-    raison = request.form.get('raison', '').strip()
+    raison = request.formulaire.get('raison', '').strip()
 
     # La raison est obligatoire
     if not raison:
@@ -527,7 +524,7 @@ def changer_role(utilisateur_id):
         return redirect(url_for('admin.liste_utilisateurs'))
 
     # Récupérer le nouveau rôle
-    nouveau_role = request.form.get('nouveau_role')
+    nouveau_role = request.formulaire.get('nouveau_role')
 
     # Vérifier que le rôle est valide
     if not nouveau_role or nouveau_role not in ['enseignant', 'agent']:
@@ -799,7 +796,7 @@ def contacter_admin(admin_id):
         flash("Vous ne pouvez pas vous envoyer un email à vous-même.", 'warning')
         return redirect(url_for('admin.tableau_de_bord'))
 
-    message = request.form.get('message', '').strip()
+    message = request.formulaire.get('message', '').strip()
 
     if not message:
         flash("Le message ne peut pas être vide.", 'danger')
@@ -1012,3 +1009,62 @@ def api_marquer_notification_lue(notif_id):
         'succes': True,
         'non_lues': Notification.compter_non_lues(current_user.id)
     }), 200
+
+# ============================================================
+# CONFIGURATION SYSTÈME
+# ============================================================
+@admin.route('/configuration', methods=['GET', 'POST'])
+@role_requis('admin')
+def configuration():
+    from app.models import Configuration
+    config = Configuration.get_config()
+
+    if request.method == 'POST':
+        try:
+            config.nom_etablissement = request.form.get('nom_etablissement', '').strip()
+            config.adresse = request.form.get('adresse', '').strip()
+            config.ville = request.form.get('ville', '').strip()
+            config.telephone = request.form.get('telephone', '').strip()
+            config.site_web = request.form.get('site_web', '').strip()
+            config.domaine_email_autorise = request.form.get('domaine_email_autorise', '').strip()
+            config.email_admin = request.form.get('email_admin', '').strip()
+            config.email_developpeur = request.form.get('email_developpeur', '').strip()
+            config.seuil_similarite = float(request.form.get('seuil_similarite', 0.9))
+            config.max_tentatives = int(request.form.get('max_tentatives', 5))
+            config.tolerance_retard_defaut = int(request.form.get('tolerance_retard_defaut', 15))
+            config.duree_retention_jours = int(request.form.get('duree_retention_jours', 365))
+
+            # Gestion upload logo
+            if 'logo' in request.files:
+                fichier = request.files['logo']
+                if fichier.filename != '':
+                    import os
+                    from werkzeug.utils import secure_filename
+                    nom_fichier = secure_filename(fichier.filename)
+                    chemin = os.path.join('app', 'static', 'uploads', 'logos', nom_fichier)
+                    os.makedirs(os.path.dirname(chemin), exist_ok=True)
+                    fichier.save(chemin)
+                    config.logo_path = f'uploads/logos/{nom_fichier}'
+
+            db.session.commit()
+
+            journaliser(
+                type_evenement='configuration_modifiee',
+                severite='info',
+                description=f"{current_user.email} a modifié la configuration",
+                resultat='succes'
+            )
+
+            flash('Configuration sauvegardée avec succès !', 'success')
+
+        except Exception as e:
+            db.session.rollback()
+            flash('Erreur lors de la sauvegarde.', 'danger')
+
+        return redirect(url_for('admin.configuration'))
+
+    return render_template(
+        'admin/configuration.html',
+        config=config,
+        stats=get_statistiques()
+    )

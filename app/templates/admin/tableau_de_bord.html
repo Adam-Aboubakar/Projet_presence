@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord — Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold mb-0" style="color:#1E293B;">Tableau de bord</h4>
+        <p class="text-muted mb-0" style="font-size:13px;">
+            Bienvenue {{ current_user.prenom }} {{ current_user.nom }} !
+        </p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-bar orange"></div>
+            <div class="stat-card-body d-flex align-items-center gap-3">
+                <div class="stat-icon orange">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="stat-label">Utilisateurs</div>
+                    <div class="stat-value">{{ stats.utilisateurs_actifs }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-bar vert"></div>
+            <div class="stat-card-body d-flex align-items-center gap-3">
+                <div class="stat-icon vert">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="stat-label">Étudiants</div>
+                    <div class="stat-value">{{ stats.nombre_personnes }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-bar bleu"></div>
+            <div class="stat-card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bleu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="stat-label">En attente</div>
+                    <div class="stat-value">{{ stats.comptes_attente }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-bar rouge"></div>
+            <div class="stat-card-body d-flex align-items-center gap-3">
+                <div class="stat-icon rouge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="stat-label">Notifications</div>
+                    <div class="stat-value">{{ stats.notifications_non_lues }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if notifications_recentes %}
+<div class="card-este mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Notifications récentes</span>
+        <a href="#" class="btn btn-este btn-sm">Voir tout</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="font-size:11px;">TYPE</th>
+                    <th style="font-size:11px;">MESSAGE</th>
+                    <th style="font-size:11px;">DATE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notif in notifications_recentes %}
+                <tr>
+                    <td><span class="badge badge-este rounded-pill">{{ notif.type_notification }}</span></td>
+                    <td style="font-size:13px;">{{ notif.titre }}</td>
+                    <td style="font-size:12px; color:#64748B;">{{ notif.cree_le.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card-este">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Administrateurs</span>
+        <span class="badge badge-este">{{ stats.nombre_admins }}/{{ stats.limite_admins }}</span>
+    </div>
+    <div class="p-3">
+        <p class="mb-0 text-muted" style="font-size:13px;">
+            {{ stats.nombre_admins }} administrateur(s) actif(s) sur {{ stats.limite_admins }} maximum.
+        </p>
+    </div>
+</div>
+
+{% endblock %}

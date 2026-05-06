@@ -130,7 +130,7 @@ def inscription():
     """
     # Si l'utilisateur est déjà connecté, le rediriger vers le tableau de bord
     if current_user.is_authenticated:
-        return redirect(url_for('main.tableau_de_bord'))
+        return redirect(url_for('main.index'))
 
     formulaire = FormulaireInscription()
 
@@ -347,7 +347,7 @@ def renvoyer_email_verification():
         pour ne pas révéler si une adresse est enregistrée dans le système.
     """
     if request.method == 'POST':
-        email = request.form.get('email', '').lower().strip()
+        email = request.formulaire.get('email', '').lower().strip()
 
         utilisateur = Utilisateur.query.filter_by(email=email).first()
 
@@ -399,9 +399,12 @@ def connexion():
         - Blocage automatique après MAX_ATTEMPTS tentatives
         - Vérification du statut du compte avant autorisation
     """
+    # Récupérer la config une seule fois pour tous les render_template
+    from app.models import Configuration
+    config = Configuration.get_config()
     # Si déjà connecté, rediriger vers le tableau de bord
     if current_user.is_authenticated:
-        return redirect(url_for('main.tableau_de_bord'))
+        return redirect(url_for('main.index'))
 
     formulaire = FormulaireConnexion()
 
@@ -425,7 +428,9 @@ def connexion():
                 resultat='echec'
             )
             flash('Email ou mot de passe incorrect.', 'danger')
-            return render_template('auth/connexion.html', formulaire=formulaire)
+            from app.models import Configuration
+            config = Configuration.get_config()
+            return render_template('auth/connexion.html', formulaire=formulaire, config=config)
 
         # Récupérer le nombre max de tentatives depuis la configuration
         max_tentatives = int(current_app.config.get('MAX_ATTEMPTS', 5))
@@ -447,7 +452,7 @@ def connexion():
                 "Contactez l'administrateur.",
                 'danger'
             )
-            return render_template('auth/connexion.html', formulaire=formulaire)
+            return render_template('auth/connexion.html', formulaire=formulaire, config=config)
 
         # -----------------------------------------------
         # Cas 3 : Mot de passe incorrect
@@ -504,7 +509,7 @@ def connexion():
                     'danger'
                 )
 
-            return render_template('auth/connexion.html', formulaire=formulaire)
+            return render_template('auth/connexion.html', formulaire=formulaire, config=config)
 
         # -----------------------------------------------
         # Mot de passe correct — vérifier le statut du compte
@@ -513,12 +518,12 @@ def connexion():
         # Compte désactivé manuellement par l'admin
         if not utilisateur.est_actif:
             flash("Votre compte est désactivé. Contactez l'administrateur.", 'danger')
-            return render_template('auth/connexion.html', formulaire=formulaire)
+            return render_template('auth/connexion.html', formulaire=formulaire, config=config)
 
         # Email non encore vérifié
         if utilisateur.statut_compte == 'en_attente':
             flash("Veuillez d'abord confirmer votre adresse email.", 'warning')
-            return render_template('auth/connexion.html', formulaire=formulaire)
+            return render_template('auth/connexion.html', formulaire=formulaire, config=config)
 
         # Email vérifié mais compte pas encore validé par l'admin
         if utilisateur.statut_compte == 'email_verifie':
@@ -532,13 +537,12 @@ def connexion():
                 f"Raison : {utilisateur.raison_rejet or 'Non précisée'}",
                 'danger'
             )
-            return render_template('auth/connexion.html', formulaire=formulaire)
+            return render_template('auth/connexion.html', formulaire=formulaire, config=config)
 
         # Compte désactivé
         if utilisateur.statut_compte == 'desactive':
             flash("Votre compte a été désactivé. Contactez l'administrateur.", 'danger')
-            return render_template('auth/connexion.html', formulaire=formulaire)
-
+            return render_template('auth/connexion.html', formulaire=formulaire, config=config)
         # -----------------------------------------------
         # Connexion réussie !
         # Réinitialiser les tentatives et enregistrer la connexion
@@ -565,11 +569,10 @@ def connexion():
         if page_suivante:
             return redirect(page_suivante)
 
-        return redirect(url_for('main.tableau_de_bord'))
+        return redirect(url_for('main.index'))
 
     # GET ou formulaire invalide → afficher le formulaire
-    return render_template('auth/connexion.html', formulaire=formulaire)
-
+    return render_template('auth/connexion.html', formulaire=formulaire, config=config)
 
 # ============================================================
 # 6. DÉCONNEXION
