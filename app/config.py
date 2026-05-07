@@ -50,12 +50,20 @@ class Config:
     BABEL_DEFAULT_TIMEZONE = 'Africa/Casablanca'
     BABEL_TRANSLATION_DIRECTORIES = os.path.join(os.path.dirname(__file__), 'translations')
 
+    # --- Sécurité session ---
+    from datetime import timedelta
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=5)
+    SESSION_COOKIE_SECURE = False      # True en production HTTPS
+    SESSION_COOKIE_HTTPONLY = True     # protection XSS
+    SESSION_COOKIE_SAMESITE = 'Lax'   # protection CSRF
+
 class DevelopmentConfig(Config):
     DEBUG = True
 
 
 class ProductionConfig(Config):
     DEBUG = False
+    SESSION_COOKIE_SECURE = True   # HTTPS obligatoire en prod
 
 
 # Sélectionner la configuration selon l'environnement

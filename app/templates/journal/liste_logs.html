@@ -197,9 +197,10 @@
       <button type="submit" class="btn-filter">
         <i class="fas fa-magnifying-glass"></i> {{ _('Filtrer') }}
       </button>
-      <a href="{{ url_for('journal.liste_logs') }}" class="btn-reset">
-        <i class="fas fa-xmark"></i> {{ _('Réinitialiser') }}
-      </a>
+        <button type="button" class="btn-reset"
+                onclick="window.location.href='/journal/'">
+            <i class="fas fa-xmark"></i> {{ _('Réinitialiser') }}
+        </button>
     </div>
   </form>
 

@@ -49,10 +49,39 @@ def create_app(config_name='default'):
     def inject_config():
         try:
             from app.models import Configuration
-            config = Configuration.get_config()
-            return {'config': config}
+            cfg = Configuration.get_config()
+            return {'config': cfg}
         except Exception:
             return {'config': None}
+
+    @app.before_request
+    def verifier_inactivite():
+        from flask_login import current_user, logout_user
+        from flask import flash, redirect, url_for
+        from datetime import datetime, timezone, timedelta
+
+        # Ignorer les routes statiques et auth
+        if request.endpoint and (
+            request.endpoint.startswith('static') or
+            request.endpoint.startswith('auth.')
+        ):
+            return
+
+        if current_user.is_authenticated:
+            derniere = session.get('derniere_activite')
+            if derniere:
+                try:
+                    derniere_dt = datetime.fromisoformat(derniere)
+                    inactif_depuis = datetime.now(timezone.utc) - derniere_dt
+                    if inactif_depuis > timedelta(minutes=15):
+                        logout_user()
+                        session.clear()
+                        flash('Session expirée. Veuillez vous reconnecter.', 'warning')
+                        return redirect(url_for('auth.connexion'))
+                except Exception:
+                    pass
+
+            session['derniere_activite'] = datetime.now(timezone.utc).isoformat()
 
     from app.routes import main
     app.register_blueprint(main)

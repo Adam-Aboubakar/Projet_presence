@@ -552,7 +552,9 @@ def connexion():
         db.session.commit()
 
         # login_user() crée la session Flask et le cookie de connexion
-        login_user(utilisateur)
+        login_user(utilisateur, remember=False)
+        session.permanent = True
+        session['derniere_activite'] = datetime.now(timezone.utc).isoformat()
 
         journaliser(
             type_evenement='connexion_reussie',
