@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Sessions') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .sessions-body { padding:16px 28px 36px; }
+
+  /* FILTRES */
+  .filtres { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .filtre-btn { padding:6px 14px; border-radius:50px; border:1.5px solid var(--border); background:var(--input-bg); font-size:12px; font-weight:600; color:var(--text-muted); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+  .filtre-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .filtre-btn.actif { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+
+  /* TABLE */
+  .table-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .table-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .table-title { font-size:13px; font-weight:600; color:var(--text); }
+
+  table { width:100%; border-collapse:collapse; }
+  th { padding:10px 16px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); text-align:left; border-bottom:1px solid var(--border); background:var(--input-bg); }
+  td { padding:11px 16px; font-size:13px; color:var(--text); border-bottom:1px solid var(--row-border); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--row-hover); }
+
+  .badge { display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-planifiee  { background:var(--info-soft);    color:var(--info); }
+  .badge-en_cours   { background:var(--success-soft); color:var(--success); }
+  .badge-terminee   { background:var(--border);       color:var(--text-muted); }
+  .badge-annulee    { background:var(--danger-soft);  color:var(--danger); }
+
+  .btn-voir { color:var(--accent); text-decoration:none; font-size:12px; font-weight:600; padding:5px 10px; border-radius:var(--radius); border:1.5px solid var(--border); background:var(--input-bg); transition:all 0.15s; }
+  .btn-voir:hover { border-color:var(--accent); background:var(--accent-soft); }
+
+  .btn-action { display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:var(--radius); border:none; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+  .btn-ouvrir  { background:var(--success-soft); color:var(--success); }
+  .btn-ouvrir:hover { background:var(--success); color:white; }
+  .btn-fermer  { background:var(--danger-soft); color:var(--danger); }
+  .btn-fermer:hover { background:var(--danger); color:white; }
+
+  .empty { padding:40px; text-align:center; color:var(--text-muted); }
+  .empty i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
+
+  /* NOUVELLE SESSION */
+  .btn-new { background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
+  .btn-new:hover { background:#D4400E; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:22px; width:100%; max-width:420px; }
+  .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .form-group { margin-bottom:12px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .form-input:focus { border-color:var(--info); }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+  .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  @media (max-width:768px) {
+    .sessions-body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+    th:nth-child(3), td:nth-child(3) { display:none; }
+  }
+</style>
+
+<div class="page-header">
+  <h1><i class="fas fa-clock" style="color:var(--accent); margin-right:8px;"></i>{{ _('Sessions') }}</h1>
+  <button class="btn-new" onclick="document.getElementById('modalNouvelle').classList.add('show')">
+    <i class="fas fa-plus"></i> {{ _('Nouvelle session') }}
+  </button>
+</div>
+
+<div class="sessions-body">
+
+  <!-- FILTRES -->
+  <div class="filtres">
+    <button class="filtre-btn actif" onclick="filtrer('', this)">{{ _('Toutes') }}</button>
+    <button class="filtre-btn" onclick="filtrer('planifiee', this)">{{ _('Planifiées') }}</button>
+    <button class="filtre-btn" onclick="filtrer('en_cours', this)"><i class="fas fa-circle" style="font-size:7px; color:var(--success);"></i> {{ _('En cours') }}</button>
+    <button class="filtre-btn" onclick="filtrer('terminee', this)">{{ _('Terminées') }}</button>
+    <button class="filtre-btn" onclick="filtrer('annulee', this)">{{ _('Annulées') }}</button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title"><i class="fas fa-list"></i> {{ sessions|length }} {{ _('session(s)') }}</span>
+    </div>
+
+    {% if sessions %}
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Session') }}</th>
+          <th>{{ _('Date & Heure') }}</th>
+          <th>{{ _('Lieu') }}</th>
+          <th>{{ _('Statut') }}</th>
+          <th>{{ _('Actions') }}</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        {% for s in sessions %}
+        <tr data-statut="{{ s.statut }}">
+          <td><strong>{{ s.nom }}</strong></td>
+          <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">
+            {{ s.heure_debut.strftime('%d/%m/%Y %H:%M') if s.heure_debut else '—' }}
+          </td>
+          <td>{{ s.lieu or '—' }}</td>
+          <td>
+            <span class="badge badge-{{ s.statut }}">
+              {% if s.statut == 'en_cours' %}<i class="fas fa-circle" style="font-size:7px;"></i>{% endif %}
+              {{ s.statut | replace('_', ' ') | capitalize }}
+            </span>
+          </td>
+          <td style="display:flex; gap:6px; align-items:center;">
+            <a href="{{ url_for('sessions.detail', session_id=s.id) }}" class="btn-voir">
+              <i class="fas fa-eye"></i>
+            </a>
+            {% if s.statut == 'planifiee' %}
+            <button class="btn-action btn-ouvrir" onclick="ouvrirSession('{{ s.id }}')">
+              <i class="fas fa-play"></i>
+            </button>
+            {% elif s.statut == 'en_cours' %}
+            <button class="btn-action btn-fermer" onclick="fermerSession('{{ s.id }}')">
+              <i class="fas fa-stop"></i>
+            </button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <i class="fas fa-clock"></i>
+      <p>{{ _('Aucune session') }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- MODAL NOUVELLE SESSION -->
+<div class="modal-overlay" id="modalNouvelle">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-plus" style="color:var(--accent);"></i> {{ _('Nouvelle session') }}</div>
+    <div class="form-group">
+      <label class="form-label">{{ _('Nom') }} *</label>
+      <input type="text" class="form-input" id="nomSession" placeholder="Ex: Cours Algorithmique G1">
+    </div>
+    <div class="form-group">
+      <label class="form-label">{{ _('Lieu') }}</label>
+      <input type="text" class="form-input" id="lieuSession" placeholder="Ex: Salle 12">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="form-group">
+        <label class="form-label">{{ _('Début') }} *</label>
+        <input type="datetime-local" class="form-input" id="debutSession">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Fin') }} *</label>
+        <input type="datetime-local" class="form-input" id="finSession">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">{{ _('Tolérance retard (min)') }}</label>
+      <input type="number" class="form-input" id="toleranceSession" value="10" min="0" max="60">
+    </div>
+    <div id="modalFeedback" style="font-size:12px; margin-top:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <button class="btn-confirm" onclick="creerSession()">
+        <i class="fas fa-plus"></i> {{ _('Créer') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CSRF = document.querySelector('meta[name=csrf-token]').content;
+
+function filtrer(statut, btn) {
+    document.querySelectorAll('.filtre-btn').forEach(b => b.classList.remove('actif'));
+    btn.classList.add('actif');
+    document.querySelectorAll('#tableBody tr').forEach(tr => {
+        tr.style.display = (!statut || tr.dataset.statut === statut) ? '' : 'none';
+    });
+}
+
+function fermerModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+function creerSession() {
+    const nom = document.getElementById('nomSession').value.trim();
+    const lieu = document.getElementById('lieuSession').value.trim();
+    const debut = document.getElementById('debutSession').value;
+    const fin = document.getElementById('finSession').value;
+    const tolerance = document.getElementById('toleranceSession').value;
+
+    if (!nom || !debut || !fin) {
+        afficherFeedback('modalFeedback', '{{ _("Nom, début et fin obligatoires") }}', 'danger');
+        return;
+    }
+
+    fetch('/sessions/api/creer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify({
+            nom, lieu,
+            heure_debut: debut,
+            heure_fin: fin,
+            tolerance_retard_minutes: parseInt(tolerance)
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.succes) {
+            fermerModals();
+            location.reload();
+        } else {
+            afficherFeedback('modalFeedback', data.message, 'danger');
+        }
+    });
+}
+
+function ouvrirSession(id) {
+    fetch(`/sessions/api/${id}/ouvrir`, {
+        method: 'PUT',
+        headers: { 'X-CSRFToken': CSRF }
+    }).then(() => location.reload());
+}
+
+function fermerSession(id) {
+    if (!confirm('{{ _("Fermer la session ? Les absents seront marqués automatiquement.") }}')) return;
+    fetch(`/sessions/api/${id}/fermer`, {
+        method: 'PUT',
+        headers: { 'X-CSRFToken': CSRF }
+    }).then(() => location.reload());
+}
+
+function afficherFeedback(id, msg, type) {
+    const c = { success: 'var(--success)', danger: 'var(--danger)', info: 'var(--info)' };
+    document.getElementById(id).innerHTML = `<span style="color:${c[type]}">${msg}</span>`;
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) fermerModals(); });
+});
+</script>
+{% endblock %}

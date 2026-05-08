@@ -14,7 +14,7 @@ Décision architecturale :
   Il attribue lui-même le rôle via des boutons radio dans son interface.
 """
 
-from flask import current_app, url_for
+from flask import current_app
 from flask_mail import Message
 from app import mail
 
@@ -84,11 +84,8 @@ def envoyer_email_verification(utilisateur, token):
     """
     # Construire le lien de vérification avec le token
     # _external=True génère une URL complète (avec http://...)
-    lien_verification = url_for(
-        'auth.verifier_email',
-        token=token,
-        _external=True
-    )
+    base_url = current_app.config.get('BASE_URL', 'http://127.0.0.1:5000')
+    lien_verification = f"{base_url}/auth/verification/{token}"
 
     sujet = "Confirmez votre adresse email — Système de Présence"
 
@@ -170,7 +167,8 @@ def envoyer_notification_admin(utilisateur):
         return False
 
     # Lien vers la page de gestion des utilisateurs dans l'interface admin
-    lien_admin = url_for('admin.gerer_utilisateurs', _external=True)
+    base_url = current_app.config.get('BASE_URL', 'http://127.0.0.1:5000')
+    lien_admin = f"{base_url}/admin/comptes-attente"
 
     sujet = f"Nouveau compte en attente — {utilisateur.prenom} {utilisateur.nom}"
 
@@ -234,7 +232,8 @@ def envoyer_email_validation(utilisateur):
         utilisateur : objet Utilisateur dont le compte vient d'être validé
                       (son rôle a déjà été attribué par l'admin)
     """
-    lien_connexion = url_for('auth.connexion', _external=True)
+    base_url = current_app.config.get('BASE_URL', 'http://127.0.0.1:5000')
+    lien_connexion = f"{base_url}/auth/connexion"
 
     # Afficher le rôle en français selon la valeur stockée en BDD
     roles_affiches = {

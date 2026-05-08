@@ -210,15 +210,16 @@
     {% block head %}{% endblock %}
 </head>
 <body>
-
 <!-- ═══════════ NAVBAR ═══════════ -->
 <nav class="navbar-este">
 
     <!-- Gauche : hamburger + logo -->
     <div style="min-width:95px; display:flex; align-items:center; gap:10px;">
+        {% if current_user.is_authenticated %}
         <button class="dark-btn d-md-none" id="sidebarToggle">
             <i class="fas fa-bars" style="font-size:15px;"></i>
         </button>
+        {% endif %}
         <a href="{{ url_for('main.index') }}" style="display:flex; align-items:center;">
             {% if config and config.logo_path %}
                 <img src="{{ url_for('static', filename=config.logo_path) }}"
@@ -234,11 +235,11 @@
     <!-- Centre : titre -->
     <div class="navbar-title">
         <i class="fas fa-calendar-check" style="color:#E8620A; margin-right:8px;"></i>
-        Gestion de Présence —
+        {{ _('Gestion de Présence') }} —
         {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}
     </div>
 
-    <!-- Droite : langue + dark + notifs + user + déconnexion -->
+    <!-- Droite -->
     <div style="display:flex; align-items:center; gap:8px;">
 
         <!-- Langue dropdown -->
@@ -272,6 +273,8 @@
             <i id="iconDark" class="fas fa-moon" style="font-size:13px;"></i>
         </button>
 
+        {% if current_user.is_authenticated %}
+
         <!-- Notifications -->
         <div style="position:relative;">
             <button class="dark-btn">
@@ -301,40 +304,57 @@
         <a href="{{ url_for('auth.deconnexion') }}"
            style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); font-size:12px; font-weight:500; padding:7px 14px; border-radius:8px; text-decoration:none; display:flex; align-items:center; gap:6px;">
             <i class="fas fa-right-from-bracket" style="font-size:13px;"></i>
-            <span class="d-none d-md-inline">Déconnexion</span>
+            <span class="d-none d-md-inline">{{ _('Déconnexion') }}</span>
         </a>
+
+        {% else %}
+
+        <!-- Pas connecté → bouton inscription -->
+        <a href="{{ url_for('auth.inscription') }}"
+           style="background:#E8531A; color:white; font-size:12px; font-weight:600; padding:7px 16px; border-radius:8px; text-decoration:none; display:flex; align-items:center; gap:6px;">
+            <i class="fas fa-user-plus" style="font-size:13px;"></i>
+            {{ _('S\'inscrire') }}
+        </a>
+        <a href="{{ url_for('auth.connexion') }}"
+           style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); font-size:12px; font-weight:500; padding:7px 14px; border-radius:8px; text-decoration:none; display:flex; align-items:center; gap:6px;">
+            <i class="fas fa-right-to-bracket" style="font-size:13px;"></i>
+            {{ _('Connexion') }}
+        </a>
+
+        {% endif %}
 
     </div>
 </nav>
 
 <!-- ═══════════ SIDEBAR ═══════════ -->
+{% if current_user.is_authenticated %}
 <aside class="sidebar" id="sidebar">
     <ul class="list-unstyled mb-0 py-2">
 
         {% if current_user.role == 'admin' %}
-        <li><span class="sidebar-section">Administration</span></li>
+        <li><span class="sidebar-section">{{ _('Administration') }}</span></li>
         <li>
             <a href="{{ url_for('admin.configuration') }}"
                class="sidebar-link {{ 'actif' if request.endpoint == 'admin.configuration' }}">
-                <i class="fas fa-gear"></i> Configuration
+                <i class="fas fa-gear"></i> {{ _('Configuration') }}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.tableau_de_bord') }}"
-            class="sidebar-link {{ 'actif' if request.endpoint == 'admin.tableau_de_bord' }}">
+               class="sidebar-link {{ 'actif' if request.endpoint == 'admin.tableau_de_bord' }}">
                 <i class="fas fa-table-cells-large"></i> {{ _('Tableau de bord') }}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.liste_utilisateurs') }}"
                class="sidebar-link {{ 'actif' if request.endpoint == 'admin.liste_utilisateurs' }}">
-                <i class="fas fa-users"></i> Utilisateurs
+                <i class="fas fa-users"></i> {{ _('Utilisateurs') }}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.comptes_attente') }}"
                class="sidebar-link {{ 'actif' if request.endpoint == 'admin.comptes_attente' }}">
-                <i class="fas fa-user-check"></i> Comptes en attente
+                <i class="fas fa-user-check"></i> {{ _('Comptes en attente') }}
                 {% if stats and stats.comptes_attente > 0 %}
                     <span style="margin-left:auto; background:#E8531A; color:white; border-radius:50px; padding:1px 7px; font-size:10px; font-weight:700;">{{ stats.comptes_attente }}</span>
                 {% endif %}
@@ -342,7 +362,7 @@
         </li>
         <li>
             <a href="{{ url_for('journal.liste_logs') }}"
-            class="sidebar-link {{ 'actif' if request.endpoint == 'journal.liste_logs' }}">
+               class="sidebar-link {{ 'actif' if request.endpoint == 'journal.liste_logs' }}">
                 <i class="fas fa-shield-halved"></i> {{ _('Journal sécurité') }}
                 {% if stats and stats.get('critiques_24h', 0) > 0 %}
                     <span style="margin-left:auto; background:#DB4437; color:white; border-radius:50px; padding:1px 7px; font-size:10px; font-weight:700;">{{ stats.critiques_24h }}</span>
@@ -354,54 +374,62 @@
 
         {% elif current_user.role == 'agent' %}
         <li><span class="sidebar-section">
-            {% if config and config.mode == 'entreprise' %}Ressources Humaines{% else %}Scolarité{% endif %}
+            {% if config and config.mode == 'entreprise' %}{{ _('Ressources Humaines') }}{% else %}{{ _('Scolarité') }}{% endif %}
         </span></li>
         <li>
-            <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'personnes.liste_personnes' }}">
+            <a href="{{ url_for('personnes.liste') }}"
+               class="sidebar-link {{ 'actif' if request.endpoint in ['personnes.liste', 'personnes.profil', 'personnes.ajouter', 'personnes.modifier'] }}">
                 <i class="fas fa-users"></i>
-                {% if config and config.mode == 'entreprise' %}Employés{% else %}Étudiants{% endif %}
+                {% if config and config.mode == 'entreprise' %}{{ _('Employés') }}{% else %}{{ _('Étudiants') }}{% endif %}
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'rfid.liste_cartes' }}">
-                <i class="fas fa-credit-card"></i> Cartes RFID
+            <a href="{{ url_for('rfid.liste') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint == 'rfid.liste' }}">
+                <i class="fas fa-credit-card"></i> {{ _('Cartes RFID') }}
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link">
-                <i class="fas fa-camera"></i> Photos
+            <a href="{{ url_for('photos.liste') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint == 'photos.liste' }}">
+                <i class="fas fa-camera"></i> {{ _('Photos') }}
             </a>
         </li>
 
         {% elif current_user.role == 'enseignant' %}
         <li><span class="sidebar-section">
-            {% if config and config.mode == 'entreprise' %}Management{% else %}Enseignement{% endif %}
+            {% if config and config.mode == 'entreprise' %}{{ _('Management') }}{% else %}{{ _('Enseignement') }}{% endif %}
         </span></li>
         <li>
-            <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'emplois.liste_emplois' }}">
+            <a href="{{ url_for('emplois.liste') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint == 'emplois.liste' }}">
                 <i class="fas fa-calendar-week"></i>
-                {% if config and config.mode == 'entreprise' %}Planning{% else %}Emploi du temps{% endif %}
+                {% if config and config.mode == 'entreprise' %}{{ _('Planning') }}{% else %}{{ _('Emploi du temps') }}{% endif %}
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'sessions.liste_sessions' }}">
-                <i class="fas fa-clock"></i> Sessions
+            <a href="{{ url_for('sessions.liste') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint in ['sessions.liste', 'sessions.detail'] }}">
+                <i class="fas fa-clock"></i> {{ _('Sessions') }}
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link">
-                <i class="fas fa-chart-bar"></i> Présences
+            <a href="{{ url_for('presences.liste') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint in ['presences.liste', 'presences.detail_session'] }}">
+                <i class="fas fa-chart-bar"></i> {{ _('Présences') }}
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link {{ 'actif' if request.endpoint == 'rapports.liste' }}">
-                <i class="fas fa-file-chart-column"></i> Rapports
+            <a href="{{ url_for('rapports.liste') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint == 'rapports.liste' }}">
+                <i class="fas fa-file-lines"></i> {{ _('Rapports') }}
             </a>
         </li>
-        {% endif %}
+          {% endif %}
 
     </ul>
 </aside>
+{% endif %}
 
 <!-- OVERLAY mobile -->
 <div class="d-md-none" id="sidebarOverlay"
@@ -409,7 +437,7 @@
      onclick="closeSidebar()"></div>
 
 <!-- ═══════════ CONTENU ═══════════ -->
-<main class="main-wrapper">
+<main class="main-wrapper" style="{% if not current_user.is_authenticated %}margin-left:0;{% endif %}">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for categorie, message in messages %}
@@ -425,7 +453,7 @@
 </main>
 
 <!-- ═══════════ FOOTER ═══════════ -->
-<footer class="footer-este">
+<footer class="footer-este" style="{% if not current_user.is_authenticated %}margin-left:0;{% endif %}">
     <span>© 2026 Système de Gestion de Présence</span>
     <span class="footer-badge">PresencePro</span>
 </footer>

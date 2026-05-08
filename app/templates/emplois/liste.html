@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Emploi du temps') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .emplois-body { padding:16px 28px 36px; }
+
+  .emplois-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:14px; }
+
+  .emploi-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); padding:18px 20px; transition:box-shadow 0.15s; }
+  .emploi-card:hover { box-shadow:var(--shadow-md); }
+
+  .emploi-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+  .emploi-nom { font-size:14px; font-weight:700; color:var(--text); }
+  .emploi-groupe { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+  .badge-actif   { background:var(--success-soft); color:var(--success); padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-inactif { background:var(--border); color:var(--text-muted); padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+
+  .emploi-details { display:flex; flex-direction:column; gap:6px; }
+  .emploi-detail-row { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted); }
+  .emploi-detail-row i { width:14px; color:var(--primary); font-size:12px; }
+  .emploi-detail-row span { color:var(--text); font-weight:500; }
+
+  .emploi-footer { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); display:flex; gap:8px; }
+  .btn-small { display:flex; align-items:center; gap:5px; padding:6px 12px; border-radius:var(--radius); font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; border:none; transition:all 0.15s; text-decoration:none; }
+  .btn-voir   { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); }
+  .btn-voir:hover { border-color:var(--accent); color:var(--accent); }
+
+  .empty { padding:60px; text-align:center; color:var(--text-muted); background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); }
+  .empty i { font-size:40px; opacity:.2; display:block; margin-bottom:12px; }
+  .empty p { font-size:14px; margin-bottom:16px; }
+
+  .btn-new { background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
+  .btn-new:hover { background:#D4400E; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:22px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
+  .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .form-group { margin-bottom:12px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .form-input:focus { border-color:var(--info); }
+  select.form-input { cursor:pointer; }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+  .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  @media (max-width:768px) {
+    .emplois-body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+    .form-row { grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="page-header">
+  <h1>
+    <i class="fas fa-calendar-week" style="color:var(--accent); margin-right:8px;"></i>
+    {% if mode == 'entreprise' %}{{ _('Planning') }}{% else %}{{ _('Emploi du temps') }}{% endif %}
+  </h1>
+  <button class="btn-new" onclick="document.getElementById('modalNouvel').classList.add('show')">
+    <i class="fas fa-plus"></i> {{ _('Nouvel emploi') }}
+  </button>
+</div>
+
+<div class="emplois-body">
+
+  {% if emplois %}
+  <div class="emplois-grid">
+    {% set jours = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'] %}
+    {% for e in emplois %}
+    <div class="emploi-card">
+      <div class="emploi-header">
+        <div>
+          <div class="emploi-nom">{{ e.nom_cours }}</div>
+          <div class="emploi-groupe">{{ e.groupe or _('Tous les groupes') }}</div>
+        </div>
+        {% if e.est_actif %}
+          <span class="badge-actif">{{ _('Actif') }}</span>
+        {% else %}
+          <span class="badge-inactif">{{ _('Inactif') }}</span>
+        {% endif %}
+      </div>
+
+      <div class="emploi-details">
+        <div class="emploi-detail-row">
+          <i class="fas fa-calendar-day"></i>
+          <span>{{ jours[e.jour_semaine] if 0 <= e.jour_semaine <= 6 else '?' }}</span>
+        </div>
+        <div class="emploi-detail-row">
+          <i class="fas fa-clock"></i>
+          <span>{{ e.heure_debut.strftime('%H:%M') }} → {{ e.heure_fin.strftime('%H:%M') }}</span>
+        </div>
+        {% if e.salle %}
+        <div class="emploi-detail-row">
+          <i class="fas fa-door-open"></i>
+          <span>{{ e.salle }}</span>
+        </div>
+        {% endif %}
+        {% if e.date_debut_validite and e.date_fin_validite %}
+        <div class="emploi-detail-row">
+          <i class="fas fa-calendar-range"></i>
+          <span>{{ e.date_debut_validite.strftime('%d/%m/%Y') }} → {{ e.date_fin_validite.strftime('%d/%m/%Y') }}</span>
+        </div>
+        {% endif %}
+        {% if e.a_pause %}
+        <div class="emploi-detail-row">
+          <i class="fas fa-coffee"></i>
+          <span>{{ _('Pause') }} {{ e.heure_debut_pause.strftime('%H:%M') if e.heure_debut_pause else '' }} ({{ e.duree_pause_minutes }} min)</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="emploi-footer">
+        <a href="{{ url_for('sessions.liste') }}?emploi={{ e.id }}" class="btn-small btn-voir">
+          <i class="fas fa-eye"></i> {{ _('Voir sessions') }}
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty">
+    <i class="fas fa-calendar-week"></i>
+    <p>{{ _('Aucun emploi du temps créé') }}</p>
+    <button class="btn-new" style="margin:0 auto;" onclick="document.getElementById('modalNouvel').classList.add('show')">
+      <i class="fas fa-plus"></i> {{ _('Créer le premier') }}
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- MODAL NOUVEL EMPLOI -->
+<div class="modal-overlay" id="modalNouvel">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="fas fa-calendar-plus" style="color:var(--accent);"></i>
+      {{ _('Nouvel emploi du temps') }}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1;">
+        <label class="form-label">{{ _('Nom du cours') }} *</label>
+        <input type="text" class="form-input" id="nomCours" placeholder="Ex: Algorithmique">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">{{ _('Groupe') }}</label>
+        <input type="text" class="form-input" id="groupe" placeholder="Ex: G1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Salle') }}</label>
+        <input type="text" class="form-input" id="salle" placeholder="Ex: Salle 12">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">{{ _('Jour') }} *</label>
+        <select class="form-input" id="jourSemaine">
+          <option value="0">{{ _('Lundi') }}</option>
+          <option value="1">{{ _('Mardi') }}</option>
+          <option value="2">{{ _('Mercredi') }}</option>
+          <option value="3">{{ _('Jeudi') }}</option>
+          <option value="4">{{ _('Vendredi') }}</option>
+          <option value="5">{{ _('Samedi') }}</option>
+          <option value="6">{{ _('Dimanche') }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Tolérance (min)') }}</label>
+        <input type="number" class="form-input" id="tolerance" value="10" min="0" max="60">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">{{ _('Heure début') }} *</label>
+        <input type="time" class="form-input" id="heureDebut" value="08:00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Heure fin') }} *</label>
+        <input type="time" class="form-input" id="heureFin" value="10:00">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">{{ _('Date début validité') }} *</label>
+        <input type="date" class="form-input" id="dateDebut">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Date fin validité') }} *</label>
+        <input type="date" class="form-input" id="dateFin">
+      </div>
+    </div>
+
+    <div id="emploiFeedback" style="font-size:12px; margin-top:8px;"></div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <button class="btn-confirm" onclick="creerEmploi()">
+        <i class="fas fa-plus"></i> {{ _('Créer') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CSRF = document.querySelector('meta[name=csrf-token]').content;
+
+function fermerModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+function creerEmploi() {
+    const data = {
+        nom_cours: document.getElementById('nomCours').value.trim(),
+        groupe: document.getElementById('groupe').value.trim(),
+        salle: document.getElementById('salle').value.trim(),
+        jour_semaine: document.getElementById('jourSemaine').value,
+        heure_debut: document.getElementById('heureDebut').value,
+        heure_fin: document.getElementById('heureFin').value,
+        date_debut_validite: document.getElementById('dateDebut').value,
+        date_fin_validite: document.getElementById('dateFin').value,
+        tolerance_retard_minutes: parseInt(document.getElementById('tolerance').value)
+    };
+
+    if (!data.nom_cours || !data.heure_debut || !data.heure_fin || !data.date_debut_validite || !data.date_fin_validite) {
+        afficherFeedback('emploiFeedback', '{{ _("Tous les champs * sont obligatoires") }}', 'danger');
+        return;
+    }
+
+    fetch('/emplois/api/creer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.succes) {
+            fermerModals();
+            location.reload();
+        } else {
+            afficherFeedback('emploiFeedback', data.message, 'danger');
+        }
+    });
+}
+
+function afficherFeedback(id, msg, type) {
+    const c = { success:'var(--success)', danger:'var(--danger)', info:'var(--info)' };
+    document.getElementById(id).innerHTML = `<span style="color:${c[type]}">${msg}</span>`;
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) fermerModals(); });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Présences') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .body { padding:16px 28px 36px; }
+
+  .table-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .table-header { padding:14px 18px; border-bottom:1px solid var(--border); }
+  .table-title { font-size:13px; font-weight:600; color:var(--text); }
+
+  table { width:100%; border-collapse:collapse; }
+  th { padding:10px 16px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); text-align:left; border-bottom:1px solid var(--border); background:var(--input-bg); }
+  td { padding:11px 16px; font-size:13px; color:var(--text); border-bottom:1px solid var(--row-border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--row-hover); }
+
+  .badge { display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-terminee  { background:var(--border);       color:var(--text-muted); }
+  .badge-en_cours  { background:var(--success-soft); color:var(--success); }
+
+  .taux-bar { height:6px; border-radius:50px; background:var(--border); overflow:hidden; width:80px; display:inline-block; vertical-align:middle; margin-right:6px; }
+  .taux-fill { height:100%; border-radius:50px; }
+
+  .btn-voir { color:var(--accent); text-decoration:none; font-size:12px; font-weight:600; padding:5px 10px; border-radius:var(--radius); border:1.5px solid var(--border); background:var(--input-bg); transition:all 0.15s; }
+  .btn-voir:hover { border-color:var(--accent); background:var(--accent-soft); }
+
+  .empty { padding:40px; text-align:center; color:var(--text-muted); }
+  .empty i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
+
+  @media (max-width:768px) {
+    .body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+    th:nth-child(4), td:nth-child(4) { display:none; }
+  }
+</style>
+
+<div class="page-header">
+  <h1><i class="fas fa-chart-bar" style="color:var(--accent); margin-right:8px;"></i>{{ _('Présences') }}</h1>
+</div>
+
+<div class="body">
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title">{{ sessions_avec_stats|length }} {{ _('session(s) avec présences') }}</span>
+    </div>
+
+    {% if sessions_avec_stats %}
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Session') }}</th>
+          <th>{{ _('Date') }}</th>
+          <th>{{ _('Statut') }}</th>
+          <th>{{ _('Présents') }}</th>
+          <th>{{ _('Retards') }}</th>
+          <th>{{ _('Absents') }}</th>
+          <th>{{ _('Taux') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in sessions_avec_stats %}
+        <tr>
+          <td><strong>{{ item.session.nom }}</strong></td>
+          <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">
+            {{ item.session.heure_debut.strftime('%d/%m/%Y %H:%M') if item.session.heure_debut else '—' }}
+          </td>
+          <td>
+            <span class="badge badge-{{ item.session.statut }}">
+              {% if item.session.statut == 'en_cours' %}<i class="fas fa-circle" style="font-size:7px;"></i>{% endif %}
+              {{ item.session.statut | replace('_',' ') | capitalize }}
+            </span>
+          </td>
+          <td style="color:var(--success); font-weight:600;">{{ item.presents }}</td>
+          <td style="color:var(--warning); font-weight:600;">{{ item.retards }}</td>
+          <td style="color:var(--danger); font-weight:600;">{{ item.absents }}</td>
+          <td>
+            <div class="taux-bar">
+              <div class="taux-fill" style="width:{{ item.taux }}%; background:{% if item.taux >= 75 %}var(--success){% elif item.taux >= 50 %}var(--warning){% else %}var(--danger){% endif %};"></div>
+            </div>
+            {{ item.taux }}%
+          </td>
+          <td>
+            <a href="{{ url_for('presences.detail_session', session_id=item.session.id) }}" class="btn-voir">
+              <i class="fas fa-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <i class="fas fa-chart-bar"></i>
+      <p>{{ _('Aucune session avec présences') }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

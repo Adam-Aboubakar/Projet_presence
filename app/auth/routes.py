@@ -16,8 +16,7 @@ Décision architecturale :
   Le champ role_souhaite est mis à None — c'est l'admin qui attribue
   le rôle (enseignant ou agent) lors de la validation via son interface.
 """
-
-from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import request, jsonify, redirect, url_for, flash, render_template, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timezone, timedelta
 import secrets

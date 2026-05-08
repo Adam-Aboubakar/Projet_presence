@@ -209,3 +209,66 @@ def historique_personne(personne_id):
             'horodatage': p.horodatage.isoformat() if p.horodatage else None,
         } for p in presences]
     }), 200
+
+from flask import render_template
+
+@presences_bp.route('/')
+@role_requis('enseignant')
+def liste():
+    from app.models import Configuration
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    
+    # Sessions terminées et en cours avec leurs stats
+    sessions = Session.query.filter(
+        Session.statut.in_(['terminee', 'en_cours'])
+    ).order_by(Session.heure_debut.desc()).limit(50).all()
+    
+    sessions_avec_stats = []
+    for s in sessions:
+        presences = Presence.query.filter_by(session_id=s.id).all()
+        total = len(presences)
+        presents = sum(1 for p in presences if p.statut == 'present')
+        retards = sum(1 for p in presences if p.statut == 'retard')
+        absents = sum(1 for p in presences if p.statut == 'absent')
+        sessions_avec_stats.append({
+            'session': s,
+            'total': total,
+            'presents': presents,
+            'retards': retards,
+            'absents': absents,
+            'taux': round((presents + retards) / total * 100) if total > 0 else 0
+        })
+    
+    return render_template('presences/liste.html',
+        sessions_avec_stats=sessions_avec_stats, mode=mode)
+
+
+@presences_bp.route('/session/<string:session_id>')
+@role_requis('enseignant')
+def detail_session(session_id):
+    from app.models import Configuration
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    
+    session = Session.query.get_or_404(session_id)
+    presences = Presence.query.filter_by(session_id=session_id)\
+        .order_by(Presence.horodatage).all()
+    
+    presences_detail = []
+    for p in presences:
+        personne = Personne.query.get(p.personne_id)
+        presences_detail.append({'presence': p, 'personne': personne})
+    
+    total = len(presences)
+    presents = sum(1 for p in presences if p.statut == 'present')
+    retards = sum(1 for p in presences if p.statut == 'retard')
+    absents = sum(1 for p in presences if p.statut == 'absent')
+    
+    return render_template('presences/detail_session.html',
+        session=session,
+        presences_detail=presences_detail,
+        total=total, presents=presents,
+        retards=retards, absents=absents,
+        mode=mode)
+

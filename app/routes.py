@@ -68,16 +68,15 @@ def index():
             mode=mode
         )
 
-
 @main.route('/mon-espace')
 @login_required
 def mon_espace():
     if current_user.role == 'admin':
         return redirect(url_for('admin.tableau_de_bord'))
     elif current_user.role == 'enseignant':
-        return redirect(url_for('admin.tableau_de_bord'))
+        return redirect(url_for('emplois.liste'))
     elif current_user.role == 'agent':
-        return redirect(url_for('admin.tableau_de_bord'))
+        return redirect(url_for('personnes.liste'))
     return redirect(url_for('main.index'))
 
 

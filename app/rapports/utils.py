@@ -292,15 +292,12 @@ def generer_excel_resume(groupe, date_debut, date_fin):
         row += 1
 
     # Ajuster largeurs colonnes
-    for col in ws.columns:
-        col_letter = None
-        for cell in col:
-            if hasattr(cell, 'column_letter'):
-                col_letter = cell.column_letter
-                break
-        if col_letter:
-            max_len = max(len(str(cell.value or '')) for cell in col if hasattr(cell, 'value'))
-            ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+    largeurs = [20, 15, 15, 10, 10, 18, 20, 18]
+    for i, largeur in enumerate(largeurs, 1):
+        from openpyxl.utils import get_column_letter
+        ws.column_dimensions[get_column_letter(i)].width = largeur
+
+        
 
     buffer = io.BytesIO()
     wb.save(buffer)
@@ -311,7 +308,6 @@ def generer_excel_resume(groupe, date_debut, date_fin):
 # ============================================================
 # EXCEL — Détail groupe
 # ============================================================
-
 def generer_excel_detail(groupe, date_debut, date_fin):
     """Génère un Excel détail — une ligne par session, colonnes = étudiants."""
     wb = openpyxl.Workbook()
@@ -322,17 +318,36 @@ def generer_excel_detail(groupe, date_debut, date_fin):
     bordure = bordure_excel()
     config = get_config()
 
-    # Titre
-    ws.merge_cells('A1:F1')
-    ws['A1'] = f"{config.nom_etablissement if config else 'Établissement'} — Rapport Détail Groupe {groupe}"
-    ws['A1'].font = Font(bold=True, size=14, color="1A5276")
-    ws['A1'].alignment = Alignment(horizontal="center")
-
     # Récupérer les étudiants du groupe
     personnes = Personne.query.filter_by(
         groupe_ou_site=groupe,
         est_actif=True
     ).order_by(Personne.nom).all()
+
+    nb_cols = max(3 + len(personnes), 6)
+    from openpyxl.utils import get_column_letter
+    derniere_col = get_column_letter(nb_cols)
+
+    # Titre
+    ws.merge_cells(f'A1:{derniere_col}1')
+    ws['A1'] = f"{config.nom_etablissement if config else 'Établissement'} — Rapport Détail Groupe {groupe}"
+    ws['A1'].font = Font(bold=True, size=14, color="1A5276")
+    ws['A1'].alignment = Alignment(horizontal="center")
+
+    # Période
+    ws.merge_cells(f'A2:{derniere_col}2')
+    ws['A2'] = f"Période : {date_debut.strftime('%d/%m/%Y')} → {date_fin.strftime('%d/%m/%Y')}"
+    ws['A2'].alignment = Alignment(horizontal="center")
+    ws['A2'].font = Font(size=11, color="555555")
+
+    # En-têtes ligne 4
+    headers = ['Session', 'Date', 'Heure'] + [f'{p.prenom} {p.nom}' for p in personnes]
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=4, column=col, value=header)
+        cell.fill = fill_header
+        cell.font = font_header
+        cell.alignment = align_header
+        cell.border = bordure
 
     # Récupérer les sessions sur la période
     sessions = Session.query.filter(
@@ -341,21 +356,12 @@ def generer_excel_detail(groupe, date_debut, date_fin):
         Session.statut == 'terminee'
     ).order_by(Session.heure_debut).all()
 
-    # En-têtes : Session | Date | Heure | [Etudiant1] | [Etudiant2] ...
-    headers = ['Session', 'Date', 'Heure'] + [f'{p.prenom} {p.nom}' for p in personnes]
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=3, column=col, value=header)
-        cell.fill = fill_header
-        cell.font = font_header
-        cell.alignment = align_header
-        cell.border = bordure
-
-    # Données
+    # Données à partir ligne 5
     fill_present = PatternFill(start_color="D5F5E3", end_color="D5F5E3", fill_type="solid")
-    fill_retard = PatternFill(start_color="FDEBD0", end_color="FDEBD0", fill_type="solid")
-    fill_absent = PatternFill(start_color="FADBD8", end_color="FADBD8", fill_type="solid")
+    fill_retard  = PatternFill(start_color="FDEBD0", end_color="FDEBD0", fill_type="solid")
+    fill_absent  = PatternFill(start_color="FADBD8", end_color="FADBD8", fill_type="solid")
 
-    for row_idx, session in enumerate(sessions, 4):
+    for row_idx, session in enumerate(sessions, 5):
         ws.cell(row=row_idx, column=1, value=session.nom).border = bordure
         ws.cell(row=row_idx, column=2,
                 value=session.heure_debut.strftime('%d/%m/%Y')).border = bordure
@@ -383,17 +389,13 @@ def generer_excel_detail(groupe, date_debut, date_fin):
             cell.border = bordure
             cell.alignment = Alignment(horizontal="center")
 
-    # Ajuster largeurs
-    for col in ws.columns:
-        col_letter = None
-        for cell in col:
-            if hasattr(cell, 'column_letter'):
-                col_letter = cell.column_letter
-                break
-        if col_letter:
-            max_len = max(len(str(cell.value or '')) for cell in col if hasattr(cell, 'value'))
-            ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
-            
+    # Largeurs colonnes
+    ws.column_dimensions[get_column_letter(1)].width = 25
+    ws.column_dimensions[get_column_letter(2)].width = 12
+    ws.column_dimensions[get_column_letter(3)].width = 8
+    for i in range(4, 4 + len(personnes)):
+        ws.column_dimensions[get_column_letter(i)].width = 18
+
     buffer = io.BytesIO()
     wb.save(buffer)
     buffer.seek(0)
@@ -406,6 +408,8 @@ def generer_excel_detail(groupe, date_debut, date_fin):
 
 def generer_excel_complet(groupe, date_debut, date_fin):
     """Génère un Excel avec 2 onglets : Résumé + Détail."""
+    from openpyxl.utils import get_column_letter
+
     wb_resume = openpyxl.load_workbook(
         generer_excel_resume(groupe, date_debut, date_fin)
     )
@@ -413,13 +417,12 @@ def generer_excel_complet(groupe, date_debut, date_fin):
         generer_excel_detail(groupe, date_debut, date_fin)
     )
 
-    # Combiner les deux dans un seul fichier
     wb_final = openpyxl.Workbook()
     wb_final.remove(wb_final.active)
 
-    for ws in wb_resume.worksheets:
+    for ws_src in wb_resume.worksheets:
         ws_copy = wb_final.create_sheet(title="Résumé")
-        for row in ws.iter_rows():
+        for row in ws_src.iter_rows():
             for cell in row:
                 new_cell = ws_copy.cell(row=cell.row, column=cell.column, value=cell.value)
                 if cell.has_style:
@@ -427,10 +430,16 @@ def generer_excel_complet(groupe, date_debut, date_fin):
                     new_cell.fill = cell.fill.copy()
                     new_cell.border = cell.border.copy()
                     new_cell.alignment = cell.alignment.copy()
+        # Copier les largeurs de colonnes
+        for col, dim in ws_src.column_dimensions.items():
+            ws_copy.column_dimensions[col].width = dim.width
+        # Copier les cellules fusionnées
+        for merge in ws_src.merged_cells.ranges:
+            ws_copy.merge_cells(str(merge))
 
-    for ws in wb_detail.worksheets:
+    for ws_src in wb_detail.worksheets:
         ws_copy = wb_final.create_sheet(title="Détail")
-        for row in ws.iter_rows():
+        for row in ws_src.iter_rows():
             for cell in row:
                 new_cell = ws_copy.cell(row=cell.row, column=cell.column, value=cell.value)
                 if cell.has_style:
@@ -438,6 +447,12 @@ def generer_excel_complet(groupe, date_debut, date_fin):
                     new_cell.fill = cell.fill.copy()
                     new_cell.border = cell.border.copy()
                     new_cell.alignment = cell.alignment.copy()
+        # Copier les largeurs de colonnes
+        for col, dim in ws_src.column_dimensions.items():
+            ws_copy.column_dimensions[col].width = dim.width
+        # Copier les cellules fusionnées
+        for merge in ws_src.merged_cells.ranges:
+            ws_copy.merge_cells(str(merge))
 
     buffer = io.BytesIO()
     wb_final.save(buffer)

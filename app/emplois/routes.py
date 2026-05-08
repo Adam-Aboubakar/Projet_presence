@@ -71,7 +71,8 @@ def creer_emploi():
     # Créer l'emploi du temps
     emploi = EmploiDuTemps(
         #enseignant_id=current_user.id if current_user.is_authenticated else None,
-        enseignant_id='5c39490c-1fdc-4a83-aef1-8300d6b63475',  # ID admin pour test
+        #enseignant_id='5c39490c-1fdc-4a83-aef1-8300d6b63475',  # ID admin pour test
+        enseignant_id=current_user.id if current_user.is_authenticated else None,
         nom_cours=data['nom_cours'],
         groupe=data.get('groupe'),
         salle=data.get('salle'),
@@ -475,4 +476,18 @@ def _generer_sessions(emploi, depuis_aujourd_hui=False):
 
         date_courante += timedelta(days=1)
 
+
     return sessions_creees
+
+from flask import render_template
+
+@emplois_bp.route('/')
+@role_requis('enseignant')
+def liste():
+    from app.models import Configuration
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    emplois = EmploiDuTemps.query.filter_by(
+        enseignant_id=current_user.id
+    ).order_by(EmploiDuTemps.cree_le.desc()).all()
+    return render_template('emplois/liste.html', emplois=emplois, mode=mode)

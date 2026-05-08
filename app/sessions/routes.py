@@ -317,3 +317,49 @@ def _verifier_seuils_absences(personne_id):
                 personne_id=personne_id
             )
             break  # Un seul seuil déclenché à la fois
+
+from flask import render_template, redirect, url_for, flash
+
+# ── PAGES WEB ────────────────────────────────────────────────
+
+@sessions_bp.route('/')
+@role_requis('enseignant')
+def liste():
+    from app.models import Configuration
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    sessions = Session.query.order_by(Session.heure_debut.desc()).limit(100).all()
+    return render_template('sessions/liste.html', sessions=sessions, mode=mode)
+
+
+@sessions_bp.route('/<string:session_id>')
+@role_requis('enseignant')
+def detail(session_id):
+    from app.models import Configuration
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    session = Session.query.get_or_404(session_id)
+    presences = Presence.query.filter_by(session_id=session_id)\
+        .order_by(Presence.horodatage).all()
+    
+    # Enrichir avec les infos de la personne
+    presences_detail = []
+    for p in presences:
+        personne = Personne.query.get(p.personne_id)
+        presences_detail.append({
+            'presence': p,
+            'personne': personne
+        })
+    
+    total = len(presences)
+    presents = sum(1 for p in presences if p.statut == 'present')
+    retards = sum(1 for p in presences if p.statut == 'retard')
+    absents = sum(1 for p in presences if p.statut == 'absent')
+    
+    return render_template('sessions/detail.html',
+        session=session,
+        presences_detail=presences_detail,
+        total=total, presents=presents,
+        retards=retards, absents=absents,
+        mode=mode
+    )        

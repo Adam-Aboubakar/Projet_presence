@@ -220,3 +220,22 @@ def liste_cartes(personne_id):
         })
 
     return jsonify({'succes': True, 'cartes': resultat}), 200
+
+
+from flask import render_template
+
+@rfid_bp.route('/')
+@role_requis('agent')
+def liste():
+    from app.models import Configuration, CarteRFID, Personne
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    
+    cartes = CarteRFID.query.order_by(CarteRFID.attribuee_le.desc()).all()
+    
+    cartes_detail = []
+    for carte in cartes:
+        personne = Personne.query.get(carte.personne_id)
+        cartes_detail.append({'carte': carte, 'personne': personne})
+    
+    return render_template('rfid/liste.html', cartes_detail=cartes_detail, mode=mode)

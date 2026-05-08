@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Rapports') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  .section-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .section-header { padding:14px 18px; border-bottom:1px solid var(--border); }
+  .section-title  { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:7px; }
+  .section-body   { padding:18px; }
+
+  .form-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; align-items:end; }
+  .form-group { display:flex; flex-direction:column; gap:5px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+  .form-input { background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; width:100%; }
+  .form-input:focus { border-color:var(--info); }
+  select.form-input { cursor:pointer; }
+
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .btn-dl { display:flex; align-items:center; gap:7px; padding:10px 18px; border-radius:var(--radius); border:none; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; transition:all 0.15s; }
+  .btn-excel { background:var(--success-soft); color:var(--success); border:1.5px solid var(--success-soft); }
+  .btn-excel:hover { background:var(--success); color:white; }
+  .btn-pdf   { background:var(--danger-soft); color:var(--danger); border:1.5px solid var(--danger-soft); }
+  .btn-pdf:hover { background:var(--danger); color:white; }
+
+  .etudiant-search { display:flex; gap:10px; align-items:end; flex-wrap:wrap; }
+  .etudiant-search .form-group { flex:1; min-width:180px; }
+
+  @media (max-width:768px) {
+    .body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+    .form-row { grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="page-header">
+  <h1><i class="fas fa-file-lines" style="color:var(--accent); margin-right:8px;"></i>{{ _('Rapports') }}</h1>
+</div>
+
+<div class="body">
+
+  <!-- RAPPORT PAR GROUPE -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <i class="fas fa-users" style="color:var(--primary);"></i>
+        {{ _('Rapport par groupe') }}
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ _('Groupe') }}</label>
+          <select class="form-input" id="groupeSelect">
+            <option value="">{{ _('Sélectionner un groupe') }}</option>
+            {% for g in groupes %}
+            <option value="{{ g }}">{{ g }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ _('Date début') }}</label>
+          <input type="date" class="form-input" id="dateDebutGroupe">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ _('Date fin') }}</label>
+          <input type="date" class="form-input" id="dateFinGroupe">
+        </div>
+      </div>
+      <div class="btn-row">
+        <a href="#" class="btn-dl btn-excel" onclick="telechargerGroupe('resume'); return false;">
+          <i class="fas fa-table"></i> {{ _('Excel Résumé') }}
+        </a>
+        <a href="#" class="btn-dl btn-excel" onclick="telechargerGroupe('detail'); return false;">
+          <i class="fas fa-table-list"></i> {{ _('Excel Détail') }}
+        </a>
+        <a href="#" class="btn-dl btn-excel" onclick="telechargerGroupe('complet'); return false;">
+          <i class="fas fa-file-excel"></i> {{ _('Excel Complet') }}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAPPORT PAR ÉTUDIANT -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <i class="fas fa-user" style="color:var(--primary);"></i>
+        {{ _('Rapport individuel') }}
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="etudiant-search">
+        <div class="form-group">
+          <label class="form-label">{{ _('Rechercher un étudiant') }}</label>
+          <input type="text" class="form-input" id="rechercheEtudiant"
+                 placeholder="{{ _('Nom, prénom ou identifiant...') }}"
+                 oninput="rechercherEtudiant(this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ _('Date début') }}</label>
+          <input type="date" class="form-input" id="dateDebutEtudiant">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ _('Date fin') }}</label>
+          <input type="date" class="form-input" id="dateFinEtudiant">
+        </div>
+      </div>
+
+      <!-- Résultats recherche -->
+      <div id="resultatsRecherche" style="margin-top:12px; display:none;">
+        <div style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">
+          {{ _('Résultats') }}
+        </div>
+        <div id="listeResultats"></div>
+      </div>
+
+      <input type="hidden" id="etudiantId">
+      <div id="etudiantSelectionne" style="display:none; margin-top:12px; padding:10px 14px; background:var(--success-soft); border-radius:var(--radius); font-size:13px; color:var(--success); font-weight:600;">
+        <i class="fas fa-user-check"></i> <span id="etudiantNom"></span>
+      </div>
+
+      <div class="btn-row" style="margin-top:14px;">
+        <a href="#" class="btn-dl btn-pdf" onclick="telechargerEtudiant(); return false;">
+          <i class="fas fa-file-pdf"></i> {{ _('Télécharger PDF') }}
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function telechargerGroupe(type) {
+    const groupe = document.getElementById('groupeSelect').value;
+    const debut  = document.getElementById('dateDebutGroupe').value;
+    const fin    = document.getElementById('dateFinGroupe').value;
+
+    if (!groupe || !debut || !fin) {
+        alert('{{ _("Sélectionnez un groupe et les dates") }}');
+        return;
+    }
+    window.open(`/rapports/api/excel/groupe/${type}?groupe=${groupe}&date_debut=${debut}&date_fin=${fin}`);
+}
+
+function telechargerEtudiant() {
+    const id    = document.getElementById('etudiantId').value;
+    const debut = document.getElementById('dateDebutEtudiant').value;
+    const fin   = document.getElementById('dateFinEtudiant').value;
+
+    if (!id || !debut || !fin) {
+        alert('{{ _("Sélectionnez un étudiant et les dates") }}');
+        return;
+    }
+    window.open(`/rapports/api/pdf/etudiant/${id}?date_debut=${debut}&date_fin=${fin}`);
+}
+
+function rechercherEtudiant(q) {
+    if (q.length < 2) {
+        document.getElementById('resultatsRecherche').style.display = 'none';
+        return;
+    }
+
+    fetch(`/personnes/api/rechercher?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(data => {
+        const liste = document.getElementById('listeResultats');
+        const conteneur = document.getElementById('resultatsRecherche');
+
+        if (data.personnes && data.personnes.length > 0) {
+            liste.innerHTML = data.personnes.map(p => `
+                <div onclick="selectionnerEtudiant('${p.id}', '${p.prenom} ${p.nom}')"
+                     style="padding:8px 12px; cursor:pointer; border-radius:var(--radius); font-size:13px; transition:background 0.12s;"
+                     onmouseover="this.style.background='var(--row-hover)'"
+                     onmouseout="this.style.background='transparent'">
+                    <strong>${p.prenom} ${p.nom}</strong>
+                    <span style="color:var(--text-muted); font-size:11px; margin-left:8px; font-family:'JetBrains Mono',monospace;">${p.identifiant}</span>
+                </div>
+            `).join('');
+            conteneur.style.display = 'block';
+        } else {
+            liste.innerHTML = '<div style="padding:8px 12px; color:var(--text-muted); font-size:13px;">{{ _("Aucun résultat") }}</div>';
+            conteneur.style.display = 'block';
+        }
+    });
+}
+
+function selectionnerEtudiant(id, nom) {
+    document.getElementById('etudiantId').value = id;
+    document.getElementById('etudiantNom').textContent = nom;
+    document.getElementById('etudiantSelectionne').style.display = 'block';
+    document.getElementById('resultatsRecherche').style.display = 'none';
+    document.getElementById('rechercheEtudiant').value = nom;
+}
+</script>
+{% endblock %}

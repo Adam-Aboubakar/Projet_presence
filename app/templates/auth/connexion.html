@@ -1,117 +1,255 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ session.get('langue', 'fr') }}" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion — ESTE Essaouira</title>
+    <title>{{ _('Connexion') }} — {{ config.nom_etablissement if config and config.nom_etablissement else 'ESTE' }}</title>
     {{ bootstrap.load_css() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+      body {
+        font-family: 'DM Sans', sans-serif;
+        height: 100vh; overflow: hidden;
+        display: flex; flex-direction: column;
+        background: #F0F4F9;
+      }
+
+      [data-theme="dark"] body { background: #0D1520; }
+
+      /* ── HEADER ── */
+      .auth-header {
+        background: #0F1E30;
+        padding: 28px 24px 24px;
+        display: flex; flex-direction: column;
+        align-items: center; gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .header-logo {
+        width: 64px; height: 64px; border-radius: 16px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+      }
+      .header-logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+      .header-logo i   { font-size: 26px; color: #E8531A; }
+
+      .header-name    { font-size: 17px; font-weight: 700; color: white; letter-spacing: -0.3px; }
+      .header-tagline { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+      /* ── BODY ── */
+      .auth-body {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 24px 16px; overflow: hidden;
+      }
+
+      .form-card {
+        background: white; border-radius: 18px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 4px 20px rgba(26,58,92,0.08);
+        padding: 28px 28px 24px;
+        width: 100%; max-width: 380px;
+      }
+      [data-theme="dark"] .form-card { background: #152030; border-color: #1E3048; }
+
+      .form-title    { font-size: 18px; font-weight: 700; color: #1A3A5C; margin-bottom: 3px; }
+      .form-subtitle { font-size: 12.5px; color: #718096; margin-bottom: 20px; }
+      [data-theme="dark"] .form-title    { color: #E8EEF4; }
+      [data-theme="dark"] .form-subtitle { color: #7A93A8; }
+
+      /* FIELDS */
+      .field { margin-bottom: 14px; }
+      .label { font-size: 10.5px; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 5px; }
+      [data-theme="dark"] .label { color: #7A93A8; }
+
+      .input-wrap { position: relative; }
+      .input {
+        width: 100%; background: #F7FAFC;
+        border: 1.5px solid #E2E8F0; border-radius: 10px;
+        padding: 10px 13px; font-size: 13.5px; color: #2D3748;
+        font-family: 'DM Sans', sans-serif; outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      .input:focus { border-color: #1A73E8; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); background: white; }
+      .input.err   { border-color: #E53E3E; }
+      .input::placeholder { color: #CBD5E0; }
+      [data-theme="dark"] .input { background: #1A2D42; border-color: #1E3048; color: #E8EEF4; }
+      [data-theme="dark"] .input:focus { background: #1E3A54; border-color: #4A90E8; }
+
+      .eye-btn { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#CBD5E0; font-size:14px; transition:color 0.15s; }
+      .eye-btn:hover { color: #718096; }
+
+      .field-err { font-size:11px; color:#E53E3E; margin-top:4px; display:flex; align-items:center; gap:3px; }
+
+      /* SUBMIT */
+      .submit {
+        width: 100%; background: #E8531A; color: white;
+        border: none; padding: 11px; border-radius: 10px;
+        font-size: 14px; font-weight: 700; cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: background 0.15s, transform 0.1s;
+        box-shadow: 0 4px 12px rgba(232,83,26,0.25);
+        margin-top: 6px;
+      }
+      .submit:hover  { background: #D4400E; transform: translateY(-1px); }
+      .submit:active { transform: translateY(0); }
+
+      .form-footer { text-align:center; font-size:12.5px; color:#718096; margin-top:16px; }
+      .form-footer a { color:#E8531A; font-weight:600; text-decoration:none; }
+      .form-footer a:hover { text-decoration:underline; }
+      [data-theme="dark"] .form-footer { color:#7A93A8; }
+
+      /* FLASH */
+      .flash { border-radius:10px; padding:9px 13px; font-size:12.5px; margin-bottom:14px; display:flex; align-items:flex-start; gap:7px; }
+      .flash.danger  { background:#FFF5F5; color:#C53030; border:1px solid #FED7D7; }
+      .flash.success { background:#F0FFF4; color:#276749; border:1px solid #C6F6D5; }
+      .flash.warning { background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; }
+      .flash.info    { background:#EBF8FF; color:#2B6CB0; border:1px solid #BEE3F8; }
+      [data-theme="dark"] .flash.danger  { background:#2D1515; color:#FC8181; border-color:#742A2A; }
+      [data-theme="dark"] .flash.success { background:#1A2D1A; color:#68D391; border-color:#276749; }
+      [data-theme="dark"] .flash.warning { background:#2D2515; color:#F6AD55; border-color:#744210; }
+      [data-theme="dark"] .flash.info    { background:#152030; color:#63B3ED; border-color:#2B6CB0; }
+
+      /* CONTROLS */
+      .controls { position:fixed; top:16px; right:16px; display:flex; gap:8px; z-index:99; }
+      .ctrl { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:6px 11px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.75); cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:5px; transition:all 0.15s; }
+      .ctrl:hover { background:rgba(255,255,255,0.18); color:white; }
+
+      .lang-drop { position:relative; }
+      .lang-menu { display:none; position:absolute; top:calc(100% + 6px); right:0; background:white; border:1px solid #DDE3EC; border-radius:10px; overflow:hidden; min-width:130px; z-index:99; box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+      .lang-menu a { display:flex; align-items:center; gap:8px; padding:9px 14px; color:#2D3748; text-decoration:none; font-size:13px; transition:background 0.12s; }
+      .lang-menu a:hover { background:#F0F4F9; }
+      [data-theme="dark"] .lang-menu { background:#1A2D42; border-color:#1E3048; }
+      [data-theme="dark"] .lang-menu a { color:#B0C4D8; }
+
+      /* RESPONSIVE */
+      @media (max-width: 480px) {
+        .auth-header { padding: 20px 16px 18px; }
+        .header-logo { width:52px; height:52px; }
+        .form-card { padding: 22px 18px 20px; border-radius:14px; }
+        .form-title { font-size: 16px; }
+      }
+    </style>
 </head>
 <body>
 
-<div class="page-auth">
-    <div class="auth-card">
-
-        <div class="auth-header">
-            <div class="auth-logo">
-                {% if config and config.logo_path %}
-                    <img src="{{ url_for('static', filename=config.logo_path) }}" alt="Logo" style="height:30px;">
-                {% else %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                {% endif %}
-            </div>
-            <h1>
-                {% if config and config.nom_etablissement %}
-                    {{ config.nom_etablissement }}
-                {% else %}
-                    ESTE Essaouira
-                {% endif %}
-            </h1>
-            <p>Connectez-vous à votre compte</p>
-        </div>
-
-        <div class="p-4">
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for categorie, message in messages %}
-                        <div class="alert alert-{{ 'success' if categorie == 'success' else 'danger' if categorie == 'danger' else 'warning' if categorie == 'warning' else 'info' }} alert-dismissible fade show py-2" role="alert" style="font-size:13px;">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <form method="POST" action="{{ url_for('auth.connexion') }}">
-                {{ formulaire.hidden_tag() }}
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="font-size:13px;">Adresse email</label>
-                    <input type="email"
-                           name="email"
-                           class="form-control"
-                           placeholder="votre@email.com"
-                           value="{{ formulaire.email.data or '' }}"
-                           style="font-size:13px;"
-                           required>
-                    {% if formulaire.email.errors %}
-                        <div class="text-danger mt-1" style="font-size:12px;">{{ formulaire.email.errors[0] }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-semibold" style="font-size:13px;">Mot de passe</label>
-                    <div class="input-group">
-                        <input type="password"
-                               id="mot_de_passe"
-                               name="mot_de_passe"
-                               class="form-control"
-                               placeholder="••••••••"
-                               style="font-size:13px;"
-                               required>
-                        <button type="button"
-                                class="btn btn-outline-secondary"
-                                onclick="togglePassword()"
-                                style="border-color:#dee2e6;">
-                            <svg id="icon-eye" width="16" height="16" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                    </div>
-                    {% if formulaire.mot_de_passe.errors %}
-                        <div class="text-danger mt-1" style="font-size:12px;">{{ formulaire.mot_de_passe.errors[0] }}</div>
-                    {% endif %}
-                </div>
-
-                <button type="submit" class="btn btn-este w-100 py-2">
-                    Se connecter
-                </button>
-            </form>
-        </div>
-
-        <div class="text-center pb-3" style="font-size:13px; color:#64748B;">
-            Pas encore de compte ?
-            <a href="{{ url_for('auth.inscription') }}" style="color:var(--este-primary); font-weight:600;">
-                S'inscrire
-            </a>
-        </div>
-
+<div class="controls">
+  <div class="lang-drop" id="langDrop">
+    <button class="ctrl" onclick="toggleLang()">
+      <i class="fas fa-globe"></i> {{ session.get('langue','fr')|upper }}
+      <i class="fas fa-chevron-down" style="font-size:9px;"></i>
+    </button>
+    <div class="lang-menu" id="langMenu">
+      <a href="{{ url_for('main.changer_langue', code='fr') }}">🇫🇷 Français</a>
+      <a href="{{ url_for('main.changer_langue', code='en') }}">🇬🇧 English</a>
+      <a href="{{ url_for('main.changer_langue', code='ar') }}">🇲🇦 العربية</a>
     </div>
+  </div>
+  <button class="ctrl" onclick="toggleDark()">
+    <i id="darkIcon" class="fas fa-moon"></i>
+  </button>
+</div>
+
+<!-- HEADER -->
+<div class="auth-header">
+  <div class="header-logo">
+    {% if config and config.logo_path %}
+      <img src="{{ url_for('static', filename=config.logo_path) }}" alt="Logo">
+    {% else %}
+      <i class="fas fa-school"></i>
+    {% endif %}
+  </div>
+  <div class="header-name">
+    {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}
+  </div>
+  <div class="header-tagline">{{ _('Système de gestion de présence') }}</div>
+</div>
+
+<!-- BODY -->
+<div class="auth-body">
+  <div class="form-card">
+    <div class="form-title">{{ _('Connexion') }}</div>
+    <div class="form-subtitle">{{ _('Bienvenue, entrez vos identifiants') }}</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}">
+          <i class="fas fa-{% if cat=='success' %}check-circle{% elif cat=='danger' %}circle-xmark{% elif cat=='warning' %}triangle-exclamation{% else %}circle-info{% endif %}"></i>
+          {{ msg }}
+        </div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.connexion') }}" novalidate>
+      {{ formulaire.hidden_tag() }}
+
+      <div class="field">
+        <label class="label">{{ _('Email') }}</label>
+        <input type="email" name="email"
+               class="input {{ 'err' if formulaire.email.errors }}"
+               placeholder="votre@email.com"
+               value="{{ formulaire.email.data or '' }}">
+        {% for e in formulaire.email.errors %}
+          <div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="field">
+        <label class="label">{{ _('Mot de passe') }}</label>
+        <div class="input-wrap">
+          <input type="password" id="pwd" name="mot_de_passe"
+                 class="input {{ 'err' if formulaire.mot_de_passe.errors }}"
+                 placeholder="••••••••" style="padding-right:40px;">
+          <button type="button" class="eye-btn" onclick="togglePwd()">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+        {% for e in formulaire.mot_de_passe.errors %}
+          <div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="submit">
+        <i class="fas fa-right-to-bracket"></i> {{ _('Se connecter') }}
+      </button>
+    </form>
+
+    <div class="form-footer">
+      {{ _('Pas encore de compte ?') }}
+      <a href="{{ url_for('auth.inscription') }}">{{ _("S'inscrire") }}</a>
+    </div>
+  </div>
 </div>
 
 {{ bootstrap.load_js() }}
 <script>
-function togglePassword() {
-    const input = document.getElementById('mot_de_passe');
-    input.type = input.type === 'password' ? 'text' : 'password';
+function togglePwd() {
+    const i = document.getElementById('pwd');
+    i.type = i.type === 'password' ? 'text' : 'password';
+    document.getElementById('eyeIcon').className = i.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+function toggleLang() {
+    const m = document.getElementById('langMenu');
+    m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', e => {
+    if (!document.getElementById('langDrop').contains(e.target))
+        document.getElementById('langMenu').style.display = 'none';
+});
+const html = document.documentElement;
+applyTheme(localStorage.getItem('theme') || 'light');
+function toggleDark() {
+    const n = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', n); applyTheme(n);
+}
+function applyTheme(t) {
+    html.setAttribute('data-theme', t);
+    document.getElementById('darkIcon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 }
 </script>
 </body>

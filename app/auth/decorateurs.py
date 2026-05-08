@@ -180,33 +180,49 @@ def configurer_gestionnaires_erreurs(app):
     """
     @app.errorhandler(403)
     def acces_interdit(e):
-        """Gérer l'erreur 403 — Accès interdit"""
         if request.is_json or request.path.startswith('/api/'):
             return jsonify({
                 'succes': False,
                 'message': 'Accès interdit. Vous n\'avez pas les permissions nécessaires.',
                 'code': 'ACCES_INTERDIT'
             }), 403
-        return redirect(url_for('admin.tableau_de_bord'))
+        # Rediriger selon le rôle
+        if current_user.is_authenticated:
+            if current_user.role == 'admin':
+                return redirect(url_for('admin.tableau_de_bord'))
+            elif current_user.role == 'agent':
+                return redirect(url_for('personnes.liste'))
+            else:
+                return redirect(url_for('main.index'))
+        return redirect(url_for('auth.connexion'))
 
     @app.errorhandler(404)
     def page_introuvable(e):
-        """Gérer l'erreur 404 — Page introuvable"""
+        # Ignorer favicon silencieusement
+        if request.path == '/favicon.ico':
+            from flask import Response
+            return Response(status=204)
         if request.is_json or request.path.startswith('/api/'):
             return jsonify({
                 'succes': False,
                 'message': 'Ressource introuvable.',
                 'code': 'INTROUVABLE'
             }), 404
-        return redirect(url_for('admin.tableau_de_bord'))
+        if current_user.is_authenticated:
+            if current_user.role == 'admin':
+                return redirect(url_for('admin.tableau_de_bord'))
+            elif current_user.role == 'agent':
+                return redirect(url_for('personnes.liste'))
+            else:
+                return redirect(url_for('main.index'))
+        return redirect(url_for('auth.connexion'))
 
     @app.errorhandler(500)
     def erreur_serveur(e):
-        """Gérer l'erreur 500 — Erreur interne du serveur"""
         if request.is_json or request.path.startswith('/api/'):
             return jsonify({
                 'succes': False,
                 'message': 'Erreur interne du serveur.',
                 'code': 'ERREUR_SERVEUR'
             }), 500
-        return redirect(url_for('admin.tableau_de_bord'))
+        return redirect(url_for('auth.connexion'))

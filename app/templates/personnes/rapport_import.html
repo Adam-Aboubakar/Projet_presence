@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Rapport import') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:center; gap:14px; }
+  .back-btn { display:flex; align-items:center; gap:6px; color:var(--text-muted); text-decoration:none; font-size:12.5px; font-weight:500; padding:6px 10px; border-radius:var(--radius); background:var(--input-bg); border:1.5px solid var(--border); transition:all 0.15s; }
+  .back-btn:hover { color:var(--text); background:var(--border); }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .rapport-body { padding:16px 28px 36px; max-width:600px; }
+  .rapport-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+
+  .stat-row { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid var(--border); }
+  .stat-item { padding:20px 24px; text-align:center; }
+  .stat-item:first-child { border-right:1px solid var(--border); }
+  .stat-num { font-size:32px; font-weight:700; margin-bottom:4px; }
+  .stat-label { font-size:12px; color:var(--text-muted); font-weight:500; }
+  .stat-success .stat-num { color:var(--success); }
+  .stat-danger  .stat-num { color:var(--danger); }
+
+  .erreurs-section { padding:16px 20px; }
+  .section-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+  .erreur-item { padding:8px 12px; background:var(--danger-soft); border-radius:var(--radius); font-size:12px; color:var(--danger); margin-bottom:6px; display:flex; align-items:center; gap:7px; }
+
+  .actions { padding:16px 20px; border-top:1px solid var(--border); display:flex; gap:10px; }
+  .btn-primary { background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
+  .btn-primary:hover { background:#D4400E; }
+  .btn-secondary { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:10px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
+  .btn-secondary:hover { background:var(--border); }
+</style>
+
+<div class="page-header">
+  <a href="{{ url_for('personnes.liste') }}" class="back-btn">
+    <i class="fas fa-arrow-left"></i> {{ _('Retour à la liste') }}
+  </a>
+  <h1>{{ _('Rapport d\'import') }}</h1>
+</div>
+
+<div class="rapport-body">
+  <div class="rapport-card">
+
+    <!-- STATS -->
+    <div class="stat-row">
+      <div class="stat-item stat-success">
+        <div class="stat-num">{{ importees }}</div>
+        <div class="stat-label">{{ _('Importées avec succès') }}</div>
+      </div>
+      <div class="stat-item stat-danger">
+        <div class="stat-num">{{ erreurs | length }}</div>
+        <div class="stat-label">{{ _('Erreurs') }}</div>
+      </div>
+    </div>
+
+    <!-- ERREURS -->
+    {% if erreurs %}
+    <div class="erreurs-section">
+      <div class="section-title">
+        <i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i>
+        {{ _('Détail des erreurs') }}
+      </div>
+      {% for erreur in erreurs %}
+      <div class="erreur-item">
+        <i class="fas fa-circle-xmark"></i> {{ erreur }}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="padding:20px; text-align:center; color:var(--success); font-size:13px;">
+      <i class="fas fa-circle-check" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+      {{ _('Import sans erreurs !') }}
+    </div>
+    {% endif %}
+
+    <!-- ACTIONS -->
+    <div class="actions">
+      <a href="{{ url_for('personnes.liste') }}" class="btn-primary">
+        <i class="fas fa-users"></i> {{ _('Voir la liste') }}
+      </a>
+      <a href="{{ url_for('personnes.importer') }}" class="btn-secondary">
+        <i class="fas fa-file-import"></i> {{ _('Nouvel import') }}
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

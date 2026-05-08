@@ -29,6 +29,14 @@ def create_app(config_name='default'):
     bcrypt.init_app(app)
     bootstrap.init_app(app)
     csrf.init_app(app)
+    csrf.exempt('app.admin.routes.creer_admin')
+    csrf.exempt('app.rfid.routes.associer_carte')
+    csrf.exempt('app.rfid.routes.revoquer_carte')
+    csrf.exempt('app.rfid.routes.remplacer_carte')
+    csrf.exempt('app.rfid.routes.verifier_carte')
+    csrf.exempt('app.photos.routes.uploader_photo')
+    csrf.exempt('app.photos.routes.capturer_photo')
+    csrf.exempt('app.journal.routes.liste_logs')
 
     def get_locale():
         try:
@@ -60,7 +68,9 @@ def create_app(config_name='default'):
         from flask import flash, redirect, url_for
         from datetime import datetime, timezone, timedelta
 
-        # Ignorer les routes statiques et auth
+        if request.path == '/favicon.ico':
+            return
+
         if request.endpoint and (
             request.endpoint.startswith('static') or
             request.endpoint.startswith('auth.')
@@ -118,5 +128,9 @@ def create_app(config_name='default'):
 
     from app.emplois import emplois_bp
     app.register_blueprint(emplois_bp)
+
+        # Démarrer le scheduler
+    from app.scheduler import init_scheduler
+    init_scheduler(app)
 
     return app

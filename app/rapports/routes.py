@@ -7,7 +7,7 @@ from app.rapports.utils import (
     generer_excel_detail,
     generer_excel_complet
 )
-from app.models import Presence, Session, Personne
+from app.models import Presence, Session, Personne, db
 from app.auth.decorateurs import role_requis
 
 
@@ -193,3 +193,19 @@ def stats_etudiant(personne_id):
             'taux_presence': round((present + retard) / total * 100, 1) if total > 0 else 0
         }
     }), 200
+
+from flask import render_template
+
+@rapports_bp.route('/')
+@role_requis('enseignant')
+def liste():
+    from app.models import Configuration, Personne
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    
+    groupes = db.session.query(Personne.groupe_ou_site)\
+        .filter(Personne.groupe_ou_site != None)\
+        .distinct().all()
+    groupes = [g[0] for g in groupes if g[0]]
+    
+    return render_template('rapports/liste.html', groupes=groupes, mode=mode)

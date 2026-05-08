@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('langue', 'fr') }}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Compte en attente') }} — {{ config.nom_etablissement if config and config.nom_etablissement else 'ESTE' }}</title>
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+      body { font-family:'DM Sans',sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; background:#F0F4F9; }
+      [data-theme="dark"] body { background:#0D1520; }
+      .auth-header { background:#0F1E30; padding:18px 24px; display:flex; align-items:center; gap:14px; flex-shrink:0; }
+      .header-logo { width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+      .header-logo img { width:100%; height:100%; object-fit:contain; padding:6px; }
+      .header-logo i { font-size:20px; color:#E8531A; }
+      .header-name    { font-size:15px; font-weight:700; color:white; }
+      .header-tagline { font-size:11px; color:rgba(255,255,255,0.4); margin-top:1px; }
+      .auth-body { flex:1; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+      .card { background:white; border-radius:18px; border:1px solid #E2E8F0; box-shadow:0 4px 20px rgba(26,58,92,0.08); padding:36px 32px; width:100%; max-width:440px; text-align:center; }
+      [data-theme="dark"] .card { background:#152030; border-color:#1E3048; }
+      .icon-wrap { width:72px; height:72px; border-radius:50%; background:#FFFBEB; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+      .icon-wrap i { font-size:32px; color:#F4B400; }
+      .title    { font-size:19px; font-weight:700; color:#1A3A5C; margin-bottom:10px; }
+      .subtitle { font-size:13px; color:#718096; line-height:1.7; margin-bottom:24px; }
+      [data-theme="dark"] .title    { color:#E8EEF4; }
+      [data-theme="dark"] .subtitle { color:#7A93A8; }
+
+      .steps { display:flex; flex-direction:column; gap:10px; margin-bottom:28px; text-align:left; }
+      .step  { display:flex; align-items:center; gap:12px; padding:10px 14px; background:#F7FAFC; border-radius:10px; border:1px solid #E2E8F0; }
+      [data-theme="dark"] .step { background:#1A2D42; border-color:#1E3048; }
+      .step-num { width:24px; height:24px; border-radius:50%; background:#E8531A; color:white; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+      .step-num.done { background:#0F9D58; }
+      .step-text { font-size:12.5px; color:#4A5568; font-weight:500; }
+      [data-theme="dark"] .step-text { color:#B0C4D8; }
+      .step-text.done { color:#0F9D58; font-weight:600; }
+
+      .btn { display:inline-flex; align-items:center; gap:8px; background:#E8531A; color:white; text-decoration:none; padding:11px 24px; border-radius:10px; font-size:13.5px; font-weight:700; transition:background 0.15s; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; }
+      .btn:hover { background:#D4400E; }
+      .btn-secondary { background:transparent; color:#718096; border:1.5px solid #E2E8F0; margin-left:8px; }
+      .btn-secondary:hover { background:#F7FAFC; color:#1A3A5C; }
+      [data-theme="dark"] .btn-secondary { border-color:#1E3048; color:#7A93A8; }
+    </style>
+</head>
+<body>
+
+<div class="auth-header">
+  <div class="header-logo">
+    {% if config and config.logo_path %}
+      <img src="{{ url_for('static', filename=config.logo_path) }}" alt="Logo">
+    {% else %}
+      <i class="fas fa-school"></i>
+    {% endif %}
+  </div>
+  <div>
+    <div class="header-name">{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}</div>
+    <div class="header-tagline">{{ _('Système de gestion de présence') }}</div>
+  </div>
+</div>
+
+<div class="auth-body">
+  <div class="card">
+    <div class="icon-wrap"><i class="fas fa-hourglass-half"></i></div>
+    <div class="title">{{ _('Compte en attente de validation') }}</div>
+    <div class="subtitle">
+      {{ _('Votre compte a été créé avec succès. Un administrateur doit valider votre accès et vous attribuer un rôle.') }}
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num done"><i class="fas fa-check" style="font-size:9px;"></i></div>
+        <div class="step-text done">{{ _('Inscription complétée') }}</div>
+      </div>
+      <div class="step">
+        <div class="step-num done"><i class="fas fa-check" style="font-size:9px;"></i></div>
+        <div class="step-text done">{{ _('Email vérifié') }}</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#F4B400;">3</div>
+        <div class="step-text">{{ _('Validation par un administrateur') }} — {{ _('en cours...') }}</div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:#CBD5E0;">4</div>
+        <div class="step-text" style="color:#A0AEC0;">{{ _('Accès à votre espace') }}</div>
+      </div>
+    </div>
+
+    <div>
+      <a href="{{ url_for('auth.connexion') }}" class="btn">
+        <i class="fas fa-rotate-right"></i> {{ _('Actualiser') }}
+      </a>
+      <a href="{{ url_for('auth.deconnexion') }}" class="btn btn-secondary">
+        <i class="fas fa-right-from-bracket"></i> {{ _('Déconnexion') }}
+      </a>
+    </div>
+  </div>
+</div>
+
+{{ bootstrap.load_js() }}
+<script>
+const html = document.documentElement;
+applyTheme(localStorage.getItem('theme') || 'light');
+function applyTheme(t) {
+    html.setAttribute('data-theme', t);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('langue', 'fr') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Email envoyé') }}</title>
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+      body { font-family:'DM Sans',sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; background:#F0F4F9; }
+      .auth-header { background:#0F1E30; padding:18px 24px; display:flex; align-items:center; gap:14px; flex-shrink:0; }
+      .header-logo { width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+      .header-logo img { width:100%; height:100%; object-fit:contain; padding:6px; }
+      .header-logo i { font-size:20px; color:#E8531A; }
+      .header-name    { font-size:15px; font-weight:700; color:white; }
+      .header-tagline { font-size:11px; color:rgba(255,255,255,0.4); margin-top:1px; }
+      .auth-body { flex:1; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+      .card { background:white; border-radius:18px; border:1px solid #E2E8F0; box-shadow:0 4px 20px rgba(26,58,92,0.08); padding:36px 32px; width:100%; max-width:420px; text-align:center; }
+      .icon-wrap { width:64px; height:64px; border-radius:50%; background:#E8F5E9; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+      .icon-wrap i { font-size:28px; color:#0F9D58; }
+      .title    { font-size:18px; font-weight:700; color:#1A3A5C; margin-bottom:8px; }
+      .subtitle { font-size:13px; color:#718096; line-height:1.6; margin-bottom:24px; }
+      .email-box { background:#F0F4F9; border-radius:10px; padding:12px 16px; font-size:13px; color:#1A3A5C; font-weight:600; margin-bottom:24px; }
+      .btn { display:inline-flex; align-items:center; gap:8px; background:#E8531A; color:white; text-decoration:none; padding:11px 24px; border-radius:10px; font-size:13.5px; font-weight:700; transition:background 0.15s; }
+      .btn:hover { background:#D4400E; }
+      .note { font-size:11.5px; color:#A0AEC0; margin-top:16px; }
+    </style>
+</head>
+<body>
+
+<div class="auth-header">
+  <div class="header-logo">
+    {% if config and config.logo_path %}
+      <img src="{{ url_for('static', filename=config.logo_path) }}" alt="Logo">
+    {% else %}
+      <i class="fas fa-school"></i>
+    {% endif %}
+  </div>
+  <div>
+    <div class="header-name">{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}</div>
+    <div class="header-tagline">{{ _('Système de gestion de présence') }}</div>
+  </div>
+</div>
+
+<div class="auth-body">
+  <div class="card">
+    <div class="icon-wrap"><i class="fas fa-envelope-circle-check"></i></div>
+    <div class="title">{{ _('Email envoyé !') }}</div>
+    <div class="subtitle">
+      {{ _('Un email de confirmation a été envoyé à votre adresse. Cliquez sur le lien pour activer votre compte.') }}
+    </div>
+    <div class="email-box">
+      <i class="fas fa-clock" style="color:#E8531A; margin-right:6px;"></i>
+      {{ _('Lien valable 24 heures') }}
+    </div>
+    <a href="{{ url_for('auth.connexion') }}" class="btn">
+      <i class="fas fa-right-to-bracket"></i> {{ _('Retour à la connexion') }}
+    </a>
+    <div class="note">{{ _('Pas reçu ? Vérifiez vos spams.') }}</div>
+  </div>
+</div>
+
+{{ bootstrap.load_js() }}
+</body>
+</html>

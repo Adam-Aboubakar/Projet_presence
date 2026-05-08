@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('langue', 'fr') }}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Inscription') }} — {{ config.nom_etablissement if config and config.nom_etablissement else 'ESTE' }}</title>
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+      body {
+        font-family: 'DM Sans', sans-serif;
+        height: 100vh; overflow: hidden;
+        display: flex; flex-direction: column;
+        background: #F0F4F9;
+      }
+      [data-theme="dark"] body { background: #0D1520; }
+
+      /* HEADER */
+      .auth-header {
+        background: #0F1E30;
+        padding: 18px 24px;
+        display: flex; align-items: center; gap: 14px;
+        flex-shrink: 0;
+      }
+      .header-logo {
+        width: 46px; height: 46px; border-radius: 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden; flex-shrink: 0;
+      }
+      .header-logo img { width:100%; height:100%; object-fit:contain; padding:6px; }
+      .header-logo i   { font-size:20px; color:#E8531A; }
+      .header-name    { font-size:15px; font-weight:700; color:white; }
+      .header-tagline { font-size:11px; color:rgba(255,255,255,0.4); margin-top:1px; }
+
+      /* BODY */
+      .auth-body {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 16px; overflow: hidden;
+      }
+
+      .form-card {
+        background: white; border-radius: 18px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 4px 20px rgba(26,58,92,0.08);
+        padding: 24px 28px 20px;
+        width: 100%; max-width: 460px;
+      }
+      [data-theme="dark"] .form-card { background: #152030; border-color: #1E3048; }
+
+      .form-title    { font-size:17px; font-weight:700; color:#1A3A5C; margin-bottom:2px; }
+      .form-subtitle { font-size:12px; color:#718096; margin-bottom:16px; }
+      [data-theme="dark"] .form-title    { color:#E8EEF4; }
+      [data-theme="dark"] .form-subtitle { color:#7A93A8; }
+
+      /* FORM */
+      .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+      .field { margin-bottom:11px; }
+      .label { font-size:10px; font-weight:700; color:#718096; text-transform:uppercase; letter-spacing:0.6px; display:block; margin-bottom:4px; }
+      [data-theme="dark"] .label { color:#7A93A8; }
+
+      .input-wrap { position:relative; }
+      .input {
+        width:100%; background:#F7FAFC; border:1.5px solid #E2E8F0;
+        border-radius:9px; padding:9px 12px; font-size:13px; color:#2D3748;
+        font-family:'DM Sans',sans-serif; outline:none;
+        transition:border-color 0.15s, box-shadow 0.15s;
+      }
+      .input:focus { border-color:#1A73E8; box-shadow:0 0 0 3px rgba(26,115,232,0.1); background:white; }
+      .input.err   { border-color:#E53E3E; }
+      .input::placeholder { color:#CBD5E0; }
+      [data-theme="dark"] .input { background:#1A2D42; border-color:#1E3048; color:#E8EEF4; }
+      [data-theme="dark"] .input:focus { background:#1E3A54; border-color:#4A90E8; }
+
+      .eye-btn { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#CBD5E0; font-size:13px; }
+      .eye-btn:hover { color:#718096; }
+
+      .field-err  { font-size:10.5px; color:#E53E3E; margin-top:3px; display:flex; align-items:center; gap:3px; }
+      .field-hint { font-size:10.5px; color:#A0AEC0; margin-top:3px; }
+
+      /* PWD */
+      .pwd-bar  { height:3px; border-radius:50px; background:#E2E8F0; overflow:hidden; margin:5px 0 4px; }
+      .pwd-fill { height:100%; border-radius:50px; transition:width 0.3s, background 0.3s; width:0%; }
+      .pwd-rules { display:grid; grid-template-columns:1fr 1fr; gap:1px; }
+      .pwd-rule  { font-size:10px; color:#CBD5E0; display:flex; align-items:center; gap:3px; transition:color 0.2s; }
+      .pwd-rule.ok { color:#0F9D58; }
+
+      /* SUBMIT */
+      .submit {
+        width:100%; background:#E8531A; color:white; border:none;
+        padding:11px; border-radius:10px; font-size:13.5px; font-weight:700;
+        cursor:pointer; font-family:'DM Sans',sans-serif;
+        display:flex; align-items:center; justify-content:center; gap:8px;
+        transition:background 0.15s, transform 0.1s;
+        box-shadow:0 4px 12px rgba(232,83,26,0.25); margin-top:4px;
+      }
+      .submit:hover { background:#D4400E; transform:translateY(-1px); }
+
+      .form-footer { text-align:center; font-size:12.5px; color:#718096; margin-top:14px; }
+      .form-footer a { color:#E8531A; font-weight:600; text-decoration:none; }
+      [data-theme="dark"] .form-footer { color:#7A93A8; }
+
+      .flash { border-radius:9px; padding:8px 12px; font-size:12px; margin-bottom:12px; display:flex; align-items:flex-start; gap:7px; }
+      .flash.danger  { background:#FFF5F5; color:#C53030; border:1px solid #FED7D7; }
+      .flash.success { background:#F0FFF4; color:#276749; border:1px solid #C6F6D5; }
+      .flash.warning { background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; }
+      .flash.info    { background:#EBF8FF; color:#2B6CB0; border:1px solid #BEE3F8; }
+
+      /* CONTROLS */
+      .controls { position:fixed; top:14px; right:16px; display:flex; gap:8px; z-index:99; }
+      .ctrl { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:5px 10px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.75); cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:5px; transition:all 0.15s; }
+      .ctrl:hover { background:rgba(255,255,255,0.18); color:white; }
+      .lang-drop { position:relative; }
+      .lang-menu { display:none; position:absolute; top:calc(100% + 6px); right:0; background:white; border:1px solid #DDE3EC; border-radius:10px; overflow:hidden; min-width:130px; z-index:99; box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+      .lang-menu a { display:flex; align-items:center; gap:8px; padding:9px 14px; color:#2D3748; text-decoration:none; font-size:13px; transition:background 0.12s; }
+      .lang-menu a:hover { background:#F0F4F9; }
+      [data-theme="dark"] .lang-menu { background:#1A2D42; border-color:#1E3048; }
+      [data-theme="dark"] .lang-menu a { color:#B0C4D8; }
+
+      @media (max-width:480px) {
+        .auth-header { padding:14px 16px; }
+        .auth-body   { padding:12px; }
+        .form-card   { padding:18px 16px; border-radius:14px; }
+        .row-2       { grid-template-columns:1fr; }
+      }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="lang-drop" id="langDrop">
+    <button class="ctrl" onclick="toggleLang()">
+      <i class="fas fa-globe"></i> {{ session.get('langue','fr')|upper }}
+      <i class="fas fa-chevron-down" style="font-size:9px;"></i>
+    </button>
+    <div class="lang-menu" id="langMenu">
+      <a href="{{ url_for('main.changer_langue', code='fr') }}">🇫🇷 Français</a>
+      <a href="{{ url_for('main.changer_langue', code='en') }}">🇬🇧 English</a>
+      <a href="{{ url_for('main.changer_langue', code='ar') }}">🇲🇦 العربية</a>
+    </div>
+  </div>
+  <button class="ctrl" onclick="toggleDark()">
+    <i id="darkIcon" class="fas fa-moon"></i>
+  </button>
+</div>
+
+<!-- HEADER -->
+<div class="auth-header">
+  <div class="header-logo">
+    {% if config and config.logo_path %}
+      <img src="{{ url_for('static', filename=config.logo_path) }}" alt="Logo">
+    {% else %}
+      <i class="fas fa-school"></i>
+    {% endif %}
+  </div>
+  <div>
+    <div class="header-name">{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}</div>
+    <div class="header-tagline">{{ _('Système de gestion de présence') }}</div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="auth-body">
+  <div class="form-card">
+    <div class="form-title">{{ _('Créer un compte') }}</div>
+    <div class="form-subtitle">{{ _('Tous les champs * sont obligatoires') }}</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}"><i class="fas fa-circle-info"></i> {{ msg }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.inscription') }}" novalidate>
+      {{ formulaire.hidden_tag() }}
+
+      <!-- Prénom + Nom -->
+      <div class="row-2">
+        <div class="field">
+          <label class="label">{{ _('Prénom') }} *</label>
+          {{ formulaire.prenom(class='input'+(' err' if formulaire.prenom.errors else ''), placeholder='Mohamed') }}
+          {% for e in formulaire.prenom.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <div class="field">
+          <label class="label">{{ _('Nom') }} *</label>
+          {{ formulaire.nom(class='input'+(' err' if formulaire.nom.errors else ''), placeholder='Alaoui') }}
+          {% for e in formulaire.nom.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="field">
+        <label class="label">{{ _('Email institutionnel') }} *</label>
+        {{ formulaire.email(class='input'+(' err' if formulaire.email.errors else ''), placeholder='m.alaoui@' + (config.domaine_email_autorise if config and config.domaine_email_autorise else 'este.ac.ma')) }}
+        {% for e in formulaire.email.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
+        {% if config and config.domaine_email_autorise %}
+          <div class="field-hint"><i class="fas fa-info-circle"></i> @{{ config.domaine_email_autorise }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Département -->
+      <div class="field">
+        <label class="label">{{ _('Département / Filière') }} *</label>
+        {{ formulaire.departement(class='input'+(' err' if formulaire.departement.errors else ''), placeholder='Ex: Informatique, RH...') }}
+        {% for e in formulaire.departement.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
+      </div>
+
+      <!-- Mot de passe + Confirmation côte à côte -->
+      <div class="row-2">
+        <div class="field">
+          <label class="label">{{ _('Mot de passe') }} *</label>
+          <div class="input-wrap">
+            {{ formulaire.mot_de_passe(class='input'+(' err' if formulaire.mot_de_passe.errors else ''), placeholder='••••••••', id='pwd1', oninput='checkPwd(this.value)', style='padding-right:36px') }}
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd1','e1')"><i class="fas fa-eye" id="e1"></i></button>
+          </div>
+          {% for e in formulaire.mot_de_passe.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
+        </div>
+        <div class="field">
+          <label class="label">{{ _('Confirmer') }} *</label>
+          <div class="input-wrap">
+            {{ formulaire.confirmation_mot_de_passe(class='input'+(' err' if formulaire.confirmation_mot_de_passe.errors else ''), placeholder='••••••••', id='pwd2', style='padding-right:36px') }}
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd2','e2')"><i class="fas fa-eye" id="e2"></i></button>
+          </div>
+          {% for e in formulaire.confirmation_mot_de_passe.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <!-- Force mot de passe -->
+      <div class="pwd-bar"><div class="pwd-fill" id="pf"></div></div>
+      <div class="pwd-rules" style="margin-bottom:10px;">
+        <div class="pwd-rule" id="r1"><i class="fas fa-circle" style="font-size:6px;"></i> 8 car.</div>
+        <div class="pwd-rule" id="r2"><i class="fas fa-circle" style="font-size:6px;"></i> Majuscule</div>
+        <div class="pwd-rule" id="r3"><i class="fas fa-circle" style="font-size:6px;"></i> Chiffre</div>
+        <div class="pwd-rule" id="r4"><i class="fas fa-circle" style="font-size:6px;"></i> Spécial</div>
+      </div>
+
+      <button type="submit" class="submit">
+        <i class="fas fa-user-plus"></i> {{ _('Créer mon compte') }}
+      </button>
+    </form>
+
+    <div class="form-footer">
+      {{ _('Déjà un compte ?') }}
+      <a href="{{ url_for('auth.connexion') }}">{{ _('Se connecter') }}</a>
+    </div>
+  </div>
+</div>
+
+{{ bootstrap.load_js() }}
+<script>
+function togglePwd(id, iconId) {
+    const i = document.getElementById(id);
+    i.type = i.type === 'password' ? 'text' : 'password';
+    document.getElementById(iconId).className = i.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+function checkPwd(v) {
+    const r = [v.length>=8, /[A-Z]/.test(v), /[0-9]/.test(v), /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(v)];
+    const ok = r.filter(Boolean).length;
+    const c  = ['','#E53E3E','#F4B400','#F4B400','#0F9D58'];
+    document.getElementById('pf').style.width  = (ok/4*100)+'%';
+    document.getElementById('pf').style.background = c[ok];
+    ['r1','r2','r3','r4'].forEach((id,i) => document.getElementById(id).classList.toggle('ok', r[i]));
+}
+function toggleLang() {
+    const m = document.getElementById('langMenu');
+    m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', e => {
+    if (!document.getElementById('langDrop').contains(e.target))
+        document.getElementById('langMenu').style.display = 'none';
+});
+const html = document.documentElement;
+applyTheme(localStorage.getItem('theme') || 'light');
+function toggleDark() {
+    const n = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', n); applyTheme(n);
+}
+function applyTheme(t) {
+    html.setAttribute('data-theme', t);
+    document.getElementById('darkIcon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+</script>
+</body>
+</html>

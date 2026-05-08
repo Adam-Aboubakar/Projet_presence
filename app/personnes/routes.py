@@ -930,3 +930,27 @@ def api_rechercher():
             for p in resultats
         ]
     }), 200
+
+@personnes.route('/api/rechercher')
+@role_requis('enseignant', 'agent')
+def rechercher():
+    from app.models import db
+    q = request.args.get('q', '').strip()
+    if len(q) < 2:
+        return jsonify({'personnes': []})
+
+    resultats = Personne.query.filter(
+        db.or_(
+            Personne.prenom.ilike(f'%{q}%'),
+            Personne.nom.ilike(f'%{q}%'),
+            Personne.identifiant.ilike(f'%{q}%')
+        ),
+        Personne.est_actif == True
+    ).limit(10).all()
+
+    return jsonify({'personnes': [{
+        'id': p.id,
+        'prenom': p.prenom,
+        'nom': p.nom,
+        'identifiant': p.identifiant
+    } for p in resultats]})

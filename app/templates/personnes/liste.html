@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Étudiants') if config.mode == 'ecole' else _('Employés') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+  .page-header p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+  .liste-body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  /* MINI STATS */
+  .mini-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .mini-card { background:var(--card); border-radius:var(--radius); padding:12px 14px; border:1px solid var(--border); box-shadow:var(--shadow); display:flex; align-items:center; gap:12px; }
+  .mini-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .mini-icon.blue   { background:var(--info-soft);    color:var(--info); }
+  .mini-icon.green  { background:var(--success-soft); color:var(--success); }
+  .mini-icon.red    { background:var(--danger-soft);  color:var(--danger); }
+  .mini-icon.orange { background:var(--accent-soft);  color:var(--accent); }
+  .mini-val   { font-size:18px; font-weight:700; color:var(--text); font-family:'JetBrains Mono',monospace; line-height:1; }
+  .mini-label { font-size:11px; color:var(--text-muted); margin-top:2px; font-weight:500; }
+
+  /* FILTRES */
+  .filters-bar { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); padding:12px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .filter-input, .filter-select { background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:7px 11px; font-size:12.5px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .filter-input:focus, .filter-select:focus { border-color:var(--info); }
+  .filter-select option { background:var(--card); }
+  .filter-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+  .btn-filter { background:var(--accent); color:white; border:none; padding:7px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
+  .btn-filter:hover { background:#D4400E; }
+  .btn-ajouter { background:var(--success); color:white; border:none; padding:7px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; text-decoration:none; transition:background 0.15s; }
+  .btn-ajouter:hover { background:#0A8040; }
+  .btn-reset { background:transparent; color:var(--text-muted); border:none; padding:7px 10px; border-radius:var(--radius); font-size:12.5px; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; }
+
+  /* TABLE */
+  .table-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .table-header { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .table-title  { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:7px; }
+  .table-count  { font-size:12px; color:var(--text-muted); }
+
+  .data-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .data-table th { padding:9px 16px; text-align:left; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); background:var(--bg); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .data-table td { padding:10px 16px; border-bottom:1px solid var(--row-border); vertical-align:middle; color:var(--text); }
+  .data-table tr:last-child td { border-bottom:none; }
+  .data-table tr:hover td { background:var(--row-hover); }
+
+  /* PERSONNE INFO */
+  .personne-info { display:flex; align-items:center; gap:10px; }
+  .avatar { width:34px; height:34px; border-radius:9px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+  .personne-nom  { font-weight:600; font-size:13px; color:var(--text); }
+  .personne-id   { font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; margin-top:1px; }
+
+  /* BADGES */
+  .badge { display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-success { background:var(--success-soft); color:var(--success); }
+  .badge-danger  { background:var(--danger-soft);  color:var(--danger); }
+  .badge-info    { background:var(--info-soft);    color:var(--info); }
+  .badge-neutral { background:var(--icon-dark-bg); color:var(--text-muted); }
+  .badge-warning { background:var(--warning-soft); color:var(--warning); }
+
+  /* ACTIONS */
+  .btn-action { width:28px; height:28px; border-radius:7px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; transition:all 0.15s; text-decoration:none; }
+  .btn-action.voir    { background:var(--info-soft);    color:var(--info); }
+  .btn-action.voir:hover    { background:var(--info);    color:white; }
+  .btn-action.modifier { background:var(--accent-soft);  color:var(--accent); }
+  .btn-action.modifier:hover { background:var(--accent); color:white; }
+
+  /* EMPTY */
+  .empty-state { padding:40px; text-align:center; color:var(--text-muted); }
+  .empty-state i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
+
+  @media (max-width:900px) {
+    .mini-grid { grid-template-columns:repeat(2,1fr); }
+    .liste-body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+  }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <h1>{% if config.mode == 'ecole' %}{{ _('Étudiants') }}{% else %}{{ _('Employés') }}{% endif %}</h1>
+    <p>{% if config.mode == 'ecole' %}{{ _('Gestion des étudiants') }}{% else %}{{ _('Gestion des employés') }}{% endif %}</p>
+  </div>
+  {% if current_user.role == 'agent' %}
+  <a href="{{ url_for('personnes.ajouter') }}" class="btn-ajouter">
+    <i class="fas fa-plus"></i>
+    {% if config.mode == 'ecole' %}{{ _('Ajouter étudiant') }}{% else %}{{ _('Ajouter employé') }}{% endif %}
+  </a>
+  {% endif %}
+</div>
+
+<div class="liste-body">
+
+  <!-- MINI STATS -->
+  <div class="mini-grid">
+    <div class="mini-card">
+      <div class="mini-icon blue"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="mini-val">{{ total }}</div>
+        <div class="mini-label">{{ _('Total') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon green"><i class="fas fa-circle-check"></i></div>
+      <div>
+        <div class="mini-val">{{ personnes | selectattr('est_actif') | list | length }}</div>
+        <div class="mini-label">{{ _('Actifs') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon red"><i class="fas fa-circle-xmark"></i></div>
+      <div>
+        <div class="mini-val">{{ personnes | rejectattr('est_actif') | list | length }}</div>
+        <div class="mini-label">{{ _('Inactifs') }}</div>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-icon orange"><i class="fas fa-credit-card"></i></div>
+      <div>
+        <div class="mini-val">{{ personnes | selectattr('carte_active') | list | length }}</div>
+        <div class="mini-label">{{ _('Avec carte RFID') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <form method="GET" action="{{ url_for('personnes.liste') }}" autocomplete="off">
+    <div class="filters-bar">
+      <span class="filter-label">{{ _('Filtres') }}</span>
+      <input type="text" name="recherche" class="filter-input"
+             placeholder="{{ _('Nom, prénom, identifiant...') }}"
+             value="{{ recherche }}" style="width:180px;">
+      <input type="text" name="departement" class="filter-input"
+             placeholder="{{ _('Département') }}"
+             value="{{ departement }}" style="width:130px;">
+      <input type="text" name="groupe" class="filter-input"
+             placeholder="{% if config.mode == 'ecole' %}{{ _('Groupe') }}{% else %}{{ _('Site') }}{% endif %}"
+             value="{{ groupe }}" style="width:100px;">
+      <select name="statut" class="filter-select">
+        <option value="tous"   {{ 'selected' if statut == 'tous' }}>{{ _('Tous') }}</option>
+        <option value="actif"  {{ 'selected' if statut == 'actif' }}>{{ _('Actifs') }}</option>
+        <option value="inactif" {{ 'selected' if statut == 'inactif' }}>{{ _('Inactifs') }}</option>
+      </select>
+      <button type="submit" class="btn-filter">
+        <i class="fas fa-magnifying-glass"></i> {{ _('Filtrer') }}
+      </button>
+      <button type="button" class="btn-reset"
+              onclick="window.location.href='{{ url_for('personnes.liste') }}'">
+        <i class="fas fa-xmark"></i> {{ _('Réinitialiser') }}
+      </button>
+      {% if current_user.role == 'agent' %}
+      <a href="{{ url_for('personnes.importer') }}" class="btn-reset" style="margin-left:auto;">
+        <i class="fas fa-file-import"></i> {{ _('Importer Excel') }}
+      </a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title">
+        <i class="fas fa-users" style="color:var(--primary);"></i>
+        {% if config.mode == 'ecole' %}{{ _('Liste des étudiants') }}{% else %}{{ _('Liste des employés') }}{% endif %}
+      </span>
+      <span class="table-count">{{ total }} {{ _('résultats') }}</span>
+    </div>
+
+    {% if personnes %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{% if config.mode == 'ecole' %}{{ _('Étudiant') }}{% else %}{{ _('Employé') }}{% endif %}</th>
+          <th>{{ _('Département') }}</th>
+          <th>{% if config.mode == 'ecole' %}{{ _('Groupe') }}{% else %}{{ _('Site') }}{% endif %}</th>
+          <th>{{ _('Carte RFID') }}</th>
+          <th>{{ _('Photo') }}</th>
+          <th>{{ _('Statut') }}</th>
+          <th>{{ _('Actions') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in personnes %}
+        <tr>
+          <td>
+            <div class="personne-info">
+              <div class="avatar">{{ p.prenom[0]|upper }}{{ p.nom[0]|upper }}</div>
+              <div>
+                <div class="personne-nom">{{ p.prenom }} {{ p.nom }}</div>
+                <div class="personne-id">{{ p.identifiant }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span style="font-size:12.5px;">{{ p.departement or '—' }}</span></td>
+          <td><span style="font-size:12.5px;">{{ p.groupe_ou_site or '—' }}</span></td>
+          <td>
+            {% if p.carte_active() %}
+              <span class="badge badge-success"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Active') }}</span>
+            {% else %}
+              <span class="badge badge-neutral"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Aucune') }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set nb_photos = p.photos | length %}
+            {% if nb_photos > 0 %}
+              <span class="badge badge-info"><i class="fas fa-image"></i> {{ nb_photos }}</span>
+            {% else %}
+              <span class="badge badge-neutral"><i class="fas fa-image"></i> 0</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.est_actif %}
+              <span class="badge badge-success"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Actif') }}</span>
+            {% else %}
+              <span class="badge badge-danger"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Inactif') }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <a href="{{ url_for('personnes.profil', personne_id=p.id) }}"
+                 class="btn-action voir" title="{{ _('Voir profil') }}">
+                <i class="fas fa-eye"></i>
+              </a>
+              {% if current_user.role == 'agent' %}
+              <a href="{{ url_for('personnes.modifier', personne_id=p.id) }}"
+                 class="btn-action modifier" title="{{ _('Modifier') }}">
+                <i class="fas fa-pen"></i>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-users"></i>
+      <p>{{ _('Aucun résultat trouvé') }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

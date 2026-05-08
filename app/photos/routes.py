@@ -11,7 +11,7 @@ from app.utils.chiffrement import chiffrer_fichier, dechiffrer_fichier
 from app.auth.decorateurs import role_requis
 from flask_login import current_user
 
-FORMATS_AUTORISES = {'jpg', 'jpeg', 'png'}
+FORMATS_AUTORISES = {'jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'}
 TAILLE_MAX = 5 * 1024 * 1024  # 5MB
 
 
@@ -33,34 +33,43 @@ def journaliser(type_evenement, description, severite='INFO', personne_id=None):
 
 
 def verifier_qualite_photo(donnees_image):
-    """
-    Vérifier la qualité de la photo via OpenCV.
-    Retourne (ok, message)
-    """
-    # Convertir bytes en image OpenCV
-    np_arr = np.frombuffer(donnees_image, np.uint8)
-    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    try:
+        if not donnees_image or len(donnees_image) == 0:
+            return False, "Image vide"
 
-    if img is None:
-        return False, "Image invalide ou corrompue"
+        np_arr = np.frombuffer(donnees_image, np.uint8)
+        
+        if np_arr.size == 0:
+            return False, "Données image invalides"
+            
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    # Charger le détecteur de visages
-    cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-    detecteur = cv2.CascadeClassifier(cascade_path)
-    gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    visages = detecteur.detectMultiScale(gris, scaleFactor=1.1, minNeighbors=5)
+        if img is None:
+            return False, "Format image non supporté"
 
-    if len(visages) == 0:
-        return False, "Aucun visage détecté dans la photo"
-    if len(visages) > 1:
-        return False, "Plusieurs visages détectés — une seule personne par photo"
+        cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+        detecteur = cv2.CascadeClassifier(cascade_path)
+        gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        visages = detecteur.detectMultiScale(
+        gris,
+        scaleFactor=1.3,
+        minNeighbors=8,
+        minSize=(50, 50)
+        )
 
-    # Vérifier la netteté (variance du Laplacien)
-    nettete = cv2.Laplacian(gris, cv2.CV_64F).var()
-    if nettete < 50:
-        return False, "Photo trop floue — veuillez reprendre la photo"
+        if len(visages) == 0:
+            return False, "Aucun visage détecté"
+        if len(visages) > 1:
+            return False, "Plusieurs visages détectés"
 
-    return True, "Photo valide"
+        nettete = cv2.Laplacian(gris, cv2.CV_64F).var()
+        if nettete < 20:
+            return False, "Photo trop floue"
+
+        return True, "Photo valide"
+
+    except Exception as e:
+        return False, f"Erreur : {str(e)}"
 
 
 def sauvegarder_photo(donnees_image, personne_id):
@@ -241,3 +250,22 @@ def historique_photos(personne_id):
             'cree_le': p.cree_le.isoformat() if p.cree_le else None
         } for p in photos]
     }), 200
+
+
+from flask import render_template
+
+@photos_bp.route('/')
+@role_requis('agent')
+def liste():
+    from app.models import Configuration, Photo, Personne
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    
+    photos = Photo.query.order_by(Photo.cree_le.desc()).all()
+    
+    photos_detail = []
+    for photo in photos:
+        personne = Personne.query.get(photo.personne_id)
+        photos_detail.append({'photo': photo, 'personne': personne})
+    
+    return render_template('photos/liste.html', photos_detail=photos_detail, mode=mode)

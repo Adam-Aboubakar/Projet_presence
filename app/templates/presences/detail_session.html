@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}{{ session.nom }} — {{ _('Présences') }}{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .back-btn { display:flex; align-items:center; gap:6px; color:var(--text-muted); text-decoration:none; font-size:12.5px; font-weight:500; padding:6px 10px; border-radius:var(--radius); background:var(--input-bg); border:1.5px solid var(--border); transition:all 0.15s; }
+  .back-btn:hover { color:var(--text); background:var(--border); }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .stat-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); padding:16px; text-align:center; }
+  .stat-num   { font-size:28px; font-weight:700; margin-bottom:3px; }
+  .stat-label { font-size:11.5px; color:var(--text-muted); }
+  .stat-total   .stat-num { color:var(--primary); }
+  .stat-present .stat-num { color:var(--success); }
+  .stat-retard  .stat-num { color:var(--warning); }
+  .stat-absent  .stat-num { color:var(--danger); }
+
+  .section-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .section-header { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .section-title  { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:7px; }
+
+  table { width:100%; border-collapse:collapse; }
+  th { padding:10px 16px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); text-align:left; border-bottom:1px solid var(--border); background:var(--input-bg); }
+  td { padding:10px 16px; font-size:13px; color:var(--text); border-bottom:1px solid var(--row-border); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--row-hover); }
+
+  .badge { display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-present { background:var(--success-soft); color:var(--success); }
+  .badge-retard  { background:var(--warning-soft); color:var(--warning); }
+  .badge-absent  { background:var(--danger-soft);  color:var(--danger); }
+
+  .btn-modifier { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:4px 10px; border-radius:var(--radius); font-size:11.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+  .btn-modifier:hover { border-color:var(--info); color:var(--info); }
+
+  .empty { padding:30px; text-align:center; color:var(--text-muted); font-size:12.5px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); padding:22px; width:100%; max-width:400px; }
+  .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .form-group { margin-bottom:12px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; }
+  .form-input:focus { border-color:var(--info); }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+  .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  @media (max-width:768px) {
+    .stat-row { grid-template-columns:1fr 1fr; }
+    .body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+  }
+</style>
+
+<div class="page-header">
+  <a href="{{ url_for('presences.liste') }}" class="back-btn">
+    <i class="fas fa-arrow-left"></i> {{ _('Retour') }}
+  </a>
+  <h1>{{ session.nom }}</h1>
+  <span style="font-size:12px; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">
+    {{ session.heure_debut.strftime('%d/%m/%Y %H:%M') if session.heure_debut else '' }}
+  </span>
+</div>
+
+<div class="body">
+
+  <!-- STATS -->
+  <div class="stat-row">
+    <div class="stat-card stat-total">
+      <div class="stat-num">{{ total }}</div>
+      <div class="stat-label">{{ _('Total') }}</div>
+    </div>
+    <div class="stat-card stat-present">
+      <div class="stat-num">{{ presents }}</div>
+      <div class="stat-label">{{ _('Présents') }}</div>
+    </div>
+    <div class="stat-card stat-retard">
+      <div class="stat-num">{{ retards }}</div>
+      <div class="stat-label">{{ _('Retards') }}</div>
+    </div>
+    <div class="stat-card stat-absent">
+      <div class="stat-num">{{ absents }}</div>
+      <div class="stat-label">{{ _('Absents') }}</div>
+    </div>
+  </div>
+
+  <!-- LISTE -->
+  <div class="section-card">
+    <div class="section-header">
+      <span class="section-title">
+        <i class="fas fa-users" style="color:var(--primary);"></i>
+        {{ _('Liste des présences') }}
+      </span>
+    </div>
+
+    {% if presences_detail %}
+    <table>
+      <thead>
+        <tr>
+          <th>{{ _('Étudiant') }}</th>
+          <th>{{ _('Identifiant') }}</th>
+          <th>{{ _('Statut') }}</th>
+          <th>{{ _('Heure') }}</th>
+          <th>{{ _('Méthode') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in presences_detail %}
+        <tr>
+          <td><strong>{{ item.personne.prenom }} {{ item.personne.nom }}</strong></td>
+          <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">
+            {{ item.personne.identifiant if item.personne else '—' }}
+          </td>
+          <td>
+            <span class="badge badge-{{ item.presence.statut }}">
+              {% if item.presence.statut == 'present' %}<i class="fas fa-check"></i>
+              {% elif item.presence.statut == 'retard' %}<i class="fas fa-clock"></i>
+              {% else %}<i class="fas fa-xmark"></i>{% endif %}
+              {{ item.presence.statut | capitalize }}
+            </span>
+          </td>
+          <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">
+            {{ item.presence.horodatage.strftime('%H:%M:%S') if item.presence.horodatage else '—' }}
+          </td>
+          <td style="font-size:12px; color:var(--text-muted);">
+            {{ item.presence.methode_validation or '—' }}
+          </td>
+          <td>
+            <button class="btn-modifier"
+                    onclick="ouvrirModifier('{{ item.presence.id }}', '{{ item.presence.statut }}', '{{ item.personne.prenom }} {{ item.personne.nom }}')">
+              <i class="fas fa-pen"></i>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">{{ _('Aucune présence enregistrée') }}</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- MODAL MODIFIER -->
+<div class="modal-overlay" id="modalModifier">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-pen" style="color:var(--info);"></i> {{ _('Modifier la présence') }}</div>
+    <div id="modalNom" style="font-size:13px; color:var(--text-muted); margin-bottom:12px;"></div>
+    <input type="hidden" id="presenceId">
+    <div class="form-group">
+      <label class="form-label">{{ _('Nouveau statut') }}</label>
+      <select class="form-input" id="nouveauStatut">
+        <option value="present">{{ _('Présent') }}</option>
+        <option value="retard">{{ _('Retard') }}</option>
+        <option value="absent">{{ _('Absent') }}</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">{{ _('Justification') }} *</label>
+      <input type="text" class="form-input" id="justification"
+             placeholder="{{ _('Raison de la modification') }}">
+    </div>
+    <div id="modifierFeedback" style="font-size:12px; margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModal()">{{ _('Annuler') }}</button>
+      <button class="btn-confirm" onclick="modifierPresence()">
+        <i class="fas fa-check"></i> {{ _('Modifier') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CSRF = document.querySelector('meta[name=csrf-token]').content;
+
+function ouvrirModifier(id, statut, nom) {
+    document.getElementById('presenceId').value = id;
+    document.getElementById('nouveauStatut').value = statut;
+    document.getElementById('modalNom').textContent = nom;
+    document.getElementById('justification').value = '';
+    document.getElementById('modifierFeedback').innerHTML = '';
+    document.getElementById('modalModifier').classList.add('show');
+}
+
+function fermerModal() {
+    document.getElementById('modalModifier').classList.remove('show');
+}
+
+function modifierPresence() {
+    const id = document.getElementById('presenceId').value;
+    const statut = document.getElementById('nouveauStatut').value;
+    const justification = document.getElementById('justification').value.trim();
+
+    if (!justification) {
+        document.getElementById('modifierFeedback').innerHTML =
+            '<span style="color:var(--danger)">{{ _("Justification obligatoire") }}</span>';
+        return;
+    }
+
+    fetch(`/presences/api/${id}/modifier`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify({ statut, justification })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.succes) {
+            fermerModal();
+            location.reload();
+        } else {
+            document.getElementById('modifierFeedback').innerHTML =
+                `<span style="color:var(--danger)">${data.message}</span>`;
+        }
+    });
+}
+
+document.getElementById('modalModifier').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalModifier')) fermerModal();
+});
+</script>
+{% endblock %}

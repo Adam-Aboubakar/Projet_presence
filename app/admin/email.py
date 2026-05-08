@@ -16,6 +16,7 @@ Différence avec auth/email.py :
 from flask import current_app, url_for
 from flask_mail import Message
 from app import mail
+from flask import current_app
 
 
 # ============================================================
@@ -69,7 +70,8 @@ def envoyer_email_changement_role(utilisateur, ancien_role, nouveau_role):
         ancien_role  : rôle avant modification (ex: 'enseignant')
         nouveau_role : rôle après modification (ex: 'agent')
     """
-    lien_connexion = url_for('auth.connexion', _external=True)
+    base_url = current_app.config.get('BASE_URL', 'http://127.0.0.1:5000')
+    lien_connexion = f"{base_url}/auth/connexion"
 
     # Dictionnaire pour afficher les rôles en français
     roles_affiches = {
@@ -183,7 +185,8 @@ def envoyer_email_reactivation(utilisateur):
     Args:
         utilisateur : objet Utilisateur dont le compte est réactivé
     """
-    lien_connexion = url_for('auth.connexion', _external=True)
+    base_url = current_app.config.get('BASE_URL', 'http://127.0.0.1:5000')
+    lien_connexion = f"{base_url}/auth/connexion"
 
     sujet = "Votre compte a été réactivé — Système de Présence"
 
@@ -233,7 +236,8 @@ def envoyer_email_nouvel_admin(nouvel_admin, mot_de_passe_temporaire):
         nouvel_admin             : objet Utilisateur admin nouvellement créé
         mot_de_passe_temporaire  : mot de passe généré automatiquement
     """
-    lien_connexion = url_for('auth.connexion', _external=True)
+    base_url = current_app.config.get('BASE_URL', 'http://127.0.0.1:5000')
+    lien_connexion = f"{base_url}/auth/connexion"
 
     sujet = "Votre compte administrateur — Système de Présence"
 
