@@ -947,3 +947,70 @@ def configuration():
         config=config,
         stats=get_statistiques()
     )
+
+# ============================================================
+# SEUILS D'ABSENCES
+# ============================================================
+@admin.route('/seuils-absences')
+@role_requis('admin')
+def seuils_absences():
+    from app.models import SeuilAbsence
+    seuils = SeuilAbsence.query.order_by(SeuilAbsence.niveau).all()
+    return render_template('admin/seuils_absences.html', seuils=seuils)
+
+
+@admin.route('/seuils-absences/ajouter', methods=['POST'])
+@role_requis('admin')
+def ajouter_seuil():
+    from app.models import SeuilAbsence
+    try:
+        seuil = SeuilAbsence(
+            niveau=int(request.form.get('niveau')),
+            nb_absences=int(request.form.get('nb_absences')),
+            action=request.form.get('action'),
+            sujet_email=request.form.get('sujet_email'),
+            message_email=request.form.get('message_email'),
+            est_actif=True
+        )
+        db.session.add(seuil)
+        db.session.commit()
+        flash('Seuil ajouté avec succès.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur : {str(e)}', 'danger')
+    return redirect(url_for('admin.seuils_absences'))
+
+
+@admin.route('/seuils-absences/<string:seuil_id>/modifier', methods=['POST'])
+@role_requis('admin')
+def modifier_seuil(seuil_id):
+    from app.models import SeuilAbsence
+    seuil = SeuilAbsence.query.get_or_404(seuil_id)
+    try:
+        seuil.niveau = int(request.form.get('niveau'))
+        seuil.nb_absences = int(request.form.get('nb_absences'))
+        seuil.action = request.form.get('action')
+        seuil.sujet_email = request.form.get('sujet_email')
+        seuil.message_email = request.form.get('message_email')
+        seuil.est_actif = request.form.get('est_actif') == 'on'
+        db.session.commit()
+        flash('Seuil modifié avec succès.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur : {str(e)}', 'danger')
+    return redirect(url_for('admin.seuils_absences'))
+
+
+@admin.route('/seuils-absences/<string:seuil_id>/supprimer', methods=['POST'])
+@role_requis('admin')
+def supprimer_seuil(seuil_id):
+    from app.models import SeuilAbsence
+    seuil = SeuilAbsence.query.get_or_404(seuil_id)
+    try:
+        db.session.delete(seuil)
+        db.session.commit()
+        flash('Seuil supprimé.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur : {str(e)}', 'danger')
+    return redirect(url_for('admin.seuils_absences'))

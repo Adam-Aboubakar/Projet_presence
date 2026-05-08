@@ -371,6 +371,12 @@
                 {% endif %}
             </a>
         </li>
+        <li>
+            <a href="{{ url_for('admin.seuils_absences') }}"
+            class="sidebar-link {{ 'actif' if request.endpoint == 'admin.seuils_absences' }}">
+                <i class="fas fa-triangle-exclamation"></i> {{ _('Seuils absences') }}
+            </a>
+        </li>
 
         {% elif current_user.role == 'agent' %}
         <li><span class="sidebar-section">

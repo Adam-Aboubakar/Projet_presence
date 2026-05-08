@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Seuils absences') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  .info-box { background:var(--info-soft); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; font-size:12.5px; color:var(--info); display:flex; align-items:flex-start; gap:8px; }
+
+  .seuils-grid { display:flex; flex-direction:column; gap:12px; }
+
+  .seuil-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .seuil-header { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .seuil-niveau { display:flex; align-items:center; gap:10px; }
+  .niveau-badge { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:white; flex-shrink:0; }
+  .seuil-title { font-size:13px; font-weight:600; color:var(--text); }
+  .seuil-subtitle { font-size:11.5px; color:var(--text-muted); margin-top:1px; }
+  .seuil-actions { display:flex; gap:8px; align-items:center; }
+
+  .badge-actif   { background:var(--success-soft); color:var(--success); padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .badge-inactif { background:var(--border); color:var(--text-muted); padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+
+  .seuil-body { padding:14px 18px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .seuil-field { display:flex; flex-direction:column; gap:4px; }
+  .field-label { font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+  .field-value { font-size:13px; color:var(--text); }
+  .field-value.message { font-size:12px; color:var(--text-muted); white-space:pre-wrap; background:var(--input-bg); padding:8px 10px; border-radius:var(--radius); border:1px solid var(--border); }
+
+  .btn-edit { background:var(--info-soft); color:var(--info); border:none; padding:6px 12px; border-radius:var(--radius); font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:5px; transition:all 0.15s; }
+  .btn-edit:hover { background:var(--info); color:white; }
+  .btn-delete { background:var(--danger-soft); color:var(--danger); border:none; padding:6px 10px; border-radius:var(--radius); font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+  .btn-delete:hover { background:var(--danger); color:white; }
+
+  .btn-new { background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
+  .btn-new:hover { background:#D4400E; }
+
+  .empty { padding:40px; text-align:center; color:var(--text-muted); background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); }
+  .empty i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:22px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; }
+  .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .form-group { margin-bottom:12px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .form-input:focus { border-color:var(--info); }
+  select.form-input { cursor:pointer; }
+  textarea.form-input { resize:vertical; min-height:80px; }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+  .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  @media (max-width:768px) {
+    .body { padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+    .seuil-body { grid-template-columns:1fr; }
+    .form-row { grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="page-header">
+  <h1>
+    <i class="fas fa-triangle-exclamation" style="color:var(--accent); margin-right:8px;"></i>
+    {{ _('Seuils d\'absences') }}
+  </h1>
+  <button class="btn-new" onclick="ouvrirAjouter()">
+    <i class="fas fa-plus"></i> {{ _('Nouveau seuil') }}
+  </button>
+</div>
+
+<div class="body">
+
+  <div class="info-box">
+    <i class="fas fa-circle-info" style="flex-shrink:0; margin-top:1px;"></i>
+    <span>
+      {{ _('Ces seuils déclenchent automatiquement des actions (emails, convocations) quand un étudiant atteint le nombre d\'absences injustifiées défini.') }}
+      {{ _('Variables disponibles dans le message') }} : <code>{prenom}</code>, <code>{nom}</code>, <code>{nb_absences}</code>
+    </span>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat, msg in messages %}
+      <div style="background:{% if cat=='success' %}var(--success-soft){% else %}var(--danger-soft){% endif %}; color:{% if cat=='success' %}var(--success){% else %}var(--danger){% endif %}; padding:10px 14px; border-radius:var(--radius); font-size:13px;">
+        {{ msg }}
+      </div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+
+  {% if seuils %}
+  <div class="seuils-grid">
+    {% for seuil in seuils %}
+    {% set couleurs = ['#E8531A', '#F4B400', '#DB4437', '#9C27B0'] %}
+    {% set couleur = couleurs[(seuil.niveau - 1) % 4] %}
+    <div class="seuil-card">
+      <div class="seuil-header">
+        <div class="seuil-niveau">
+          <div class="niveau-badge" style="background:{{ couleur }};">{{ seuil.niveau }}</div>
+          <div>
+            <div class="seuil-title">{{ seuil.nb_absences }} {{ _('absences injustifiées') }}</div>
+            <div class="seuil-subtitle">
+              {% if seuil.action == 'email_etudiant' %}📧 {{ _('Email à l\'étudiant') }}
+              {% elif seuil.action == 'email_parents' %}📧 {{ _('Email étudiant + parents') }}
+              {% elif seuil.action == 'convocation' %}📋 {{ _('Convocation scolarité') }}
+              {% elif seuil.action == 'conseil_discipline' %}⚖️ {{ _('Conseil de discipline') }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="seuil-actions">
+          {% if seuil.est_actif %}
+            <span class="badge-actif"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Actif') }}</span>
+          {% else %}
+            <span class="badge-inactif">{{ _('Inactif') }}</span>
+          {% endif %}
+          <button class="btn-edit" onclick="ouvrirModifier({{ seuil | tojson }})">
+            <i class="fas fa-pen"></i>
+          </button>
+          <form method="POST" action="{{ url_for('admin.supprimer_seuil', seuil_id=seuil.id) }}"
+                style="display:inline;"
+                onsubmit="return confirm('{{ _('Supprimer ce seuil ?') }}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-delete"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+      </div>
+      <div class="seuil-body">
+        <div class="seuil-field">
+          <div class="field-label">{{ _('Sujet email') }}</div>
+          <div class="field-value">{{ seuil.sujet_email }}</div>
+        </div>
+        <div class="seuil-field" style="grid-column:1/-1;">
+          <div class="field-label">{{ _('Message') }}</div>
+          <div class="field-value message">{{ seuil.message_email }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty">
+    <i class="fas fa-triangle-exclamation"></i>
+    <p>{{ _('Aucun seuil configuré') }}</p>
+    <p style="font-size:12px; margin-top:6px;">{{ _('Ajoutez des seuils pour déclencher des actions automatiques lors d\'absences répétées.') }}</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- MODAL AJOUTER -->
+<div class="modal-overlay" id="modalAjouter">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="fas fa-plus" style="color:var(--accent);"></i> {{ _('Nouveau seuil') }}
+    </div>
+    <form method="POST" action="{{ url_for('admin.ajouter_seuil') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ _('Niveau') }} *</label>
+          <input type="number" name="niveau" class="form-input" min="1" max="10" placeholder="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ _('Nb absences') }} *</label>
+          <input type="number" name="nb_absences" class="form-input" min="1" placeholder="3" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Action') }} *</label>
+        <select name="action" class="form-input" required>
+          <option value="email_etudiant">📧 {{ _('Email à l\'étudiant') }}</option>
+          <option value="email_parents">📧 {{ _('Email étudiant + parents') }}</option>
+          <option value="convocation">📋 {{ _('Convocation scolarité') }}</option>
+          <option value="conseil_discipline">⚖️ {{ _('Conseil de discipline') }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Sujet email') }} *</label>
+        <input type="text" name="sujet_email" class="form-input"
+               placeholder="{{ _('Ex: Avertissement — Absences répétées') }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Message') }} *</label>
+        <textarea name="message_email" class="form-input"
+                  placeholder="Bonjour {prenom} {nom}, vous avez {nb_absences} absences..." required></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+        <button type="submit" class="btn-confirm">
+          <i class="fas fa-plus"></i> {{ _('Ajouter') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL MODIFIER -->
+<div class="modal-overlay" id="modalModifier">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="fas fa-pen" style="color:var(--info);"></i> {{ _('Modifier le seuil') }}
+    </div>
+    <form method="POST" id="formModifier">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ _('Niveau') }} *</label>
+          <input type="number" name="niveau" id="editNiveau" class="form-input" min="1" max="10" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ _('Nb absences') }} *</label>
+          <input type="number" name="nb_absences" id="editNbAbsences" class="form-input" min="1" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Action') }} *</label>
+        <select name="action" id="editAction" class="form-input" required>
+          <option value="email_etudiant">📧 {{ _('Email à l\'étudiant') }}</option>
+          <option value="email_parents">📧 {{ _('Email étudiant + parents') }}</option>
+          <option value="convocation">📋 {{ _('Convocation scolarité') }}</option>
+          <option value="conseil_discipline">⚖️ {{ _('Conseil de discipline') }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Sujet email') }} *</label>
+        <input type="text" name="sujet_email" id="editSujet" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Message') }} *</label>
+        <textarea name="message_email" id="editMessage" class="form-input"></textarea>
+      </div>
+      <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" name="est_actif" id="editActif" style="width:16px; height:16px;">
+        <label for="editActif" style="font-size:13px; color:var(--text); cursor:pointer;">{{ _('Actif') }}</label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+        <button type="submit" class="btn-confirm">
+          <i class="fas fa-check"></i> {{ _('Enregistrer') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjouter() {
+    document.getElementById('modalAjouter').classList.add('show');
+}
+
+function ouvrirModifier(seuil) {
+    document.getElementById('editNiveau').value = seuil.niveau;
+    document.getElementById('editNbAbsences').value = seuil.nb_absences;
+    document.getElementById('editAction').value = seuil.action;
+    document.getElementById('editSujet').value = seuil.sujet_email;
+    document.getElementById('editMessage').value = seuil.message_email;
+    document.getElementById('editActif').checked = seuil.est_actif;
+    document.getElementById('formModifier').action = `/admin/seuils-absences/${seuil.id}/modifier`;
+    document.getElementById('modalModifier').classList.add('show');
+}
+
+function fermerModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) fermerModals(); });
+});
+</script>
+{% endblock %}

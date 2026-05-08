@@ -24,12 +24,13 @@ def ouvrir_sessions_prevues():
             session.statut = 'en_cours'
             db.session.commit()
 
-
 def fermer_sessions_terminees():
     """Ferme automatiquement les sessions dont l'heure de fin est passée."""
     from app import db
     from app.models import Session, Presence, Personne
+    from app.auth.email import envoyer_email
     from datetime import datetime, timezone
+    import logging
 
     with scheduler.app.app_context():
         maintenant = datetime.now(timezone.utc)
@@ -42,7 +43,6 @@ def fermer_sessions_terminees():
         for session in sessions_a_fermer:
             session.statut = 'terminee'
 
-            # Marquer absents ceux qui n'ont pas pointé
             personnes_ayant_pointe = {
                 p.personne_id for p in Presence.query.filter_by(
                     session_id=session.id
@@ -50,6 +50,7 @@ def fermer_sessions_terminees():
             }
 
             toutes_personnes = Personne.query.filter_by(est_actif=True).all()
+
             for personne in toutes_personnes:
                 if personne.id not in personnes_ayant_pointe:
                     absence = Presence(
@@ -61,14 +62,47 @@ def fermer_sessions_terminees():
                     )
                     db.session.add(absence)
 
-            db.session.commit()
+                    # Email absence immédiat
+                    if personne.email:
+                        try:
+                            corps_html = f"""
+                            <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
+                                <h2 style="color:#e74c3c;">⚠️ Absence enregistrée</h2>
+                                <p>Bonjour <strong>{personne.prenom} {personne.nom}</strong>,</p>
+                                <p>Une absence a été enregistrée pour la session suivante :</p>
+                                <table style="width:100%; border-collapse:collapse; margin:20px 0;">
+                                    <tr style="background:#f8f9fa;">
+                                        <td style="padding:10px; border:1px solid #dee2e6;"><strong>Session</strong></td>
+                                        <td style="padding:10px; border:1px solid #dee2e6;">{session.nom}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:10px; border:1px solid #dee2e6;"><strong>Date</strong></td>
+                                        <td style="padding:10px; border:1px solid #dee2e6;">{session.heure_debut.strftime('%d/%m/%Y %H:%M') if session.heure_debut else '—'}</td>
+                                    </tr>
+                                </table>
+                                <p style="color:#7f8c8d; font-size:13px;">
+                                    Si vous pensez qu'il s'agit d'une erreur, contactez votre responsable.
+                                </p>
+                                <hr style="border:none; border-top:1px solid #ecf0f1; margin:20px 0;">
+                                <p style="color:#95a5a6; font-size:12px; text-align:center;">
+                                    Système de Gestion de Présence — Email automatique, ne pas répondre.
+                                </p>
+                            </div>
+                            """
+                            envoyer_email(
+                                destinataire=personne.email,
+                                sujet=f"Absence enregistrée — {session.nom}",
+                                corps_html=corps_html
+                            )
+                        except Exception as e:
+                            logging.error(f"Erreur email absence scheduler : {str(e)}")
 
+            db.session.commit()
 
 def init_scheduler(app):
     """Initialiser et démarrer le scheduler."""
     scheduler.app = app
 
-    # Vérifier toutes les minutes si des sessions doivent être ouvertes
     scheduler.add_job(
         func=ouvrir_sessions_prevues,
         trigger=IntervalTrigger(minutes=1),
@@ -77,7 +111,6 @@ def init_scheduler(app):
         replace_existing=True
     )
 
-    # Vérifier toutes les minutes si des sessions doivent être fermées
     scheduler.add_job(
         func=fermer_sessions_terminees,
         trigger=IntervalTrigger(minutes=1),
@@ -87,6 +120,4 @@ def init_scheduler(app):
     )
 
     scheduler.start()
-
-    # Arrêter proprement le scheduler à la fermeture de l'app
-    atexit.register(lambda: scheduler.shutdown())
+    atexit.register(lambda: scheduler.shutdown())            
