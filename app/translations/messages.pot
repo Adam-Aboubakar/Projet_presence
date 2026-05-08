@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-06 22:52+0100\n"
+"POT-Creation-Date: 2026-05-08 11:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,4 +16,1656 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#: accueil.html:6
+msgid "Accueil"
+msgstr ""
+
+#: accueil.html:59 base.html:238
+msgid "Gestion de Présence"
+msgstr ""
+
+#: accueil.html:113
+msgid "Mon espace"
+msgstr ""
+
+#: accueil.html:120 auth/attente.html:94 base.html:307
+msgid "Déconnexion"
+msgstr ""
+
+#: accueil.html:132
+msgid "Tableau de bord en temps réel"
+msgstr ""
+
+#: accueil.html:136
+msgid "Rafraîchissement automatique toutes les 30s"
+msgstr ""
+
+#: accueil.html:144
+msgid "Sessions actives"
+msgstr ""
+
+#: accueil.html:150
+msgid "À venir"
+msgstr ""
+
+#: accueil.html:162
+msgid "Étudiants pointés"
+msgstr ""
+
+#: accueil.html:169 accueil.html:236 presences/detail_session.html:82
+#: presences/liste.html:58 sessions/detail.html:113
+msgid "Présents"
+msgstr ""
+
+#: accueil.html:175 presences/detail_session.html:90 presences/liste.html:60
+#: sessions/detail.html:121
+msgid "Absents"
+msgstr ""
+
+#: accueil.html:181 admin/tableau_de_bord.html:230
+msgid "Pointages aujourd'hui"
+msgstr ""
+
+#: accueil.html:197
+msgid "Sessions en cours"
+msgstr ""
+
+#: accueil.html:230
+msgid "Horaire"
+msgstr ""
+
+#: accueil.html:239 sessions/liste.html:83
+msgid "En cours"
+msgstr ""
+
+#: accueil.html:248
+msgid "Aucune session en cours pour le moment"
+msgstr ""
+
+#: accueil.html:255
+msgid "Sessions à venir aujourd'hui"
+msgstr ""
+
+#: accueil.html:282
+msgid "Aucune session prévue pour aujourd'hui"
+msgstr ""
+
+#: accueil.html:291
+msgid "Pointages du jour"
+msgstr ""
+
+#: accueil.html:317 presences/detail_session.html:110
+msgid "Heure"
+msgstr ""
+
+#: accueil.html:329
+msgid "Aucun pointage pour le moment"
+msgstr ""
+
+#: accueil.html:341
+msgid "Système de Gestion de Présence"
+msgstr ""
+
+#: auth/connexion.html:224 base.html:316
+msgid "S'inscrire"
+msgstr ""
+
+#: auth/connexion.html:6 auth/connexion.html:176 base.html:321
+msgid "Connexion"
+msgstr ""
+
+#: base.html:335
+msgid "Administration"
+msgstr ""
+
+#: admin/configuration.html:3 admin/configuration.html:100 base.html:339
+msgid "Configuration"
+msgstr ""
+
+#: admin/tableau_de_bord.html:139 base.html:345
+msgid "Tableau de bord"
+msgstr ""
+
+#: admin/utilisateurs.html:3 admin/utilisateurs.html:108 base.html:351
+msgid "Utilisateurs"
+msgstr ""
+
+#: admin/comptes_attente.html:3 admin/comptes_attente.html:121
+#: admin/tableau_de_bord.html:203 admin/tableau_de_bord.html:254 base.html:357
+msgid "Comptes en attente"
+msgstr ""
+
+#: base.html:366 journal/liste_logs.html:3
+msgid "Journal sécurité"
+msgstr ""
+
+#: base.html:377
+msgid "Ressources Humaines"
+msgstr ""
+
+#: base.html:377
+msgid "Scolarité"
+msgstr ""
+
+#: base.html:383 personnes/liste.html:2 personnes/liste.html:82
+msgid "Employés"
+msgstr ""
+
+#: base.html:383 personnes/liste.html:2 personnes/liste.html:82
+msgid "Étudiants"
+msgstr ""
+
+#: base.html:389 rfid/liste.html:2 rfid/liste.html:53
+msgid "Cartes RFID"
+msgstr ""
+
+#: base.html:395 photos/liste.html:2 photos/liste.html:54
+msgid "Photos"
+msgstr ""
+
+#: base.html:401
+msgid "Management"
+msgstr ""
+
+#: base.html:401
+msgid "Enseignement"
+msgstr ""
+
+#: base.html:407 emplois/liste.html:65
+msgid "Planning"
+msgstr ""
+
+#: base.html:407 emplois/liste.html:2 emplois/liste.html:65
+msgid "Emploi du temps"
+msgstr ""
+
+#: base.html:413 sessions/liste.html:2 sessions/liste.html:71
+msgid "Sessions"
+msgstr ""
+
+#: base.html:419 presences/detail_session.html:2 presences/liste.html:2
+#: presences/liste.html:42 sessions/detail.html:130
+msgid "Présences"
+msgstr ""
+
+#: base.html:425 rapports/liste.html:2 rapports/liste.html:41
+msgid "Rapports"
+msgstr ""
+
+#: base.html:515
+msgid "Session expire bientôt"
+msgstr ""
+
+#: base.html:518
+msgid "Déconnexion dans"
+msgstr ""
+
+#: base.html:524
+msgid "Rester connecté"
+msgstr ""
+
+#: admin/comptes_attente.html:122
+msgid "Validez ou rejetez les demandes d'inscription"
+msgstr ""
+
+#: admin/comptes_attente.html:134
+msgid "En attente"
+msgstr ""
+
+#: admin/comptes_attente.html:141
+msgid "Utilisateurs actifs"
+msgstr ""
+
+#: admin/comptes_attente.html:148 admin/tableau_de_bord.html:210
+#: admin/tableau_de_bord.html:261
+msgid "Administrateurs"
+msgstr ""
+
+#: admin/comptes_attente.html:158
+msgid ""
+"Sélectionnez un rôle avant de valider. Le rejet nécessite une raison "
+"obligatoire."
+msgstr ""
+
+#: admin/comptes_attente.html:177 admin/utilisateurs.html:199
+#: personnes/profil.html:171
+msgid "Inscrit le"
+msgstr ""
+
+#: admin/comptes_attente.html:183 admin/utilisateurs.html:196
+msgid "Rôle"
+msgstr ""
+
+#: admin/comptes_attente.html:189 admin/utilisateurs.html:158
+#: admin/utilisateurs.html:219 admin/utilisateurs.html:295
+msgid "Manager"
+msgstr ""
+
+#: admin/comptes_attente.html:189 admin/utilisateurs.html:158
+#: admin/utilisateurs.html:219 admin/utilisateurs.html:295
+msgid "Enseignant"
+msgstr ""
+
+#: admin/comptes_attente.html:196 admin/utilisateurs.html:161
+#: admin/utilisateurs.html:224 admin/utilisateurs.html:298
+msgid "Agent RH"
+msgstr ""
+
+#: admin/comptes_attente.html:196 admin/utilisateurs.html:161
+#: admin/utilisateurs.html:224 admin/utilisateurs.html:298
+msgid "Agent scolarité"
+msgstr ""
+
+#: admin/comptes_attente.html:210
+msgid "Valider"
+msgstr ""
+
+#: admin/comptes_attente.html:215 admin/comptes_attente.html:253
+msgid "Rejeter"
+msgstr ""
+
+#: admin/comptes_attente.html:226
+msgid "Aucun compte en attente"
+msgstr ""
+
+#: admin/comptes_attente.html:227
+msgid "Tous les comptes ont été traités"
+msgstr ""
+
+#: admin/comptes_attente.html:238
+msgid "Rejeter la demande"
+msgstr ""
+
+#: admin/comptes_attente.html:241
+msgid "Rejeter le compte de"
+msgstr ""
+
+#: admin/comptes_attente.html:242
+msgid "L'utilisateur recevra un email avec la raison du rejet."
+msgstr ""
+
+#: admin/comptes_attente.html:244
+msgid "Raison du rejet (obligatoire)..."
+msgstr ""
+
+#: admin/comptes_attente.html:247 admin/utilisateurs.html:303
+#: admin/utilisateurs.html:325 admin/utilisateurs.html:343
+#: emplois/liste.html:211 personnes/formulaire.html:201
+#: personnes/profil.html:351 personnes/profil.html:373
+#: personnes/profil.html:396 personnes/profil.html:416
+#: presences/detail_session.html:174 sessions/liste.html:173
+msgid "Annuler"
+msgstr ""
+
+#: admin/comptes_attente.html:283
+msgid "Veuillez sélectionner un rôle avant de valider."
+msgstr ""
+
+#: admin/configuration.html:101
+msgid "Paramètres du système de présence"
+msgstr ""
+
+#: admin/configuration.html:106 admin/tableau_de_bord.html:149
+msgid "Mode École"
+msgstr ""
+
+#: admin/configuration.html:108 admin/tableau_de_bord.html:151
+msgid "Mode Entreprise"
+msgstr ""
+
+#: admin/configuration.html:122
+msgid "Informations établissement"
+msgstr ""
+
+#: admin/configuration.html:123
+msgid "Nom, coordonnées et logo"
+msgstr ""
+
+#: admin/configuration.html:130
+msgid "Nom établissement"
+msgstr ""
+
+#: admin/configuration.html:137
+msgid "Adresse"
+msgstr ""
+
+#: admin/configuration.html:143
+msgid "Ville"
+msgstr ""
+
+#: admin/configuration.html:149
+msgid "Téléphone"
+msgstr ""
+
+#: admin/configuration.html:155
+msgid "Site web"
+msgstr ""
+
+#: admin/configuration.html:161
+msgid "Logo"
+msgstr ""
+
+#: admin/configuration.html:166 admin/configuration.html:296
+msgid "Cliquer pour changer"
+msgstr ""
+
+#: admin/configuration.html:169
+msgid "Cliquer pour uploader un logo"
+msgstr ""
+
+#: admin/configuration.html:179 admin/configuration.html:228
+#: admin/configuration.html:279
+msgid "Sauvegarder"
+msgstr ""
+
+#: admin/configuration.html:190
+msgid "Sécurité et accès"
+msgstr ""
+
+#: admin/configuration.html:191
+msgid "Domaine email, tentatives de connexion, rétention logs"
+msgstr ""
+
+#: admin/configuration.html:198
+msgid "Domaine email autorisé"
+msgstr ""
+
+#: admin/configuration.html:202
+msgid "Seuls les emails de ce domaine peuvent s'inscrire"
+msgstr ""
+
+#: admin/configuration.html:206
+msgid "Tentatives de connexion max"
+msgstr ""
+
+#: admin/configuration.html:216
+msgid "Rétention des logs (jours)"
+msgstr ""
+
+#: admin/configuration.html:239
+msgid "Présence et reconnaissance"
+msgstr ""
+
+#: admin/configuration.html:240
+msgid "Seuil DeepFace, tolérance retard, langue"
+msgstr ""
+
+#: admin/configuration.html:247
+msgid "Seuil similarité DeepFace"
+msgstr ""
+
+#: admin/configuration.html:254
+msgid "Plus haut = plus strict"
+msgstr ""
+
+#: admin/configuration.html:258 personnes/formulaire.html:168
+#: sessions/liste.html:168
+msgid "Tolérance retard (min)"
+msgstr ""
+
+#: admin/configuration.html:268
+msgid "Langue par défaut"
+msgstr ""
+
+#: admin/tableau_de_bord.html:165
+msgid "Étudiants actifs"
+msgstr ""
+
+#: admin/tableau_de_bord.html:166
+msgid "Enregistrés dans le système"
+msgstr ""
+
+#: admin/tableau_de_bord.html:172
+msgid "Sessions aujourd'hui"
+msgstr ""
+
+#: admin/tableau_de_bord.html:185
+msgid "Taux de présence global"
+msgstr ""
+
+#: admin/tableau_de_bord.html:187
+msgid "Bon niveau"
+msgstr ""
+
+#: admin/tableau_de_bord.html:188
+msgid "Moyen"
+msgstr ""
+
+#: admin/tableau_de_bord.html:189
+msgid "Insuffisant"
+msgstr ""
+
+#: admin/tableau_de_bord.html:196
+msgid "Absences critiques"
+msgstr ""
+
+#: admin/tableau_de_bord.html:197
+msgid "Seuil dépassé — alerte envoyée"
+msgstr ""
+
+#: admin/tableau_de_bord.html:204 admin/tableau_de_bord.html:255
+msgid "Validation requise"
+msgstr ""
+
+#: admin/tableau_de_bord.html:211 admin/tableau_de_bord.html:262
+msgid "Limite : 3 comptes admin"
+msgstr ""
+
+#: admin/tableau_de_bord.html:223
+msgid "Employés actifs"
+msgstr ""
+
+#: admin/tableau_de_bord.html:224
+msgid "Tous sites confondus"
+msgstr ""
+
+#: admin/tableau_de_bord.html:231
+msgid "Entrées + sorties"
+msgstr ""
+
+#: admin/tableau_de_bord.html:237
+msgid "Heures ce mois"
+msgstr ""
+
+#: admin/tableau_de_bord.html:238
+msgid "Total des employés actifs"
+msgstr ""
+
+#: admin/tableau_de_bord.html:244
+msgid "Retards aujourd'hui"
+msgstr ""
+
+#: admin/tableau_de_bord.html:246
+msgid "Excellent"
+msgstr ""
+
+#: admin/tableau_de_bord.html:247
+msgid "À traiter"
+msgstr ""
+
+#: admin/tableau_de_bord.html:274
+msgid "Présence par groupe"
+msgstr ""
+
+#: admin/tableau_de_bord.html:275
+msgid "Présence par site"
+msgstr ""
+
+#: admin/tableau_de_bord.html:290
+msgid "Aucune donnée de présence disponible"
+msgstr ""
+
+#: admin/utilisateurs.html:109
+msgid "Gestion des enseignants et agents"
+msgstr ""
+
+#: admin/utilisateurs.html:121 personnes/liste.html:108
+#: personnes/liste.html:142
+msgid "Actifs"
+msgstr ""
+
+#: admin/utilisateurs.html:128
+msgid "Désactivés"
+msgstr ""
+
+#: admin/utilisateurs.html:136
+msgid "Managers"
+msgstr ""
+
+#: admin/utilisateurs.html:136
+msgid "Enseignants"
+msgstr ""
+
+#: admin/utilisateurs.html:145
+msgid "Agents RH"
+msgstr ""
+
+#: admin/utilisateurs.html:145
+msgid "Agents scolarité"
+msgstr ""
+
+#: admin/utilisateurs.html:154 journal/liste_logs.html:176
+#: personnes/liste.html:130
+msgid "Filtres"
+msgstr ""
+
+#: admin/utilisateurs.html:156
+msgid "Tous les rôles"
+msgstr ""
+
+#: admin/utilisateurs.html:165
+msgid "Tous les statuts"
+msgstr ""
+
+#: admin/utilisateurs.html:166 admin/utilisateurs.html:230
+#: emplois/liste.html:85 personnes/liste.html:214 personnes/profil.html:114
+msgid "Actif"
+msgstr ""
+
+#: admin/utilisateurs.html:167 admin/utilisateurs.html:232
+msgid "Désactivé"
+msgstr ""
+
+#: admin/utilisateurs.html:170
+msgid "Rechercher nom, prénom..."
+msgstr ""
+
+#: admin/utilisateurs.html:173 journal/liste_logs.html:198
+#: personnes/liste.html:146
+msgid "Filtrer"
+msgstr ""
+
+#: admin/utilisateurs.html:176 journal/liste_logs.html:202
+#: personnes/liste.html:150
+msgid "Réinitialiser"
+msgstr ""
+
+#: admin/utilisateurs.html:186
+msgid "Liste des utilisateurs"
+msgstr ""
+
+#: admin/utilisateurs.html:188
+msgid "utilisateurs"
+msgstr ""
+
+#: admin/utilisateurs.html:195
+msgid "Utilisateur"
+msgstr ""
+
+#: admin/utilisateurs.html:197 personnes/liste.html:179 photos/liste.html:105
+#: presences/detail_session.html:109 presences/liste.html:57
+#: rfid/liste.html:105 sessions/detail.html:146 sessions/liste.html:100
+msgid "Statut"
+msgstr ""
+
+#: admin/utilisateurs.html:198
+msgid "Dernière connexion"
+msgstr ""
+
+#: admin/utilisateurs.html:200 personnes/liste.html:180 sessions/liste.html:101
+msgid "Actions"
+msgstr ""
+
+#: admin/utilisateurs.html:253 admin/utilisateurs.html:289
+msgid "Changer le rôle"
+msgstr ""
+
+#: admin/utilisateurs.html:260 admin/utilisateurs.html:328
+#: personnes/profil.html:139 personnes/profil.html:408
+#: personnes/profil.html:410 personnes/profil.html:420
+msgid "Désactiver"
+msgstr ""
+
+#: admin/utilisateurs.html:265 admin/utilisateurs.html:346
+#: personnes/profil.html:145
+msgid "Réactiver"
+msgstr ""
+
+#: admin/utilisateurs.html:279
+msgid "Aucun utilisateur trouvé"
+msgstr ""
+
+#: admin/utilisateurs.html:291
+msgid "Changer le rôle de"
+msgstr ""
+
+#: admin/utilisateurs.html:292
+msgid "L'utilisateur sera déconnecté et devra se reconnecter."
+msgstr ""
+
+#: admin/utilisateurs.html:309 auth/inscription.html:223
+msgid "Confirmer"
+msgstr ""
+
+#: admin/utilisateurs.html:319
+msgid "Désactiver le compte"
+msgstr ""
+
+#: admin/utilisateurs.html:321
+msgid "Désactiver le compte de"
+msgstr ""
+
+#: admin/utilisateurs.html:322
+msgid "L'utilisateur ne pourra plus se connecter."
+msgstr ""
+
+#: admin/utilisateurs.html:337
+msgid "Réactiver le compte"
+msgstr ""
+
+#: admin/utilisateurs.html:339
+msgid "Réactiver le compte de"
+msgstr ""
+
+#: admin/utilisateurs.html:340
+msgid "L'utilisateur pourra se reconnecter."
+msgstr ""
+
+#: auth/attente.html:6
+msgid "Compte en attente"
+msgstr ""
+
+#: auth/attente.html:58 auth/confirmation_email.html:43 auth/connexion.html:170
+#: auth/inscription.html:162
+msgid "Système de gestion de présence"
+msgstr ""
+
+#: auth/attente.html:65
+msgid "Compte en attente de validation"
+msgstr ""
+
+#: auth/attente.html:67
+msgid ""
+"Votre compte a été créé avec succès. Un administrateur doit valider votre"
+" accès et vous attribuer un rôle."
+msgstr ""
+
+#: auth/attente.html:73
+msgid "Inscription complétée"
+msgstr ""
+
+#: auth/attente.html:77
+msgid "Email vérifié"
+msgstr ""
+
+#: auth/attente.html:81
+msgid "Validation par un administrateur"
+msgstr ""
+
+#: auth/attente.html:81
+msgid "en cours..."
+msgstr ""
+
+#: auth/attente.html:85
+msgid "Accès à votre espace"
+msgstr ""
+
+#: auth/attente.html:91
+msgid "Actualiser"
+msgstr ""
+
+#: auth/confirmation_email.html:6
+msgid "Email envoyé"
+msgstr ""
+
+#: auth/confirmation_email.html:50
+msgid "Email envoyé !"
+msgstr ""
+
+#: auth/confirmation_email.html:52
+msgid ""
+"Un email de confirmation a été envoyé à votre adresse. Cliquez sur le "
+"lien pour activer votre compte."
+msgstr ""
+
+#: auth/confirmation_email.html:56
+msgid "Lien valable 24 heures"
+msgstr ""
+
+#: auth/confirmation_email.html:59
+msgid "Retour à la connexion"
+msgstr ""
+
+#: auth/confirmation_email.html:61
+msgid "Pas reçu ? Vérifiez vos spams."
+msgstr ""
+
+#: auth/connexion.html:177
+msgid "Bienvenue, entrez vos identifiants"
+msgstr ""
+
+#: auth/connexion.html:192 personnes/formulaire.html:97
+#: personnes/profil.html:155
+msgid "Email"
+msgstr ""
+
+#: auth/connexion.html:203 auth/inscription.html:215
+msgid "Mot de passe"
+msgstr ""
+
+#: auth/connexion.html:218 auth/inscription.html:248
+msgid "Se connecter"
+msgstr ""
+
+#: auth/connexion.html:223
+msgid "Pas encore de compte ?"
+msgstr ""
+
+#: auth/inscription.html:6
+msgid "Inscription"
+msgstr ""
+
+#: auth/inscription.html:169
+msgid "Créer un compte"
+msgstr ""
+
+#: auth/inscription.html:170 emplois/liste.html:240
+msgid "Tous les champs * sont obligatoires"
+msgstr ""
+
+#: auth/inscription.html:184 personnes/formulaire.html:85
+msgid "Prénom"
+msgstr ""
+
+#: auth/inscription.html:189 personnes/formulaire.html:91
+#: sessions/liste.html:150
+msgid "Nom"
+msgstr ""
+
+#: auth/inscription.html:197
+msgid "Email institutionnel"
+msgstr ""
+
+#: auth/inscription.html:207
+msgid "Département / Filière"
+msgstr ""
+
+#: auth/inscription.html:242
+msgid "Créer mon compte"
+msgstr ""
+
+#: auth/inscription.html:247
+msgid "Déjà un compte ?"
+msgstr ""
+
+#: emplois/liste.html:68
+msgid "Nouvel emploi"
+msgstr ""
+
+#: emplois/liste.html:82
+msgid "Tous les groupes"
+msgstr ""
+
+#: emplois/liste.html:87 personnes/liste.html:216 personnes/profil.html:116
+msgid "Inactif"
+msgstr ""
+
+#: emplois/liste.html:115
+msgid "Pause"
+msgstr ""
+
+#: emplois/liste.html:122
+msgid "Voir sessions"
+msgstr ""
+
+#: emplois/liste.html:132
+msgid "Aucun emploi du temps créé"
+msgstr ""
+
+#: emplois/liste.html:134
+msgid "Créer le premier"
+msgstr ""
+
+#: emplois/liste.html:146
+msgid "Nouvel emploi du temps"
+msgstr ""
+
+#: emplois/liste.html:151
+msgid "Nom du cours"
+msgstr ""
+
+#: emplois/liste.html:158 personnes/formulaire.html:123
+#: personnes/liste.html:138 personnes/liste.html:176 personnes/profil.html:167
+#: rapports/liste.html:57
+msgid "Groupe"
+msgstr ""
+
+#: emplois/liste.html:162
+msgid "Salle"
+msgstr ""
+
+#: emplois/liste.html:169
+msgid "Jour"
+msgstr ""
+
+#: emplois/liste.html:171
+msgid "Lundi"
+msgstr ""
+
+#: emplois/liste.html:172
+msgid "Mardi"
+msgstr ""
+
+#: emplois/liste.html:173
+msgid "Mercredi"
+msgstr ""
+
+#: emplois/liste.html:174
+msgid "Jeudi"
+msgstr ""
+
+#: emplois/liste.html:175
+msgid "Vendredi"
+msgstr ""
+
+#: emplois/liste.html:176
+msgid "Samedi"
+msgstr ""
+
+#: emplois/liste.html:177
+msgid "Dimanche"
+msgstr ""
+
+#: emplois/liste.html:181
+msgid "Tolérance (min)"
+msgstr ""
+
+#: emplois/liste.html:188
+msgid "Heure début"
+msgstr ""
+
+#: emplois/liste.html:192
+msgid "Heure fin"
+msgstr ""
+
+#: emplois/liste.html:199
+msgid "Date début validité"
+msgstr ""
+
+#: emplois/liste.html:203
+msgid "Date fin validité"
+msgstr ""
+
+#: emplois/liste.html:213 sessions/liste.html:175
+msgid "Créer"
+msgstr ""
+
+#: journal/liste_logs.html:130
+msgid "Journal de sécurité"
+msgstr ""
+
+#: journal/liste_logs.html:131
+msgid "Historique de tous les événements système"
+msgstr ""
+
+#: journal/liste_logs.html:135
+msgid "Exporter CSV"
+msgstr ""
+
+#: journal/liste_logs.html:147
+msgid "Total logs"
+msgstr ""
+
+#: journal/liste_logs.html:154
+msgid "Info — 24h"
+msgstr ""
+
+#: journal/liste_logs.html:161
+msgid "Warning — 24h"
+msgstr ""
+
+#: journal/liste_logs.html:168
+msgid "Critique — 24h"
+msgstr ""
+
+#: journal/liste_logs.html:179
+msgid "Toutes sévérités"
+msgstr ""
+
+#: journal/liste_logs.html:186 journal/liste_logs.html:223
+msgid "Type événement"
+msgstr ""
+
+#: journal/liste_logs.html:189
+msgid "Du"
+msgstr ""
+
+#: journal/liste_logs.html:193
+msgid "Au"
+msgstr ""
+
+#: journal/liste_logs.html:212
+msgid "Événements"
+msgstr ""
+
+#: journal/liste_logs.html:214 personnes/liste.html:167
+msgid "résultats"
+msgstr ""
+
+#: journal/liste_logs.html:221
+msgid "Date / Heure"
+msgstr ""
+
+#: journal/liste_logs.html:222
+msgid "Sévérité"
+msgstr ""
+
+#: journal/liste_logs.html:224
+msgid "Description"
+msgstr ""
+
+#: journal/liste_logs.html:225
+msgid "Adresse IP"
+msgstr ""
+
+#: journal/liste_logs.html:226
+msgid "Résultat"
+msgstr ""
+
+#: journal/liste_logs.html:254
+msgid "Succès"
+msgstr ""
+
+#: journal/liste_logs.html:256
+msgid "Échec"
+msgstr ""
+
+#: journal/liste_logs.html:258
+msgid "Bloqué"
+msgstr ""
+
+#: journal/liste_logs.html:271
+msgid "Page"
+msgstr ""
+
+#: journal/liste_logs.html:271
+msgid "entrées"
+msgstr ""
+
+#: journal/liste_logs.html:292
+msgid "Aucun événement trouvé"
+msgstr ""
+
+#: personnes/formulaire.html:68 personnes/import.html:45
+#: personnes/profil.html:110 presences/detail_session.html:64
+#: sessions/detail.html:63
+msgid "Retour"
+msgstr ""
+
+#: personnes/formulaire.html:81
+msgid "Informations personnelles"
+msgstr ""
+
+#: personnes/formulaire.html:103 presences/detail_session.html:108
+#: sessions/detail.html:145
+msgid "Identifiant"
+msgstr ""
+
+#: personnes/formulaire.html:109 personnes/liste.html:135
+#: personnes/liste.html:175 personnes/profil.html:159
+msgid "Département"
+msgstr ""
+
+#: personnes/formulaire.html:116 personnes/profil.html:163
+msgid "Niveau"
+msgstr ""
+
+#: personnes/formulaire.html:116 personnes/profil.html:163
+msgid "Poste"
+msgstr ""
+
+#: personnes/formulaire.html:123 personnes/liste.html:138
+#: personnes/liste.html:176 personnes/profil.html:167
+msgid "Site"
+msgstr ""
+
+#: personnes/formulaire.html:134
+msgid "Contrat et horaires"
+msgstr ""
+
+#: personnes/formulaire.html:138
+msgid "Type de contrat"
+msgstr ""
+
+#: personnes/formulaire.html:143 personnes/profil.html:180
+msgid "Début contrat"
+msgstr ""
+
+#: personnes/formulaire.html:148 personnes/profil.html:184
+msgid "Fin contrat"
+msgstr ""
+
+#: personnes/formulaire.html:153
+msgid "Heure arrivée"
+msgstr ""
+
+#: personnes/formulaire.html:158
+msgid "Heure départ"
+msgstr ""
+
+#: personnes/formulaire.html:163
+msgid "Pause (min)"
+msgstr ""
+
+#: personnes/formulaire.html:176
+msgid "Jours travaillés"
+msgstr ""
+
+#: personnes/formulaire.html:179
+msgid "Lun"
+msgstr ""
+
+#: personnes/formulaire.html:180
+msgid "Mar"
+msgstr ""
+
+#: personnes/formulaire.html:181
+msgid "Mer"
+msgstr ""
+
+#: personnes/formulaire.html:182
+msgid "Jeu"
+msgstr ""
+
+#: personnes/formulaire.html:183
+msgid "Ven"
+msgstr ""
+
+#: personnes/formulaire.html:184
+msgid "Sam"
+msgstr ""
+
+#: personnes/formulaire.html:185
+msgid "Dim"
+msgstr ""
+
+#: personnes/formulaire.html:204
+msgid "Ajouter"
+msgstr ""
+
+#: personnes/formulaire.html:204
+msgid "Enregistrer"
+msgstr ""
+
+#: personnes/import.html:2 personnes/import.html:92
+msgid "Importer"
+msgstr ""
+
+#: personnes/import.html:49
+msgid "Importer des étudiants"
+msgstr ""
+
+#: personnes/import.html:49
+msgid "Importer des employés"
+msgstr ""
+
+#: personnes/import.html:58
+msgid "Format attendu"
+msgstr ""
+
+#: personnes/import.html:60
+msgid "Le fichier doit contenir les colonnes suivantes"
+msgstr ""
+
+#: personnes/import.html:61
+msgid "obligatoires"
+msgstr ""
+
+#: personnes/import.html:62
+msgid "optionnels"
+msgstr ""
+
+#: personnes/import.html:69
+msgid "Fichier Excel ou CSV"
+msgstr ""
+
+#: personnes/import.html:75
+msgid "Cliquer pour sélectionner un fichier"
+msgstr ""
+
+#: personnes/import.html:76
+msgid "Formats acceptés"
+msgstr ""
+
+#: personnes/import.html:89
+msgid "Télécharger le template"
+msgstr ""
+
+#: personnes/liste.html:83
+msgid "Gestion des étudiants"
+msgstr ""
+
+#: personnes/liste.html:83
+msgid "Gestion des employés"
+msgstr ""
+
+#: personnes/liste.html:88
+msgid "Ajouter étudiant"
+msgstr ""
+
+#: personnes/liste.html:88
+msgid "Ajouter employé"
+msgstr ""
+
+#: personnes/liste.html:101 presences/detail_session.html:78
+#: sessions/detail.html:109
+msgid "Total"
+msgstr ""
+
+#: personnes/liste.html:115 personnes/liste.html:143
+msgid "Inactifs"
+msgstr ""
+
+#: personnes/liste.html:122
+msgid "Avec carte RFID"
+msgstr ""
+
+#: personnes/liste.html:132
+msgid "Nom, prénom, identifiant..."
+msgstr ""
+
+#: personnes/liste.html:141
+msgid "Tous"
+msgstr ""
+
+#: personnes/liste.html:154
+msgid "Importer Excel"
+msgstr ""
+
+#: personnes/liste.html:165
+msgid "Liste des étudiants"
+msgstr ""
+
+#: personnes/liste.html:165
+msgid "Liste des employés"
+msgstr ""
+
+#: personnes/liste.html:174 presences/detail_session.html:107
+#: sessions/detail.html:144
+msgid "Étudiant"
+msgstr ""
+
+#: personnes/liste.html:174
+msgid "Employé"
+msgstr ""
+
+#: personnes/liste.html:177 personnes/profil.html:204
+msgid "Carte RFID"
+msgstr ""
+
+#: personnes/liste.html:178 personnes/profil.html:247
+msgid "Photo"
+msgstr ""
+
+#: personnes/liste.html:199 personnes/profil.html:293 photos/liste.html:132
+#: rfid/liste.html:131
+msgid "Active"
+msgstr ""
+
+#: personnes/liste.html:201
+msgid "Aucune"
+msgstr ""
+
+#: personnes/liste.html:222
+msgid "Voir profil"
+msgstr ""
+
+#: personnes/liste.html:227 personnes/profil.html:135
+#: presences/detail_session.html:176
+msgid "Modifier"
+msgstr ""
+
+#: personnes/liste.html:240
+msgid "Aucun résultat trouvé"
+msgstr ""
+
+#: personnes/profil.html:176
+msgid "Type contrat"
+msgstr ""
+
+#: personnes/profil.html:188
+msgid "Horaires"
+msgstr ""
+
+#: personnes/profil.html:210
+msgid "Carte active"
+msgstr ""
+
+#: personnes/profil.html:212 rfid/liste.html:106
+msgid "Attribuée le"
+msgstr ""
+
+#: personnes/profil.html:218 personnes/profil.html:375
+msgid "Révoquer"
+msgstr ""
+
+#: personnes/profil.html:225
+msgid "Aucune carte RFID associée"
+msgstr ""
+
+#: personnes/profil.html:230
+msgid "Associer une carte"
+msgstr ""
+
+#: personnes/profil.html:238 personnes/profil.html:384
+msgid "Remplacer la carte"
+msgstr ""
+
+#: personnes/profil.html:248 photos/liste.html:95
+msgid "photo(s)"
+msgstr ""
+
+#: personnes/profil.html:254
+msgid "Upload"
+msgstr ""
+
+#: personnes/profil.html:257
+msgid "Caméra"
+msgstr ""
+
+#: personnes/profil.html:266
+msgid "Cliquer pour uploader"
+msgstr ""
+
+#: personnes/profil.html:277
+msgid "Capturer"
+msgstr ""
+
+#: personnes/profil.html:295 photos/liste.html:134
+msgid "Historique"
+msgstr ""
+
+#: personnes/profil.html:303
+msgid "Aucune photo"
+msgstr ""
+
+#: personnes/profil.html:314
+msgid "Dernières présences"
+msgstr ""
+
+#: personnes/profil.html:322 presences/detail_session.html:162
+msgid "Présent"
+msgstr ""
+
+#: personnes/profil.html:324 presences/detail_session.html:163
+msgid "Retard"
+msgstr ""
+
+#: personnes/profil.html:326 presences/detail_session.html:164
+msgid "Absent"
+msgstr ""
+
+#: personnes/profil.html:335 presences/detail_session.html:147
+msgid "Aucune présence enregistrée"
+msgstr ""
+
+#: personnes/profil.html:346
+msgid "Associer une carte RFID"
+msgstr ""
+
+#: personnes/profil.html:347
+msgid "Entrez le numéro de la carte RFID"
+msgstr ""
+
+#: personnes/profil.html:353
+msgid "Associer"
+msgstr ""
+
+#: personnes/profil.html:363
+msgid "Révoquer la carte"
+msgstr ""
+
+#: personnes/profil.html:364
+msgid "Raison de révocation"
+msgstr ""
+
+#: personnes/profil.html:366
+msgid "Carte perdue"
+msgstr ""
+
+#: personnes/profil.html:367
+msgid "Carte volée"
+msgstr ""
+
+#: personnes/profil.html:368
+msgid "Carte défectueuse"
+msgstr ""
+
+#: personnes/profil.html:369 personnes/profil.html:392
+msgid "Autre"
+msgstr ""
+
+#: personnes/profil.html:385
+msgid "Nouveau numéro RFID"
+msgstr ""
+
+#: personnes/profil.html:389
+msgid "Ancienne carte perdue"
+msgstr ""
+
+#: personnes/profil.html:390
+msgid "Ancienne carte volée"
+msgstr ""
+
+#: personnes/profil.html:391
+msgid "Ancienne carte défectueuse"
+msgstr ""
+
+#: personnes/profil.html:398
+msgid "Remplacer"
+msgstr ""
+
+#: personnes/profil.html:412
+msgid "La carte RFID sera révoquée automatiquement."
+msgstr ""
+
+#: personnes/profil.html:452
+msgid "Caméra non disponible"
+msgstr ""
+
+#: personnes/profil.html:465
+msgid "Envoi en cours..."
+msgstr ""
+
+#: personnes/profil.html:475
+msgid "Photo uploadée avec succès !"
+msgstr ""
+
+#: personnes/profil.html:481 personnes/profil.html:510
+msgid "Erreur réseau"
+msgstr ""
+
+#: personnes/profil.html:493
+msgid "Capture en cours..."
+msgstr ""
+
+#: personnes/profil.html:503
+msgid "Photo capturée !"
+msgstr ""
+
+#: personnes/profil.html:516 personnes/profil.html:562
+msgid "Numéro obligatoire"
+msgstr ""
+
+#: personnes/profil.html:526
+msgid "Carte associée !"
+msgstr ""
+
+#: personnes/profil.html:572
+msgid "Carte remplacée !"
+msgstr ""
+
+#: personnes/rapport_import.html:2
+msgid "Rapport import"
+msgstr ""
+
+#: personnes/rapport_import.html:35
+msgid "Retour à la liste"
+msgstr ""
+
+#: personnes/rapport_import.html:37
+msgid "Rapport d'import"
+msgstr ""
+
+#: personnes/rapport_import.html:47
+msgid "Importées avec succès"
+msgstr ""
+
+#: personnes/rapport_import.html:51
+msgid "Erreurs"
+msgstr ""
+
+#: personnes/rapport_import.html:60
+msgid "Détail des erreurs"
+msgstr ""
+
+#: personnes/rapport_import.html:71
+msgid "Import sans erreurs !"
+msgstr ""
+
+#: personnes/rapport_import.html:78
+msgid "Voir la liste"
+msgstr ""
+
+#: personnes/rapport_import.html:81
+msgid "Nouvel import"
+msgstr ""
+
+#: photos/liste.html:69
+msgid "Total photos"
+msgstr ""
+
+#: photos/liste.html:78
+msgid "Photos actives"
+msgstr ""
+
+#: photos/liste.html:87
+msgid "Chiffrées"
+msgstr ""
+
+#: photos/liste.html:96 rfid/liste.html:96
+msgid "Rechercher..."
+msgstr ""
+
+#: photos/liste.html:104 rfid/liste.html:104
+msgid "Personne"
+msgstr ""
+
+#: photos/liste.html:106
+msgid "Score qualité"
+msgstr ""
+
+#: photos/liste.html:107
+msgid "Chiffrée"
+msgstr ""
+
+#: photos/liste.html:108
+msgid "Ajoutée le"
+msgstr ""
+
+#: photos/liste.html:170
+msgid "Aucune photo enregistrée"
+msgstr ""
+
+#: presences/detail_session.html:86 presences/liste.html:59
+#: sessions/detail.html:117
+msgid "Retards"
+msgstr ""
+
+#: presences/detail_session.html:99
+msgid "Liste des présences"
+msgstr ""
+
+#: presences/detail_session.html:111 sessions/detail.html:148
+msgid "Méthode"
+msgstr ""
+
+#: presences/detail_session.html:156
+msgid "Modifier la présence"
+msgstr ""
+
+#: presences/detail_session.html:160
+msgid "Nouveau statut"
+msgstr ""
+
+#: presences/detail_session.html:168
+msgid "Justification"
+msgstr ""
+
+#: presences/detail_session.html:170
+msgid "Raison de la modification"
+msgstr ""
+
+#: presences/detail_session.html:205
+msgid "Justification obligatoire"
+msgstr ""
+
+#: presences/liste.html:48
+msgid "session(s) avec présences"
+msgstr ""
+
+#: presences/liste.html:55 sessions/liste.html:97
+msgid "Session"
+msgstr ""
+
+#: presences/liste.html:56
+msgid "Date"
+msgstr ""
+
+#: presences/liste.html:61
+msgid "Taux"
+msgstr ""
+
+#: presences/liste.html:99
+msgid "Aucune session avec présences"
+msgstr ""
+
+#: rapports/liste.html:51
+msgid "Rapport par groupe"
+msgstr ""
+
+#: rapports/liste.html:59
+msgid "Sélectionner un groupe"
+msgstr ""
+
+#: rapports/liste.html:66 rapports/liste.html:105
+msgid "Date début"
+msgstr ""
+
+#: rapports/liste.html:70 rapports/liste.html:109
+msgid "Date fin"
+msgstr ""
+
+#: rapports/liste.html:76
+msgid "Excel Résumé"
+msgstr ""
+
+#: rapports/liste.html:79
+msgid "Excel Détail"
+msgstr ""
+
+#: rapports/liste.html:82
+msgid "Excel Complet"
+msgstr ""
+
+#: rapports/liste.html:93
+msgid "Rapport individuel"
+msgstr ""
+
+#: rapports/liste.html:99
+msgid "Rechercher un étudiant"
+msgstr ""
+
+#: rapports/liste.html:101
+msgid "Nom, prénom ou identifiant..."
+msgstr ""
+
+#: rapports/liste.html:117
+msgid "Résultats"
+msgstr ""
+
+#: rapports/liste.html:129
+msgid "Télécharger PDF"
+msgstr ""
+
+#: rapports/liste.html:144
+msgid "Sélectionnez un groupe et les dates"
+msgstr ""
+
+#: rapports/liste.html:156
+msgid "Sélectionnez un étudiant et les dates"
+msgstr ""
+
+#: rapports/liste.html:186
+msgid "Aucun résultat"
+msgstr ""
+
+#: rfid/liste.html:69
+msgid "Total cartes"
+msgstr ""
+
+#: rfid/liste.html:78
+msgid "Actives"
+msgstr ""
+
+#: rfid/liste.html:87
+msgid "Révoquées"
+msgstr ""
+
+#: rfid/liste.html:95
+msgid "carte(s)"
+msgstr ""
+
+#: rfid/liste.html:107
+msgid "Révoquée le"
+msgstr ""
+
+#: rfid/liste.html:108
+msgid "Raison"
+msgstr ""
+
+#: rfid/liste.html:133
+msgid "Révoquée"
+msgstr ""
+
+#: rfid/liste.html:162
+msgid "Aucune carte RFID enregistrée"
+msgstr ""
+
+#: sessions/detail.html:77 sessions/liste.html:159
+msgid "Début"
+msgstr ""
+
+#: sessions/detail.html:81 sessions/liste.html:163
+msgid "Fin"
+msgstr ""
+
+#: sessions/detail.html:85 sessions/liste.html:99 sessions/liste.html:154
+msgid "Lieu"
+msgstr ""
+
+#: sessions/detail.html:89
+msgid "Tolérance retard"
+msgstr ""
+
+#: sessions/detail.html:95
+msgid "Ouvrir"
+msgstr ""
+
+#: sessions/detail.html:99
+msgid "Fermer la session"
+msgstr ""
+
+#: sessions/detail.html:135
+msgid "Exporter Excel"
+msgstr ""
+
+#: sessions/detail.html:147
+msgid "Heure pointage"
+msgstr ""
+
+#: sessions/detail.html:181
+msgid "Aucune présence enregistrée pour cette session"
+msgstr ""
+
+#: sessions/detail.html:198 sessions/liste.html:237
+msgid "Fermer la session ? Les absents seront marqués automatiquement."
+msgstr ""
+
+#: sessions/liste.html:73 sessions/liste.html:148
+msgid "Nouvelle session"
+msgstr ""
+
+#: sessions/liste.html:81
+msgid "Toutes"
+msgstr ""
+
+#: sessions/liste.html:82
+msgid "Planifiées"
+msgstr ""
+
+#: sessions/liste.html:84
+msgid "Terminées"
+msgstr ""
+
+#: sessions/liste.html:85
+msgid "Annulées"
+msgstr ""
+
+#: sessions/liste.html:90
+msgid "session(s)"
+msgstr ""
+
+#: sessions/liste.html:98
+msgid "Date & Heure"
+msgstr ""
+
+#: sessions/liste.html:139
+msgid "Aucune session"
+msgstr ""
+
+#: sessions/liste.html:204
+msgid "Nom, début et fin obligatoires"
+msgstr ""
 

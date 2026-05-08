@@ -1,71 +1,1226 @@
-# English translations for PROJECT.
-# Copyright (C) 2026 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
-#
+# English translations
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-06 22:52+0100\n"
-"PO-Revision-Date: 2026-05-05 23:36+0100\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
-"Language-Team: en <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.18.0\n"
 
-#~ msgid "Accueil"
-#~ msgstr "Home"
+msgid "Accueil"
+msgstr "Home"
 
-#~ msgid "Gestion de Présence"
-#~ msgstr "Attendance Management"
+msgid "Gestion de Présence"
+msgstr "Attendance Management"
 
-#~ msgid "Mon espace"
-#~ msgstr "My space"
+msgid "Mon espace"
+msgstr "My Space"
 
-#~ msgid "Déconnexion"
-#~ msgstr "Logout"
+msgid "Déconnexion"
+msgstr "Logout"
 
-#~ msgid "Tableau de bord en temps réel"
-#~ msgstr "Real-time dashboard"
+msgid "S'inscrire"
+msgstr "Sign Up"
 
-#~ msgid "Rafraîchissement automatique toutes les 30s"
-#~ msgstr "Auto-refresh every 30s"
+msgid "Connexion"
+msgstr "Login"
 
-#~ msgid "Sessions actives"
-#~ msgstr "Active sessions"
+msgid "Administration"
+msgstr "Administration"
 
-#~ msgid "À venir"
-#~ msgstr "Upcoming"
+msgid "Configuration"
+msgstr "Configuration"
 
-#~ msgid "Étudiants pointés"
-#~ msgstr "Students checked in"
+msgid "Tableau de bord"
+msgstr "Dashboard"
 
-#~ msgid "Sessions en cours"
-#~ msgstr "Ongoing sessions"
+msgid "Utilisateurs"
+msgstr "Users"
 
-#~ msgid "Horaire"
-#~ msgstr "Schedule"
+msgid "Comptes en attente"
+msgstr "Pending Accounts"
 
-#~ msgid "Présents"
-#~ msgstr "Present"
+msgid "Journal sécurité"
+msgstr "Security Log"
 
-#~ msgid "En cours"
-#~ msgstr "In progress"
+msgid "Ressources Humaines"
+msgstr "Human Resources"
 
-#~ msgid "Aucune session en cours pour le moment"
-#~ msgstr "No session in progress at the moment"
+msgid "Scolarité"
+msgstr "Registrar"
 
-#~ msgid "Sessions à venir aujourd'hui"
-#~ msgstr "Upcoming sessions today"
+msgid "Employés"
+msgstr "Employees"
 
-#~ msgid "Aucune session prévue pour aujourd'hui"
-#~ msgstr "No session planned for today"
+msgid "Étudiants"
+msgstr "Students"
 
-#~ msgid "Système de Gestion de Présence"
-#~ msgstr "Attendance Management System"
+msgid "Cartes RFID"
+msgstr "RFID Cards"
 
+msgid "Photos"
+msgstr "Photos"
+
+msgid "Management"
+msgstr "Management"
+
+msgid "Enseignement"
+msgstr "Teaching"
+
+msgid "Planning"
+msgstr "Planning"
+
+msgid "Emploi du temps"
+msgstr "Timetable"
+
+msgid "Sessions"
+msgstr "Sessions"
+
+msgid "Présences"
+msgstr "Attendance"
+
+msgid "Rapports"
+msgstr "Reports"
+
+msgid "Session expire bientôt"
+msgstr "Session expiring soon"
+
+msgid "Déconnexion dans"
+msgstr "Logout in"
+
+msgid "Rester connecté"
+msgstr "Stay connected"
+
+msgid "Tableau de bord en temps réel"
+msgstr "Real-time dashboard"
+
+msgid "Rafraîchissement automatique toutes les 30s"
+msgstr "Auto-refresh every 30s"
+
+msgid "Sessions actives"
+msgstr "Active sessions"
+
+msgid "À venir"
+msgstr "Upcoming"
+
+msgid "Étudiants pointés"
+msgstr "Students checked in"
+
+msgid "Présents"
+msgstr "Present"
+
+msgid "Absents"
+msgstr "Absent"
+
+msgid "Pointages aujourd'hui"
+msgstr "Check-ins today"
+
+msgid "Sessions en cours"
+msgstr "Ongoing sessions"
+
+msgid "Horaire"
+msgstr "Schedule"
+
+msgid "En cours"
+msgstr "In progress"
+
+msgid "Aucune session en cours pour le moment"
+msgstr "No session in progress at the moment"
+
+msgid "Sessions à venir aujourd'hui"
+msgstr "Upcoming sessions today"
+
+msgid "Aucune session prévue pour aujourd'hui"
+msgstr "No session planned for today"
+
+msgid "Pointages du jour"
+msgstr "Today's check-ins"
+
+msgid "Heure"
+msgstr "Time"
+
+msgid "Aucun pointage pour le moment"
+msgstr "No check-ins yet"
+
+msgid "Système de Gestion de Présence"
+msgstr "Attendance Management System"
+
+msgid "Validez ou rejetez les demandes d'inscription"
+msgstr "Approve or reject registration requests"
+
+msgid "En attente"
+msgstr "Pending"
+
+msgid "Utilisateurs actifs"
+msgstr "Active users"
+
+msgid "Administrateurs"
+msgstr "Administrators"
+
+msgid "Inscrit le"
+msgstr "Registered on"
+
+msgid "Rôle"
+msgstr "Role"
+
+msgid "Manager"
+msgstr "Manager"
+
+msgid "Enseignant"
+msgstr "Teacher"
+
+msgid "Agent RH"
+msgstr "HR Agent"
+
+msgid "Agent scolarité"
+msgstr "Registrar Agent"
+
+msgid "Valider"
+msgstr "Approve"
+
+msgid "Rejeter"
+msgstr "Reject"
+
+msgid "Aucun compte en attente"
+msgstr "No pending accounts"
+
+msgid "Tous les comptes ont été traités"
+msgstr "All accounts have been processed"
+
+msgid "Rejeter la demande"
+msgstr "Reject request"
+
+msgid "Rejeter le compte de"
+msgstr "Reject account of"
+
+msgid "L'utilisateur recevra un email avec la raison du rejet."
+msgstr "The user will receive an email with the rejection reason."
+
+msgid "Raison du rejet (obligatoire)..."
+msgstr "Rejection reason (required)..."
+
+msgid "Annuler"
+msgstr "Cancel"
+
+msgid "Paramètres du système de présence"
+msgstr "Attendance system settings"
+
+msgid "Mode École"
+msgstr "School Mode"
+
+msgid "Mode Entreprise"
+msgstr "Enterprise Mode"
+
+msgid "Informations établissement"
+msgstr "Institution information"
+
+msgid "Nom, coordonnées et logo"
+msgstr "Name, contact info and logo"
+
+msgid "Nom établissement"
+msgstr "Institution name"
+
+msgid "Adresse"
+msgstr "Address"
+
+msgid "Ville"
+msgstr "City"
+
+msgid "Téléphone"
+msgstr "Phone"
+
+msgid "Site web"
+msgstr "Website"
+
+msgid "Logo"
+msgstr "Logo"
+
+msgid "Cliquer pour changer"
+msgstr "Click to change"
+
+msgid "Cliquer pour uploader un logo"
+msgstr "Click to upload a logo"
+
+msgid "Sauvegarder"
+msgstr "Save"
+
+msgid "Sécurité et accès"
+msgstr "Security and access"
+
+msgid "Domaine email, tentatives de connexion, rétention logs"
+msgstr "Email domain, login attempts, log retention"
+
+msgid "Domaine email autorisé"
+msgstr "Allowed email domain"
+
+msgid "Seuls les emails de ce domaine peuvent s'inscrire"
+msgstr "Only emails from this domain can register"
+
+msgid "Tentatives de connexion max"
+msgstr "Max login attempts"
+
+msgid "Rétention des logs (jours)"
+msgstr "Log retention (days)"
+
+msgid "Présence et reconnaissance"
+msgstr "Attendance and recognition"
+
+msgid "Seuil DeepFace, tolérance retard, langue"
+msgstr "DeepFace threshold, late tolerance, language"
+
+msgid "Seuil similarité DeepFace"
+msgstr "DeepFace similarity threshold"
+
+msgid "Plus haut = plus strict"
+msgstr "Higher = stricter"
+
+msgid "Tolérance retard (min)"
+msgstr "Late tolerance (min)"
+
+msgid "Langue par défaut"
+msgstr "Default language"
+
+msgid "Étudiants actifs"
+msgstr "Active students"
+
+msgid "Enregistrés dans le système"
+msgstr "Registered in system"
+
+msgid "Sessions aujourd'hui"
+msgstr "Sessions today"
+
+msgid "Taux de présence global"
+msgstr "Overall attendance rate"
+
+msgid "Bon niveau"
+msgstr "Good level"
+
+msgid "Moyen"
+msgstr "Average"
+
+msgid "Insuffisant"
+msgstr "Insufficient"
+
+msgid "Absences critiques"
+msgstr "Critical absences"
+
+msgid "Seuil dépassé → alerte envoyée"
+msgstr "Threshold exceeded → alert sent"
+
+msgid "Validation requise"
+msgstr "Validation required"
+
+msgid "Limite : 3 comptes admin"
+msgstr "Limit: 3 admin accounts"
+
+msgid "Employés actifs"
+msgstr "Active employees"
+
+msgid "Tous sites confondus"
+msgstr "All sites combined"
+
+msgid "Entrées + sorties"
+msgstr "Check-ins + check-outs"
+
+msgid "Heures ce mois"
+msgstr "Hours this month"
+
+msgid "Total des employés actifs"
+msgstr "Total active employees"
+
+msgid "Retards aujourd'hui"
+msgstr "Late arrivals today"
+
+msgid "Excellent"
+msgstr "Excellent"
+
+msgid "À traiter"
+msgstr "To process"
+
+msgid "Présence par groupe"
+msgstr "Attendance by group"
+
+msgid "Présence par site"
+msgstr "Attendance by site"
+
+msgid "Aucune donnée de présence disponible"
+msgstr "No attendance data available"
+
+msgid "Gestion des enseignants et agents"
+msgstr "Manage teachers and agents"
+
+msgid "Actifs"
+msgstr "Active"
+
+msgid "Désactivés"
+msgstr "Disabled"
+
+msgid "Managers"
+msgstr "Managers"
+
+msgid "Enseignants"
+msgstr "Teachers"
+
+msgid "Agents RH"
+msgstr "HR Agents"
+
+msgid "Agents scolarité"
+msgstr "Registrar Agents"
+
+msgid "Filtres"
+msgstr "Filters"
+
+msgid "Tous les rôles"
+msgstr "All roles"
+
+msgid "Tous les statuts"
+msgstr "All statuses"
+
+msgid "Actif"
+msgstr "Active"
+
+msgid "Désactivé"
+msgstr "Disabled"
+
+msgid "Rechercher nom, prénom..."
+msgstr "Search name, first name..."
+
+msgid "Filtrer"
+msgstr "Filter"
+
+msgid "Réinitialiser"
+msgstr "Reset"
+
+msgid "Liste des utilisateurs"
+msgstr "User list"
+
+msgid "utilisateurs"
+msgstr "users"
+
+msgid "Utilisateur"
+msgstr "User"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Dernière connexion"
+msgstr "Last login"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Changer le rôle"
+msgstr "Change role"
+
+msgid "Désactiver"
+msgstr "Disable"
+
+msgid "Réactiver"
+msgstr "Reactivate"
+
+msgid "Aucun utilisateur trouvé"
+msgstr "No user found"
+
+msgid "Changer le rôle de"
+msgstr "Change role of"
+
+msgid "L'utilisateur sera déconnecté et devra se reconnecter."
+msgstr "The user will be logged out and must log in again."
+
+msgid "Confirmer"
+msgstr "Confirm"
+
+msgid "Désactiver le compte"
+msgstr "Disable account"
+
+msgid "Désactiver le compte de"
+msgstr "Disable account of"
+
+msgid "L'utilisateur ne pourra plus se connecter."
+msgstr "The user will no longer be able to log in."
+
+msgid "Réactiver le compte"
+msgstr "Reactivate account"
+
+msgid "Réactiver le compte de"
+msgstr "Reactivate account of"
+
+msgid "L'utilisateur pourra se reconnecter."
+msgstr "The user will be able to log in again."
+
+msgid "Compte en attente"
+msgstr "Account pending"
+
+msgid "Système de gestion de présence"
+msgstr "Attendance management system"
+
+msgid "Compte en attente de validation"
+msgstr "Account pending validation"
+
+msgid "Inscription complétée"
+msgstr "Registration completed"
+
+msgid "Email vérifié"
+msgstr "Email verified"
+
+msgid "Validation par un administrateur"
+msgstr "Validation by an administrator"
+
+msgid "en cours..."
+msgstr "in progress..."
+
+msgid "Accès à votre espace"
+msgstr "Access to your space"
+
+msgid "Actualiser"
+msgstr "Refresh"
+
+msgid "Email envoyé"
+msgstr "Email sent"
+
+msgid "Email envoyé !"
+msgstr "Email sent!"
+
+msgid "Lien valable 24 heures"
+msgstr "Link valid for 24 hours"
+
+msgid "Retour à la connexion"
+msgstr "Back to login"
+
+msgid "Pas reçu ? Vérifiez vos spams."
+msgstr "Not received? Check your spam."
+
+msgid "Bienvenue, entrez vos identifiants"
+msgstr "Welcome, enter your credentials"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Mot de passe"
+msgstr "Password"
+
+msgid "Se connecter"
+msgstr "Log in"
+
+msgid "Pas encore de compte ?"
+msgstr "No account yet?"
+
+msgid "Inscription"
+msgstr "Sign up"
+
+msgid "Créer un compte"
+msgstr "Create an account"
+
+msgid "Tous les champs * sont obligatoires"
+msgstr "All fields marked * are required"
+
+msgid "Prénom"
+msgstr "First name"
+
+msgid "Nom"
+msgstr "Last name"
+
+msgid "Email institutionnel"
+msgstr "Institutional email"
+
+msgid "Département / Filière"
+msgstr "Department / Field"
+
+msgid "Créer mon compte"
+msgstr "Create my account"
+
+msgid "Déjà un compte ?"
+msgstr "Already have an account?"
+
+msgid "Nouvel emploi"
+msgstr "New timetable"
+
+msgid "Tous les groupes"
+msgstr "All groups"
+
+msgid "Inactif"
+msgstr "Inactive"
+
+msgid "Pause"
+msgstr "Break"
+
+msgid "Voir sessions"
+msgstr "View sessions"
+
+msgid "Aucun emploi du temps créé"
+msgstr "No timetable created"
+
+msgid "Créer le premier"
+msgstr "Create the first"
+
+msgid "Nouvel emploi du temps"
+msgstr "New timetable"
+
+msgid "Nom du cours"
+msgstr "Course name"
+
+msgid "Groupe"
+msgstr "Group"
+
+msgid "Salle"
+msgstr "Room"
+
+msgid "Jour"
+msgstr "Day"
+
+msgid "Lundi"
+msgstr "Monday"
+
+msgid "Mardi"
+msgstr "Tuesday"
+
+msgid "Mercredi"
+msgstr "Wednesday"
+
+msgid "Jeudi"
+msgstr "Thursday"
+
+msgid "Vendredi"
+msgstr "Friday"
+
+msgid "Samedi"
+msgstr "Saturday"
+
+msgid "Dimanche"
+msgstr "Sunday"
+
+msgid "Tolérance (min)"
+msgstr "Tolerance (min)"
+
+msgid "Heure début"
+msgstr "Start time"
+
+msgid "Heure fin"
+msgstr "End time"
+
+msgid "Date début validité"
+msgstr "Start date"
+
+msgid "Date fin validité"
+msgstr "End date"
+
+msgid "Créer"
+msgstr "Create"
+
+msgid "Journal de sécurité"
+msgstr "Security log"
+
+msgid "Historique de tous les événements système"
+msgstr "History of all system events"
+
+msgid "Exporter CSV"
+msgstr "Export CSV"
+
+msgid "Total logs"
+msgstr "Total logs"
+
+msgid "Info – 24h"
+msgstr "Info – 24h"
+
+msgid "Warning – 24h"
+msgstr "Warning – 24h"
+
+msgid "Critique – 24h"
+msgstr "Critical – 24h"
+
+msgid "Toutes sévérités"
+msgstr "All severities"
+
+msgid "Type événement"
+msgstr "Event type"
+
+msgid "Du"
+msgstr "From"
+
+msgid "Au"
+msgstr "To"
+
+msgid "Événements"
+msgstr "Events"
+
+msgid "résultats"
+msgstr "results"
+
+msgid "Date / Heure"
+msgstr "Date / Time"
+
+msgid "Sévérité"
+msgstr "Severity"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Adresse IP"
+msgstr "IP Address"
+
+msgid "Résultat"
+msgstr "Result"
+
+msgid "Succès"
+msgstr "Success"
+
+msgid "Échec"
+msgstr "Failure"
+
+msgid "Bloqué"
+msgstr "Blocked"
+
+msgid "Page"
+msgstr "Page"
+
+msgid "entrées"
+msgstr "entries"
+
+msgid "Aucun événement trouvé"
+msgstr "No event found"
+
+msgid "Retour"
+msgstr "Back"
+
+msgid "Informations personnelles"
+msgstr "Personal information"
+
+msgid "Identifiant"
+msgstr "ID"
+
+msgid "Département"
+msgstr "Department"
+
+msgid "Niveau"
+msgstr "Level"
+
+msgid "Poste"
+msgstr "Position"
+
+msgid "Site"
+msgstr "Site"
+
+msgid "Contrat et horaires"
+msgstr "Contract and schedule"
+
+msgid "Type de contrat"
+msgstr "Contract type"
+
+msgid "Début contrat"
+msgstr "Contract start"
+
+msgid "Fin contrat"
+msgstr "Contract end"
+
+msgid "Heure arrivée"
+msgstr "Arrival time"
+
+msgid "Heure départ"
+msgstr "Departure time"
+
+msgid "Pause (min)"
+msgstr "Break (min)"
+
+msgid "Jours travaillés"
+msgstr "Working days"
+
+msgid "Lun"
+msgstr "Mon"
+
+msgid "Mar"
+msgstr "Tue"
+
+msgid "Mer"
+msgstr "Wed"
+
+msgid "Jeu"
+msgstr "Thu"
+
+msgid "Ven"
+msgstr "Fri"
+
+msgid "Sam"
+msgstr "Sat"
+
+msgid "Dim"
+msgstr "Sun"
+
+msgid "Ajouter"
+msgstr "Add"
+
+msgid "Enregistrer"
+msgstr "Save"
+
+msgid "Importer"
+msgstr "Import"
+
+msgid "Importer des étudiants"
+msgstr "Import students"
+
+msgid "Importer des employés"
+msgstr "Import employees"
+
+msgid "Format attendu"
+msgstr "Expected format"
+
+msgid "Le fichier doit contenir les colonnes suivantes"
+msgstr "The file must contain the following columns"
+
+msgid "obligatoires"
+msgstr "required"
+
+msgid "optionnels"
+msgstr "optional"
+
+msgid "Fichier Excel ou CSV"
+msgstr "Excel or CSV file"
+
+msgid "Cliquer pour sélectionner un fichier"
+msgstr "Click to select a file"
+
+msgid "Formats acceptés"
+msgstr "Accepted formats"
+
+msgid "Télécharger le template"
+msgstr "Download template"
+
+msgid "Gestion des étudiants"
+msgstr "Student management"
+
+msgid "Gestion des employés"
+msgstr "Employee management"
+
+msgid "Ajouter étudiant"
+msgstr "Add student"
+
+msgid "Ajouter employé"
+msgstr "Add employee"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Inactifs"
+msgstr "Inactive"
+
+msgid "Avec carte RFID"
+msgstr "With RFID card"
+
+msgid "Nom, prénom, identifiant..."
+msgstr "Name, first name, ID..."
+
+msgid "Tous"
+msgstr "All"
+
+msgid "Importer Excel"
+msgstr "Import Excel"
+
+msgid "Liste des étudiants"
+msgstr "Student list"
+
+msgid "Liste des employés"
+msgstr "Employee list"
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "Employé"
+msgstr "Employee"
+
+msgid "Carte RFID"
+msgstr "RFID Card"
+
+msgid "Photo"
+msgstr "Photo"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Aucune"
+msgstr "None"
+
+msgid "Voir profil"
+msgstr "View profile"
+
+msgid "Modifier"
+msgstr "Edit"
+
+msgid "Aucun résultat trouvé"
+msgstr "No results found"
+
+msgid "Type contrat"
+msgstr "Contract type"
+
+msgid "Horaires"
+msgstr "Schedule"
+
+msgid "Carte active"
+msgstr "Active card"
+
+msgid "Attribuée le"
+msgstr "Assigned on"
+
+msgid "Révoquer"
+msgstr "Revoke"
+
+msgid "Aucune carte RFID associée"
+msgstr "No RFID card associated"
+
+msgid "Associer une carte"
+msgstr "Associate a card"
+
+msgid "Remplacer la carte"
+msgstr "Replace card"
+
+msgid "photo(s)"
+msgstr "photo(s)"
+
+msgid "Upload"
+msgstr "Upload"
+
+msgid "Caméra"
+msgstr "Camera"
+
+msgid "Cliquer pour uploader"
+msgstr "Click to upload"
+
+msgid "Capturer"
+msgstr "Capture"
+
+msgid "Historique"
+msgstr "History"
+
+msgid "Aucune photo"
+msgstr "No photo"
+
+msgid "Dernières présences"
+msgstr "Recent attendance"
+
+msgid "Présent"
+msgstr "Present"
+
+msgid "Retard"
+msgstr "Late"
+
+msgid "Absent"
+msgstr "Absent"
+
+msgid "Aucune présence enregistrée"
+msgstr "No attendance recorded"
+
+msgid "Associer une carte RFID"
+msgstr "Associate an RFID card"
+
+msgid "Entrez le numéro de la carte RFID"
+msgstr "Enter the RFID card number"
+
+msgid "Associer"
+msgstr "Associate"
+
+msgid "Révoquer la carte"
+msgstr "Revoke card"
+
+msgid "Raison de révocation"
+msgstr "Revocation reason"
+
+msgid "Carte perdue"
+msgstr "Lost card"
+
+msgid "Carte volée"
+msgstr "Stolen card"
+
+msgid "Carte défectueuse"
+msgstr "Defective card"
+
+msgid "Autre"
+msgstr "Other"
+
+msgid "Nouveau numéro RFID"
+msgstr "New RFID number"
+
+msgid "Ancienne carte perdue"
+msgstr "Old card lost"
+
+msgid "Ancienne carte volée"
+msgstr "Old card stolen"
+
+msgid "Ancienne carte défectueuse"
+msgstr "Old card defective"
+
+msgid "Remplacer"
+msgstr "Replace"
+
+msgid "La carte RFID sera révoquée automatiquement."
+msgstr "The RFID card will be automatically revoked."
+
+msgid "Caméra non disponible"
+msgstr "Camera unavailable"
+
+msgid "Envoi en cours..."
+msgstr "Sending..."
+
+msgid "Photo uploadée avec succès !"
+msgstr "Photo uploaded successfully!"
+
+msgid "Erreur réseau"
+msgstr "Network error"
+
+msgid "Capture en cours..."
+msgstr "Capturing..."
+
+msgid "Photo capturée !"
+msgstr "Photo captured!"
+
+msgid "Numéro obligatoire"
+msgstr "Number required"
+
+msgid "Carte associée !"
+msgstr "Card associated!"
+
+msgid "Carte remplacée !"
+msgstr "Card replaced!"
+
+msgid "Rapport import"
+msgstr "Import report"
+
+msgid "Retour à la liste"
+msgstr "Back to list"
+
+msgid "Rapport d'import"
+msgstr "Import report"
+
+msgid "Importées avec succès"
+msgstr "Successfully imported"
+
+msgid "Erreurs"
+msgstr "Errors"
+
+msgid "Détail des erreurs"
+msgstr "Error details"
+
+msgid "Import sans erreurs !"
+msgstr "Import without errors!"
+
+msgid "Voir la liste"
+msgstr "View list"
+
+msgid "Nouvel import"
+msgstr "New import"
+
+msgid "Total photos"
+msgstr "Total photos"
+
+msgid "Photos actives"
+msgstr "Active photos"
+
+msgid "Chiffrées"
+msgstr "Encrypted"
+
+msgid "Rechercher..."
+msgstr "Search..."
+
+msgid "Personne"
+msgstr "Person"
+
+msgid "Score qualité"
+msgstr "Quality score"
+
+msgid "Chiffrée"
+msgstr "Encrypted"
+
+msgid "Ajoutée le"
+msgstr "Added on"
+
+msgid "Aucune photo enregistrée"
+msgstr "No photo recorded"
+
+msgid "Retards"
+msgstr "Late"
+
+msgid "Liste des présences"
+msgstr "Attendance list"
+
+msgid "Méthode"
+msgstr "Method"
+
+msgid "Modifier la présence"
+msgstr "Edit attendance"
+
+msgid "Nouveau statut"
+msgstr "New status"
+
+msgid "Justification"
+msgstr "Justification"
+
+msgid "Raison de la modification"
+msgstr "Reason for change"
+
+msgid "Justification obligatoire"
+msgstr "Justification required"
+
+msgid "session(s) avec présences"
+msgstr "session(s) with attendance"
+
+msgid "Session"
+msgstr "Session"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Taux"
+msgstr "Rate"
+
+msgid "Aucune session avec présences"
+msgstr "No session with attendance"
+
+msgid "Rapport par groupe"
+msgstr "Report by group"
+
+msgid "Sélectionner un groupe"
+msgstr "Select a group"
+
+msgid "Date début"
+msgstr "Start date"
+
+msgid "Date fin"
+msgstr "End date"
+
+msgid "Excel Résumé"
+msgstr "Excel Summary"
+
+msgid "Excel Détail"
+msgstr "Excel Detail"
+
+msgid "Excel Complet"
+msgstr "Excel Complete"
+
+msgid "Rapport individuel"
+msgstr "Individual report"
+
+msgid "Rechercher un étudiant"
+msgstr "Search a student"
+
+msgid "Nom, prénom ou identifiant..."
+msgstr "Name, first name or ID..."
+
+msgid "Résultats"
+msgstr "Results"
+
+msgid "Télécharger PDF"
+msgstr "Download PDF"
+
+msgid "Sélectionnez un groupe et les dates"
+msgstr "Select a group and dates"
+
+msgid "Sélectionnez un étudiant et les dates"
+msgstr "Select a student and dates"
+
+msgid "Aucun résultat"
+msgstr "No results"
+
+msgid "Total cartes"
+msgstr "Total cards"
+
+msgid "Actives"
+msgstr "Active"
+
+msgid "Révoquées"
+msgstr "Revoked"
+
+msgid "carte(s)"
+msgstr "card(s)"
+
+msgid "Révoquée le"
+msgstr "Revoked on"
+
+msgid "Raison"
+msgstr "Reason"
+
+msgid "Révoquée"
+msgstr "Revoked"
+
+msgid "Aucune carte RFID enregistrée"
+msgstr "No RFID card recorded"
+
+msgid "Début"
+msgstr "Start"
+
+msgid "Fin"
+msgstr "End"
+
+msgid "Lieu"
+msgstr "Location"
+
+msgid "Tolérance retard"
+msgstr "Late tolerance"
+
+msgid "Ouvrir"
+msgstr "Open"
+
+msgid "Fermer la session"
+msgstr "Close session"
+
+msgid "Exporter Excel"
+msgstr "Export Excel"
+
+msgid "Heure pointage"
+msgstr "Check-in time"
+
+msgid "Aucune présence enregistrée pour cette session"
+msgstr "No attendance recorded for this session"
+
+msgid "Fermer la session ? Les absents seront marqués automatiquement."
+msgstr "Close session? Absent students will be marked automatically."
+
+msgid "Nouvelle session"
+msgstr "New session"
+
+msgid "Toutes"
+msgstr "All"
+
+msgid "Planifiées"
+msgstr "Planned"
+
+msgid "Terminées"
+msgstr "Finished"
+
+msgid "Annulées"
+msgstr "Cancelled"
+
+msgid "session(s)"
+msgstr "session(s)"
+
+msgid "Date & Heure"
+msgstr "Date & Time"
+
+msgid "Aucune session"
+msgstr "No session"
+
+msgid "Nom, début et fin obligatoires"
+msgstr "Name, start and end required"
+
+msgid "Après inscription, vérifiez votre email puis attendez la validation par un administrateur."
+msgstr "After registration, verify your email and wait for admin validation."
+
+msgid "Domaine autorisé"
+msgstr "Allowed domain"
+
+msgid "Tous les champs * sont obligatoires"
+msgstr "All fields marked * are required"
+
+msgid "8 caractères min."
+msgstr "8 chars min."
+
+msgid "1 majuscule"
+msgstr "1 uppercase"
+
+msgid "1 chiffre"
+msgstr "1 digit"
+
+msgid "1 caractère spécial"
+msgstr "1 special char"
+
+msgid "Actif"
+msgstr "Active"
+
+msgid "Inactif"
+msgstr "Inactive"

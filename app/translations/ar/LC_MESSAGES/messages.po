@@ -1,72 +1,1217 @@
-# Arabic translations for PROJECT.
-# Copyright (C) 2026 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
-#
+# Arabic translations
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-06 22:52+0100\n"
-"PO-Revision-Date: 2026-05-05 23:36+0100\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ar\n"
-"Language-Team: ar <LL@li.org>\n"
-"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : "
-"n%100>=3 && n%100<=10 ? 3 : n%100>=0 && n%100<=2 ? 4 : 5);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.18.0\n"
 
-#~ msgid "Accueil"
-#~ msgstr "الرئيسية"
+msgid "Accueil"
+msgstr "الرئيسية"
 
-#~ msgid "Gestion de Présence"
-#~ msgstr "إدارة الحضور"
+msgid "Gestion de Présence"
+msgstr "إدارة الحضور"
 
-#~ msgid "Mon espace"
-#~ msgstr "فضائي"
+msgid "Mon espace"
+msgstr "فضائي"
 
-#~ msgid "Déconnexion"
-#~ msgstr "تسجيل الخروج"
+msgid "Déconnexion"
+msgstr "تسجيل الخروج"
 
-#~ msgid "Tableau de bord en temps réel"
-#~ msgstr "لوحة القيادة في الوقت الفعلي"
+msgid "S'inscrire"
+msgstr "التسجيل"
 
-#~ msgid "Rafraîchissement automatique toutes les 30s"
-#~ msgstr "تحديث تلقائي كل 30 ثانية"
+msgid "Connexion"
+msgstr "تسجيل الدخول"
 
-#~ msgid "Sessions actives"
-#~ msgstr "الجلسات النشطة"
+msgid "Administration"
+msgstr "الإدارة"
 
-#~ msgid "À venir"
-#~ msgstr "القادمة"
+msgid "Configuration"
+msgstr "الإعدادات"
 
-#~ msgid "Étudiants pointés"
-#~ msgstr "الطلاب المسجلون"
+msgid "Tableau de bord"
+msgstr "لوحة التحكم"
 
-#~ msgid "Sessions en cours"
-#~ msgstr "الجلسات الجارية"
+msgid "Utilisateurs"
+msgstr "المستخدمون"
 
-#~ msgid "Horaire"
-#~ msgstr "التوقيت"
+msgid "Comptes en attente"
+msgstr "الحسابات المعلقة"
 
-#~ msgid "Présents"
-#~ msgstr "الحاضرون"
+msgid "Journal sécurité"
+msgstr "سجل الأمان"
 
-#~ msgid "En cours"
-#~ msgstr "جارية"
+msgid "Ressources Humaines"
+msgstr "الموارد البشرية"
 
-#~ msgid "Aucune session en cours pour le moment"
-#~ msgstr "لا توجد جلسة جارية في الوقت الحالي"
+msgid "Scolarité"
+msgstr "شؤون الطلاب"
 
-#~ msgid "Sessions à venir aujourd'hui"
-#~ msgstr "الجلسات القادمة اليوم"
+msgid "Employés"
+msgstr "الموظفون"
 
-#~ msgid "Aucune session prévue pour aujourd'hui"
-#~ msgstr "لا توجد جلسات مخططة لهذا اليوم"
+msgid "Étudiants"
+msgstr "الطلاب"
 
-#~ msgid "Système de Gestion de Présence"
-#~ msgstr "نظام إدارة الحضور"
+msgid "Cartes RFID"
+msgstr "بطاقات RFID"
 
+msgid "Photos"
+msgstr "الصور"
+
+msgid "Management"
+msgstr "الإدارة"
+
+msgid "Enseignement"
+msgstr "التدريس"
+
+msgid "Planning"
+msgstr "الجدول الزمني"
+
+msgid "Emploi du temps"
+msgstr "الجدول الدراسي"
+
+msgid "Sessions"
+msgstr "الحصص"
+
+msgid "Présences"
+msgstr "الحضور"
+
+msgid "Rapports"
+msgstr "التقارير"
+
+msgid "Session expire bientôt"
+msgstr "الجلسة على وشك الانتهاء"
+
+msgid "Déconnexion dans"
+msgstr "تسجيل الخروج خلال"
+
+msgid "Rester connecté"
+msgstr "البقاء متصلاً"
+
+msgid "Tableau de bord en temps réel"
+msgstr "لوحة التحكم في الوقت الفعلي"
+
+msgid "Rafraîchissement automatique toutes les 30s"
+msgstr "تحديث تلقائي كل 30 ثانية"
+
+msgid "Sessions actives"
+msgstr "الحصص النشطة"
+
+msgid "À venir"
+msgstr "القادمة"
+
+msgid "Étudiants pointés"
+msgstr "الطلاب المسجلون"
+
+msgid "Présents"
+msgstr "الحاضرون"
+
+msgid "Absents"
+msgstr "الغائبون"
+
+msgid "Pointages aujourd'hui"
+msgstr "تسجيلات اليوم"
+
+msgid "Sessions en cours"
+msgstr "الحصص الجارية"
+
+msgid "Horaire"
+msgstr "التوقيت"
+
+msgid "En cours"
+msgstr "جارية"
+
+msgid "Aucune session en cours pour le moment"
+msgstr "لا توجد حصص جارية حالياً"
+
+msgid "Sessions à venir aujourd'hui"
+msgstr "الحصص القادمة اليوم"
+
+msgid "Aucune session prévue pour aujourd'hui"
+msgstr "لا توجد حصص مجدولة اليوم"
+
+msgid "Pointages du jour"
+msgstr "تسجيلات اليوم"
+
+msgid "Heure"
+msgstr "الوقت"
+
+msgid "Aucun pointage pour le moment"
+msgstr "لا توجد تسجيلات حتى الآن"
+
+msgid "Système de Gestion de Présence"
+msgstr "نظام إدارة الحضور"
+
+msgid "Validez ou rejetez les demandes d'inscription"
+msgstr "قبول أو رفض طلبات التسجيل"
+
+msgid "En attente"
+msgstr "قيد الانتظار"
+
+msgid "Utilisateurs actifs"
+msgstr "المستخدمون النشطون"
+
+msgid "Administrateurs"
+msgstr "المسؤولون"
+
+msgid "Inscrit le"
+msgstr "تاريخ التسجيل"
+
+msgid "Rôle"
+msgstr "الدور"
+
+msgid "Manager"
+msgstr "مدير"
+
+msgid "Enseignant"
+msgstr "أستاذ"
+
+msgid "Agent RH"
+msgstr "موظف الموارد البشرية"
+
+msgid "Agent scolarité"
+msgstr "موظف شؤون الطلاب"
+
+msgid "Valider"
+msgstr "قبول"
+
+msgid "Rejeter"
+msgstr "رفض"
+
+msgid "Aucun compte en attente"
+msgstr "لا توجد حسابات معلقة"
+
+msgid "Tous les comptes ont été traités"
+msgstr "تمت معالجة جميع الحسابات"
+
+msgid "Rejeter la demande"
+msgstr "رفض الطلب"
+
+msgid "Rejeter le compte de"
+msgstr "رفض حساب"
+
+msgid "L'utilisateur recevra un email avec la raison du rejet."
+msgstr "سيتلقى المستخدم بريداً إلكترونياً يتضمن سبب الرفض."
+
+msgid "Raison du rejet (obligatoire)..."
+msgstr "سبب الرفض (إلزامي)..."
+
+msgid "Annuler"
+msgstr "إلغاء"
+
+msgid "Paramètres du système de présence"
+msgstr "إعدادات نظام الحضور"
+
+msgid "Mode École"
+msgstr "وضع المدرسة"
+
+msgid "Mode Entreprise"
+msgstr "وضع المؤسسة"
+
+msgid "Informations établissement"
+msgstr "معلومات المؤسسة"
+
+msgid "Nom, coordonnées et logo"
+msgstr "الاسم والمعلومات والشعار"
+
+msgid "Nom établissement"
+msgstr "اسم المؤسسة"
+
+msgid "Adresse"
+msgstr "العنوان"
+
+msgid "Ville"
+msgstr "المدينة"
+
+msgid "Téléphone"
+msgstr "الهاتف"
+
+msgid "Site web"
+msgstr "الموقع الإلكتروني"
+
+msgid "Logo"
+msgstr "الشعار"
+
+msgid "Cliquer pour changer"
+msgstr "انقر للتغيير"
+
+msgid "Cliquer pour uploader un logo"
+msgstr "انقر لرفع شعار"
+
+msgid "Sauvegarder"
+msgstr "حفظ"
+
+msgid "Sécurité et accès"
+msgstr "الأمان والوصول"
+
+msgid "Domaine email, tentatives de connexion, rétention logs"
+msgstr "نطاق البريد، محاولات الدخول، الاحتفاظ بالسجلات"
+
+msgid "Domaine email autorisé"
+msgstr "النطاق المسموح به"
+
+msgid "Seuls les emails de ce domaine peuvent s'inscrire"
+msgstr "فقط البريد الإلكتروني من هذا النطاق يمكنه التسجيل"
+
+msgid "Tentatives de connexion max"
+msgstr "الحد الأقصى لمحاولات الدخول"
+
+msgid "Rétention des logs (jours)"
+msgstr "الاحتفاظ بالسجلات (أيام)"
+
+msgid "Présence et reconnaissance"
+msgstr "الحضور والتعرف"
+
+msgid "Seuil DeepFace, tolérance retard, langue"
+msgstr "عتبة DeepFace، تسامح التأخر، اللغة"
+
+msgid "Seuil similarité DeepFace"
+msgstr "عتبة التشابه DeepFace"
+
+msgid "Plus haut = plus strict"
+msgstr "أعلى = أكثر صرامة"
+
+msgid "Tolérance retard (min)"
+msgstr "تسامح التأخر (دقيقة)"
+
+msgid "Langue par défaut"
+msgstr "اللغة الافتراضية"
+
+msgid "Étudiants actifs"
+msgstr "الطلاب النشطون"
+
+msgid "Enregistrés dans le système"
+msgstr "مسجلون في النظام"
+
+msgid "Sessions aujourd'hui"
+msgstr "حصص اليوم"
+
+msgid "Taux de présence global"
+msgstr "معدل الحضور الإجمالي"
+
+msgid "Bon niveau"
+msgstr "مستوى جيد"
+
+msgid "Moyen"
+msgstr "متوسط"
+
+msgid "Insuffisant"
+msgstr "غير كافٍ"
+
+msgid "Absences critiques"
+msgstr "غيابات حرجة"
+
+msgid "Seuil dépassé → alerte envoyée"
+msgstr "تم تجاوز العتبة ← تم إرسال تنبيه"
+
+msgid "Validation requise"
+msgstr "التحقق مطلوب"
+
+msgid "Limite : 3 comptes admin"
+msgstr "الحد: 3 حسابات مسؤول"
+
+msgid "Employés actifs"
+msgstr "الموظفون النشطون"
+
+msgid "Tous sites confondus"
+msgstr "جميع المواقع"
+
+msgid "Entrées + sorties"
+msgstr "دخول + خروج"
+
+msgid "Heures ce mois"
+msgstr "ساعات هذا الشهر"
+
+msgid "Total des employés actifs"
+msgstr "إجمالي الموظفين النشطين"
+
+msgid "Retards aujourd'hui"
+msgstr "التأخرات اليوم"
+
+msgid "Excellent"
+msgstr "ممتاز"
+
+msgid "À traiter"
+msgstr "للمعالجة"
+
+msgid "Présence par groupe"
+msgstr "الحضور حسب المجموعة"
+
+msgid "Présence par site"
+msgstr "الحضور حسب الموقع"
+
+msgid "Aucune donnée de présence disponible"
+msgstr "لا تتوفر بيانات حضور"
+
+msgid "Gestion des enseignants et agents"
+msgstr "إدارة الأساتذة والموظفين"
+
+msgid "Actifs"
+msgstr "نشطون"
+
+msgid "Désactivés"
+msgstr "معطلون"
+
+msgid "Managers"
+msgstr "المديرون"
+
+msgid "Enseignants"
+msgstr "الأساتذة"
+
+msgid "Agents RH"
+msgstr "موظفو الموارد البشرية"
+
+msgid "Agents scolarité"
+msgstr "موظفو شؤون الطلاب"
+
+msgid "Filtres"
+msgstr "الفلاتر"
+
+msgid "Tous les rôles"
+msgstr "جميع الأدوار"
+
+msgid "Tous les statuts"
+msgstr "جميع الحالات"
+
+msgid "Actif"
+msgstr "نشط"
+
+msgid "Désactivé"
+msgstr "معطل"
+
+msgid "Rechercher nom, prénom..."
+msgstr "البحث عن الاسم..."
+
+msgid "Filtrer"
+msgstr "تصفية"
+
+msgid "Réinitialiser"
+msgstr "إعادة تعيين"
+
+msgid "Liste des utilisateurs"
+msgstr "قائمة المستخدمين"
+
+msgid "utilisateurs"
+msgstr "مستخدمون"
+
+msgid "Utilisateur"
+msgstr "المستخدم"
+
+msgid "Statut"
+msgstr "الحالة"
+
+msgid "Dernière connexion"
+msgstr "آخر تسجيل دخول"
+
+msgid "Actions"
+msgstr "الإجراءات"
+
+msgid "Changer le rôle"
+msgstr "تغيير الدور"
+
+msgid "Désactiver"
+msgstr "تعطيل"
+
+msgid "Réactiver"
+msgstr "إعادة التفعيل"
+
+msgid "Aucun utilisateur trouvé"
+msgstr "لم يتم العثور على مستخدم"
+
+msgid "Changer le rôle de"
+msgstr "تغيير دور"
+
+msgid "L'utilisateur sera déconnecté et devra se reconnecter."
+msgstr "سيتم تسجيل خروج المستخدم وسيحتاج إلى تسجيل الدخول مجدداً."
+
+msgid "Confirmer"
+msgstr "تأكيد"
+
+msgid "Désactiver le compte"
+msgstr "تعطيل الحساب"
+
+msgid "Désactiver le compte de"
+msgstr "تعطيل حساب"
+
+msgid "L'utilisateur ne pourra plus se connecter."
+msgstr "لن يتمكن المستخدم من تسجيل الدخول بعد الآن."
+
+msgid "Réactiver le compte"
+msgstr "إعادة تفعيل الحساب"
+
+msgid "Réactiver le compte de"
+msgstr "إعادة تفعيل حساب"
+
+msgid "L'utilisateur pourra se reconnecter."
+msgstr "سيتمكن المستخدم من تسجيل الدخول مجدداً."
+
+msgid "Compte en attente"
+msgstr "الحساب معلق"
+
+msgid "Système de gestion de présence"
+msgstr "نظام إدارة الحضور"
+
+msgid "Compte en attente de validation"
+msgstr "الحساب في انتظار التحقق"
+
+msgid "Inscription complétée"
+msgstr "اكتمل التسجيل"
+
+msgid "Email vérifié"
+msgstr "تم التحقق من البريد الإلكتروني"
+
+msgid "Validation par un administrateur"
+msgstr "التحقق من قبل مسؤول"
+
+msgid "en cours..."
+msgstr "جارٍ..."
+
+msgid "Accès à votre espace"
+msgstr "الوصول إلى فضائك"
+
+msgid "Actualiser"
+msgstr "تحديث"
+
+msgid "Email envoyé"
+msgstr "تم إرسال البريد الإلكتروني"
+
+msgid "Email envoyé !"
+msgstr "تم إرسال البريد الإلكتروني!"
+
+msgid "Lien valable 24 heures"
+msgstr "الرابط صالح لمدة 24 ساعة"
+
+msgid "Retour à la connexion"
+msgstr "العودة إلى تسجيل الدخول"
+
+msgid "Pas reçu ? Vérifiez vos spams."
+msgstr "لم تستلمه؟ تحقق من مجلد البريد العشوائي."
+
+msgid "Bienvenue, entrez vos identifiants"
+msgstr "مرحباً، أدخل بيانات تسجيل الدخول"
+
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+msgid "Mot de passe"
+msgstr "كلمة المرور"
+
+msgid "Se connecter"
+msgstr "تسجيل الدخول"
+
+msgid "Pas encore de compte ?"
+msgstr "ليس لديك حساب؟"
+
+msgid "Inscription"
+msgstr "التسجيل"
+
+msgid "Créer un compte"
+msgstr "إنشاء حساب"
+
+msgid "Tous les champs * sont obligatoires"
+msgstr "جميع الحقول المميزة بـ * إلزامية"
+
+msgid "Prénom"
+msgstr "الاسم الأول"
+
+msgid "Nom"
+msgstr "اللقب"
+
+msgid "Email institutionnel"
+msgstr "البريد المؤسسي"
+
+msgid "Département / Filière"
+msgstr "القسم / التخصص"
+
+msgid "Créer mon compte"
+msgstr "إنشاء حسابي"
+
+msgid "Déjà un compte ?"
+msgstr "لديك حساب بالفعل؟"
+
+msgid "Nouvel emploi"
+msgstr "جدول جديد"
+
+msgid "Tous les groupes"
+msgstr "جميع المجموعات"
+
+msgid "Inactif"
+msgstr "غير نشط"
+
+msgid "Pause"
+msgstr "استراحة"
+
+msgid "Voir sessions"
+msgstr "عرض الحصص"
+
+msgid "Aucun emploi du temps créé"
+msgstr "لم يتم إنشاء أي جدول"
+
+msgid "Créer le premier"
+msgstr "إنشاء الأول"
+
+msgid "Nouvel emploi du temps"
+msgstr "جدول دراسي جديد"
+
+msgid "Nom du cours"
+msgstr "اسم المادة"
+
+msgid "Groupe"
+msgstr "المجموعة"
+
+msgid "Salle"
+msgstr "القاعة"
+
+msgid "Jour"
+msgstr "اليوم"
+
+msgid "Lundi"
+msgstr "الاثنين"
+
+msgid "Mardi"
+msgstr "الثلاثاء"
+
+msgid "Mercredi"
+msgstr "الأربعاء"
+
+msgid "Jeudi"
+msgstr "الخميس"
+
+msgid "Vendredi"
+msgstr "الجمعة"
+
+msgid "Samedi"
+msgstr "السبت"
+
+msgid "Dimanche"
+msgstr "الأحد"
+
+msgid "Tolérance (min)"
+msgstr "التسامح (دقيقة)"
+
+msgid "Heure début"
+msgstr "وقت البداية"
+
+msgid "Heure fin"
+msgstr "وقت النهاية"
+
+msgid "Date début validité"
+msgstr "تاريخ البداية"
+
+msgid "Date fin validité"
+msgstr "تاريخ النهاية"
+
+msgid "Créer"
+msgstr "إنشاء"
+
+msgid "Journal de sécurité"
+msgstr "سجل الأمان"
+
+msgid "Historique de tous les événements système"
+msgstr "سجل جميع أحداث النظام"
+
+msgid "Exporter CSV"
+msgstr "تصدير CSV"
+
+msgid "Total logs"
+msgstr "إجمالي السجلات"
+
+msgid "Info – 24h"
+msgstr "معلومات - 24 ساعة"
+
+msgid "Warning – 24h"
+msgstr "تحذير - 24 ساعة"
+
+msgid "Critique – 24h"
+msgstr "حرج - 24 ساعة"
+
+msgid "Toutes sévérités"
+msgstr "جميع الأولويات"
+
+msgid "Type événement"
+msgstr "نوع الحدث"
+
+msgid "Du"
+msgstr "من"
+
+msgid "Au"
+msgstr "إلى"
+
+msgid "Événements"
+msgstr "الأحداث"
+
+msgid "résultats"
+msgstr "نتائج"
+
+msgid "Date / Heure"
+msgstr "التاريخ / الوقت"
+
+msgid "Sévérité"
+msgstr "الأولوية"
+
+msgid "Description"
+msgstr "الوصف"
+
+msgid "Adresse IP"
+msgstr "عنوان IP"
+
+msgid "Résultat"
+msgstr "النتيجة"
+
+msgid "Succès"
+msgstr "نجاح"
+
+msgid "Échec"
+msgstr "فشل"
+
+msgid "Bloqué"
+msgstr "محظور"
+
+msgid "Page"
+msgstr "صفحة"
+
+msgid "entrées"
+msgstr "إدخالات"
+
+msgid "Aucun événement trouvé"
+msgstr "لم يتم العثور على أحداث"
+
+msgid "Retour"
+msgstr "رجوع"
+
+msgid "Informations personnelles"
+msgstr "المعلومات الشخصية"
+
+msgid "Identifiant"
+msgstr "المعرف"
+
+msgid "Département"
+msgstr "القسم"
+
+msgid "Niveau"
+msgstr "المستوى"
+
+msgid "Poste"
+msgstr "المنصب"
+
+msgid "Site"
+msgstr "الموقع"
+
+msgid "Contrat et horaires"
+msgstr "العقد والمواعيد"
+
+msgid "Type de contrat"
+msgstr "نوع العقد"
+
+msgid "Début contrat"
+msgstr "بداية العقد"
+
+msgid "Fin contrat"
+msgstr "نهاية العقد"
+
+msgid "Heure arrivée"
+msgstr "وقت الوصول"
+
+msgid "Heure départ"
+msgstr "وقت المغادرة"
+
+msgid "Pause (min)"
+msgstr "الاستراحة (دقيقة)"
+
+msgid "Jours travaillés"
+msgstr "أيام العمل"
+
+msgid "Lun"
+msgstr "الإث"
+
+msgid "Mar"
+msgstr "الثل"
+
+msgid "Mer"
+msgstr "الأر"
+
+msgid "Jeu"
+msgstr "الخم"
+
+msgid "Ven"
+msgstr "الجم"
+
+msgid "Sam"
+msgstr "السب"
+
+msgid "Dim"
+msgstr "الأح"
+
+msgid "Ajouter"
+msgstr "إضافة"
+
+msgid "Enregistrer"
+msgstr "حفظ"
+
+msgid "Importer"
+msgstr "استيراد"
+
+msgid "Importer des étudiants"
+msgstr "استيراد الطلاب"
+
+msgid "Importer des employés"
+msgstr "استيراد الموظفين"
+
+msgid "Format attendu"
+msgstr "الصيغة المطلوبة"
+
+msgid "Le fichier doit contenir les colonnes suivantes"
+msgstr "يجب أن يحتوي الملف على الأعمدة التالية"
+
+msgid "obligatoires"
+msgstr "إلزامية"
+
+msgid "optionnels"
+msgstr "اختيارية"
+
+msgid "Fichier Excel ou CSV"
+msgstr "ملف Excel أو CSV"
+
+msgid "Cliquer pour sélectionner un fichier"
+msgstr "انقر لاختيار ملف"
+
+msgid "Formats acceptés"
+msgstr "الصيغ المقبولة"
+
+msgid "Télécharger le template"
+msgstr "تحميل النموذج"
+
+msgid "Gestion des étudiants"
+msgstr "إدارة الطلاب"
+
+msgid "Gestion des employés"
+msgstr "إدارة الموظفين"
+
+msgid "Ajouter étudiant"
+msgstr "إضافة طالب"
+
+msgid "Ajouter employé"
+msgstr "إضافة موظف"
+
+msgid "Total"
+msgstr "الإجمالي"
+
+msgid "Inactifs"
+msgstr "غير نشطون"
+
+msgid "Avec carte RFID"
+msgstr "مع بطاقة RFID"
+
+msgid "Nom, prénom, identifiant..."
+msgstr "الاسم، اللقب، المعرف..."
+
+msgid "Tous"
+msgstr "الكل"
+
+msgid "Importer Excel"
+msgstr "استيراد Excel"
+
+msgid "Liste des étudiants"
+msgstr "قائمة الطلاب"
+
+msgid "Liste des employés"
+msgstr "قائمة الموظفين"
+
+msgid "Étudiant"
+msgstr "طالب"
+
+msgid "Employé"
+msgstr "موظف"
+
+msgid "Carte RFID"
+msgstr "بطاقة RFID"
+
+msgid "Photo"
+msgstr "صورة"
+
+msgid "Active"
+msgstr "نشطة"
+
+msgid "Aucune"
+msgstr "لا يوجد"
+
+msgid "Voir profil"
+msgstr "عرض الملف"
+
+msgid "Modifier"
+msgstr "تعديل"
+
+msgid "Aucun résultat trouvé"
+msgstr "لم يتم العثور على نتائج"
+
+msgid "Type contrat"
+msgstr "نوع العقد"
+
+msgid "Horaires"
+msgstr "المواعيد"
+
+msgid "Carte active"
+msgstr "البطاقة نشطة"
+
+msgid "Attribuée le"
+msgstr "تاريخ التخصيص"
+
+msgid "Révoquer"
+msgstr "إلغاء"
+
+msgid "Aucune carte RFID associée"
+msgstr "لا توجد بطاقة RFID مرتبطة"
+
+msgid "Associer une carte"
+msgstr "ربط بطاقة"
+
+msgid "Remplacer la carte"
+msgstr "استبدال البطاقة"
+
+msgid "photo(s)"
+msgstr "صورة/صور"
+
+msgid "Upload"
+msgstr "رفع"
+
+msgid "Caméra"
+msgstr "الكاميرا"
+
+msgid "Cliquer pour uploader"
+msgstr "انقر للرفع"
+
+msgid "Capturer"
+msgstr "التقاط"
+
+msgid "Historique"
+msgstr "السجل"
+
+msgid "Aucune photo"
+msgstr "لا توجد صور"
+
+msgid "Dernières présences"
+msgstr "آخر سجلات الحضور"
+
+msgid "Présent"
+msgstr "حاضر"
+
+msgid "Retard"
+msgstr "متأخر"
+
+msgid "Absent"
+msgstr "غائب"
+
+msgid "Aucune présence enregistrée"
+msgstr "لم يتم تسجيل أي حضور"
+
+msgid "Associer une carte RFID"
+msgstr "ربط بطاقة RFID"
+
+msgid "Entrez le numéro de la carte RFID"
+msgstr "أدخل رقم بطاقة RFID"
+
+msgid "Associer"
+msgstr "ربط"
+
+msgid "Révoquer la carte"
+msgstr "إلغاء البطاقة"
+
+msgid "Raison de révocation"
+msgstr "سبب الإلغاء"
+
+msgid "Carte perdue"
+msgstr "البطاقة مفقودة"
+
+msgid "Carte volée"
+msgstr "البطاقة مسروقة"
+
+msgid "Carte défectueuse"
+msgstr "البطاقة معطوبة"
+
+msgid "Autre"
+msgstr "أخرى"
+
+msgid "Nouveau numéro RFID"
+msgstr "رقم RFID الجديد"
+
+msgid "Ancienne carte perdue"
+msgstr "البطاقة القديمة مفقودة"
+
+msgid "Ancienne carte volée"
+msgstr "البطاقة القديمة مسروقة"
+
+msgid "Ancienne carte défectueuse"
+msgstr "البطاقة القديمة معطوبة"
+
+msgid "Remplacer"
+msgstr "استبدال"
+
+msgid "La carte RFID sera révoquée automatiquement."
+msgstr "سيتم إلغاء بطاقة RFID تلقائياً."
+
+msgid "Caméra non disponible"
+msgstr "الكاميرا غير متاحة"
+
+msgid "Envoi en cours..."
+msgstr "جارٍ الإرسال..."
+
+msgid "Photo uploadée avec succès !"
+msgstr "تم رفع الصورة بنجاح!"
+
+msgid "Erreur réseau"
+msgstr "خطأ في الشبكة"
+
+msgid "Capture en cours..."
+msgstr "جارٍ الالتقاط..."
+
+msgid "Photo capturée !"
+msgstr "تم التقاط الصورة!"
+
+msgid "Numéro obligatoire"
+msgstr "الرقم إلزامي"
+
+msgid "Carte associée !"
+msgstr "تم ربط البطاقة!"
+
+msgid "Carte remplacée !"
+msgstr "تم استبدال البطاقة!"
+
+msgid "Rapport import"
+msgstr "تقرير الاستيراد"
+
+msgid "Retour à la liste"
+msgstr "العودة إلى القائمة"
+
+msgid "Rapport d'import"
+msgstr "تقرير الاستيراد"
+
+msgid "Importées avec succès"
+msgstr "تم الاستيراد بنجاح"
+
+msgid "Erreurs"
+msgstr "أخطاء"
+
+msgid "Détail des erreurs"
+msgstr "تفاصيل الأخطاء"
+
+msgid "Import sans erreurs !"
+msgstr "استيراد بدون أخطاء!"
+
+msgid "Voir la liste"
+msgstr "عرض القائمة"
+
+msgid "Nouvel import"
+msgstr "استيراد جديد"
+
+msgid "Total photos"
+msgstr "إجمالي الصور"
+
+msgid "Photos actives"
+msgstr "الصور النشطة"
+
+msgid "Chiffrées"
+msgstr "مشفرة"
+
+msgid "Rechercher..."
+msgstr "بحث..."
+
+msgid "Personne"
+msgstr "الشخص"
+
+msgid "Score qualité"
+msgstr "درجة الجودة"
+
+msgid "Chiffrée"
+msgstr "مشفرة"
+
+msgid "Ajoutée le"
+msgstr "تاريخ الإضافة"
+
+msgid "Aucune photo enregistrée"
+msgstr "لم يتم تسجيل أي صورة"
+
+msgid "Retards"
+msgstr "التأخرات"
+
+msgid "Liste des présences"
+msgstr "قائمة الحضور"
+
+msgid "Méthode"
+msgstr "الطريقة"
+
+msgid "Modifier la présence"
+msgstr "تعديل الحضور"
+
+msgid "Nouveau statut"
+msgstr "الحالة الجديدة"
+
+msgid "Justification"
+msgstr "المبرر"
+
+msgid "Raison de la modification"
+msgstr "سبب التعديل"
+
+msgid "Justification obligatoire"
+msgstr "المبرر إلزامي"
+
+msgid "session(s) avec présences"
+msgstr "حصة/حصص مع سجلات حضور"
+
+msgid "Session"
+msgstr "الحصة"
+
+msgid "Date"
+msgstr "التاريخ"
+
+msgid "Taux"
+msgstr "النسبة"
+
+msgid "Aucune session avec présences"
+msgstr "لا توجد حصص مع سجلات حضور"
+
+msgid "Rapport par groupe"
+msgstr "تقرير حسب المجموعة"
+
+msgid "Sélectionner un groupe"
+msgstr "اختر مجموعة"
+
+msgid "Date début"
+msgstr "تاريخ البداية"
+
+msgid "Date fin"
+msgstr "تاريخ النهاية"
+
+msgid "Excel Résumé"
+msgstr "Excel ملخص"
+
+msgid "Excel Détail"
+msgstr "Excel تفصيلي"
+
+msgid "Excel Complet"
+msgstr "Excel كامل"
+
+msgid "Rapport individuel"
+msgstr "تقرير فردي"
+
+msgid "Rechercher un étudiant"
+msgstr "البحث عن طالب"
+
+msgid "Nom, prénom ou identifiant..."
+msgstr "الاسم، اللقب أو المعرف..."
+
+msgid "Résultats"
+msgstr "النتائج"
+
+msgid "Télécharger PDF"
+msgstr "تحميل PDF"
+
+msgid "Sélectionnez un groupe et les dates"
+msgstr "اختر مجموعة والتواريخ"
+
+msgid "Sélectionnez un étudiant et les dates"
+msgstr "اختر طالباً والتواريخ"
+
+msgid "Aucun résultat"
+msgstr "لا توجد نتائج"
+
+msgid "Total cartes"
+msgstr "إجمالي البطاقات"
+
+msgid "Actives"
+msgstr "نشطة"
+
+msgid "Révoquées"
+msgstr "ملغاة"
+
+msgid "carte(s)"
+msgstr "بطاقة/بطاقات"
+
+msgid "Révoquée le"
+msgstr "تاريخ الإلغاء"
+
+msgid "Raison"
+msgstr "السبب"
+
+msgid "Révoquée"
+msgstr "ملغاة"
+
+msgid "Aucune carte RFID enregistrée"
+msgstr "لم يتم تسجيل أي بطاقة RFID"
+
+msgid "Début"
+msgstr "البداية"
+
+msgid "Fin"
+msgstr "النهاية"
+
+msgid "Lieu"
+msgstr "المكان"
+
+msgid "Tolérance retard"
+msgstr "تسامح التأخر"
+
+msgid "Ouvrir"
+msgstr "فتح"
+
+msgid "Fermer la session"
+msgstr "إغلاق الحصة"
+
+msgid "Exporter Excel"
+msgstr "تصدير Excel"
+
+msgid "Heure pointage"
+msgstr "وقت التسجيل"
+
+msgid "Aucune présence enregistrée pour cette session"
+msgstr "لم يتم تسجيل أي حضور لهذه الحصة"
+
+msgid "Fermer la session ? Les absents seront marqués automatiquement."
+msgstr "إغلاق الحصة؟ سيتم تسجيل الغائبين تلقائياً."
+
+msgid "Nouvelle session"
+msgstr "حصة جديدة"
+
+msgid "Toutes"
+msgstr "الكل"
+
+msgid "Planifiées"
+msgstr "مجدولة"
+
+msgid "Terminées"
+msgstr "منتهية"
+
+msgid "Annulées"
+msgstr "ملغاة"
+
+msgid "session(s)"
+msgstr "حصة/حصص"
+
+msgid "Date & Heure"
+msgstr "التاريخ والوقت"
+
+msgid "Aucune session"
+msgstr "لا توجد حصص"
+
+msgid "Nom, début et fin obligatoires"
+msgstr "الاسم والبداية والنهاية إلزامية"
+
+msgid "Après inscription, vérifiez votre email puis attendez la validation par un administrateur."
+msgstr "بعد التسجيل، تحقق من بريدك الإلكتروني وانتظر موافقة المسؤول."
+
+msgid "Domaine autorisé"
+msgstr "النطاق المسموح به"
+
+msgid "8 caractères min."
+msgstr "8 أحرف على الأقل"
+
+msgid "1 majuscule"
+msgstr "حرف كبير واحد"
+
+msgid "1 chiffre"
+msgstr "رقم واحد"
+
+msgid "1 caractère spécial"
+msgstr "رمز خاص واحد"
