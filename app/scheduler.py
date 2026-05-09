@@ -1,6 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import atexit
+from app.models import Session, Presence, Personne, EmploiDuTemps
 
 scheduler = BackgroundScheduler()
 
@@ -49,7 +50,27 @@ def fermer_sessions_terminees():
                 ).filter(Presence.statut.in_(['present', 'retard'])).all()
             }
 
-            toutes_personnes = Personne.query.filter_by(est_actif=True).all()
+            # APRÈS
+            departement = None
+            niveau = None
+            groupe = None
+
+            if session.emploi_du_temps_id:
+                emploi = EmploiDuTemps.query.get(session.emploi_du_temps_id)
+                if emploi:
+                    departement = emploi.departement
+                    niveau = emploi.niveau
+                    groupe = emploi.groupe
+
+            query = Personne.query.filter_by(est_actif=True)
+            if departement:
+                query = query.filter_by(departement=departement)
+            if niveau:
+                query = query.filter_by(niveau_ou_poste=niveau)
+            if groupe:
+                query = query.filter_by(groupe_ou_site=groupe)
+
+            toutes_personnes = query.all()
 
             for personne in toutes_personnes:
                 if personne.id not in personnes_ayant_pointe:

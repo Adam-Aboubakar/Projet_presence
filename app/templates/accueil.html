@@ -68,7 +68,7 @@
                 <button onclick="toggleLangue()"
                         style="background:rgba(255,255,255,0.1); border:none; color:rgba(255,255,255,0.8); padding:7px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600;">
                     <i class="fas fa-globe" style="font-size:13px;"></i>
-                    {{ session.get('langue', 'fr')|upper }}
+                    {{ langue|upper }}
                     <i class="fas fa-chevron-down" style="font-size:10px;"></i>
                 </button>
 
@@ -76,25 +76,25 @@
                     style="display:none; position:absolute; top:42px; right:0; background:#1C2B3A; border:0.5px solid rgba(255,255,255,0.15); border-radius:10px; overflow:hidden; min-width:120px; z-index:999; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
                     <a href="{{ url_for('main.changer_langue', code='fr') }}"
                     style="display:flex; align-items:center; gap:10px; padding:10px 14px; color:white; text-decoration:none; font-size:13px; font-weight:500;
-                            background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'fr' else 'transparent' }};">
+                            background:{{ 'rgba(232,98,10,0.2)' if langue == 'fr' else 'transparent' }};">
                         <span style="font-size:16px;">🇫🇷</span> Français
-                        {% if session.get('langue','fr') == 'fr' %}
+                        {% if langue == 'fr'%}
                             <i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>
                         {% endif %}
                     </a>
                     <a href="{{ url_for('main.changer_langue', code='en') }}"
                     style="display:flex; align-items:center; gap:10px; padding:10px 14px; color:white; text-decoration:none; font-size:13px; font-weight:500;
-                            background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'en' else 'transparent' }};">
+                            background:{{ 'rgba(232,98,10,0.2)' if langue == 'en' else 'transparent' }};">
                         <span style="font-size:16px;">🇬🇧</span> English
-                        {% if session.get('langue','fr') == 'en' %}
+                        {% if langue == 'en' %}
                             <i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>
                         {% endif %}
                     </a>
                     <a href="{{ url_for('main.changer_langue', code='ar') }}"
                     style="display:flex; align-items:center; gap:10px; padding:10px 14px; color:white; text-decoration:none; font-size:13px; font-weight:500;
-                            background:{{ 'rgba(232,98,10,0.2)' if session.get('langue','fr') == 'ar' else 'transparent' }};">
+                            background:{{ 'rgba(232,98,10,0.2)' if langue == 'ar' else 'transparent' }};">
                         <span style="font-size:16px;">🇲🇦</span> العربية
-                        {% if session.get('langue','fr') == 'ar' %}
+                        {% if langue == 'ar' %}
                             <i class="fas fa-check" style="margin-left:auto; color:#E8620A; font-size:11px;"></i>
                         {% endif %}
                     </a>

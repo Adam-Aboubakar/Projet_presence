@@ -76,6 +76,8 @@ def creer_emploi():
         nom_cours=data['nom_cours'],
         groupe=data.get('groupe'),
         salle=data.get('salle'),
+        departement=data.get('departement'),
+        niveau=data.get('niveau'),
         jour_semaine=int(data['jour_semaine']),
         heure_debut=heure_debut,
         heure_fin=heure_fin,

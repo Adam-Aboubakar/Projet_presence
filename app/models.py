@@ -837,6 +837,12 @@ class EmploiDuTemps(db.Model):
     # Groupe ciblé (ex: G1, G2, G3)
     groupe = db.Column(db.String(50), nullable=True)
 
+    # Département / Filière ciblée
+    departement = db.Column(db.String(100), nullable=True)
+
+    # Niveau ciblé (ex: L1, L2, L3)
+    niveau = db.Column(db.String(50), nullable=True)
+
     # Salle de cours (ex: B12, A05)
     salle = db.Column(db.String(100), nullable=True)
 

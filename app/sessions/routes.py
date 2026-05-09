@@ -188,7 +188,29 @@ def fermer_session(session_id):
         if p.statut in ['present', 'retard']
     }
 
-    toutes_personnes = Personne.query.filter_by(est_actif=True).all()
+    # APRÈS
+    # Filtrer par département, niveau, groupe selon l'emploi du temps
+    departement = None
+    niveau = None
+    groupe = None
+
+    if session.emploi_du_temps_id:
+        from app.models import EmploiDuTemps
+        emploi = EmploiDuTemps.query.get(session.emploi_du_temps_id)
+        if emploi:
+            departement = emploi.departement
+            niveau = emploi.niveau
+            groupe = emploi.groupe
+
+    query = Personne.query.filter_by(est_actif=True)
+    if departement:
+        query = query.filter_by(departement=departement)
+    if niveau:
+        query = query.filter_by(niveau_ou_poste=niveau)
+    if groupe:
+        query = query.filter_by(groupe_ou_site=groupe)
+
+    toutes_personnes = query.all()
     absents_count = 0
 
     for personne in toutes_personnes:
@@ -363,19 +385,16 @@ def liste():
     mode = config.mode if config else 'ecole'
     sessions = Session.query.order_by(Session.heure_debut.desc()).limit(100).all()
     return render_template('sessions/liste.html', sessions=sessions, mode=mode)
-
-
 @sessions_bp.route('/<string:session_id>')
 @role_requis('enseignant')
 def detail(session_id):
     from app.models import Configuration
     config = Configuration.get_config()
     mode = config.mode if config else 'ecole'
-    session = Session.query.get_or_404(session_id)
+    seance = Session.query.get_or_404(session_id)
     presences = Presence.query.filter_by(session_id=session_id)\
         .order_by(Presence.horodatage).all()
     
-    # Enrichir avec les infos de la personne
     presences_detail = []
     for p in presences:
         personne = Personne.query.get(p.personne_id)
@@ -390,9 +409,9 @@ def detail(session_id):
     absents = sum(1 for p in presences if p.statut == 'absent')
     
     return render_template('sessions/detail.html',
-        session=session,
+        session=seance,
         presences_detail=presences_detail,
         total=total, presents=presents,
         retards=retards, absents=absents,
         mode=mode
-    )        
+    )

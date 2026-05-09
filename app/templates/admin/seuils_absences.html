@@ -105,7 +105,6 @@
             <div class="seuil-title">{{ seuil.nb_absences }} {{ _('absences injustifiées') }}</div>
             <div class="seuil-subtitle">
               {% if seuil.action == 'email_etudiant' %}📧 {{ _('Email à l\'étudiant') }}
-              {% elif seuil.action == 'email_parents' %}📧 {{ _('Email étudiant + parents') }}
               {% elif seuil.action == 'convocation' %}📋 {{ _('Convocation scolarité') }}
               {% elif seuil.action == 'conseil_discipline' %}⚖️ {{ _('Conseil de discipline') }}
               {% endif %}
@@ -118,7 +117,15 @@
           {% else %}
             <span class="badge-inactif">{{ _('Inactif') }}</span>
           {% endif %}
-          <button class="btn-edit" onclick="ouvrirModifier({{ seuil | tojson }})">
+          <button class="btn-edit" onclick="ouvrirModifier({
+              'id': '{{ seuil.id }}',
+              'niveau': {{ seuil.niveau }},
+              'nb_absences': {{ seuil.nb_absences }},
+              'action': '{{ seuil.action }}',
+              'sujet_email': '{{ seuil.sujet_email | e }}',
+              'message_email': `{{ seuil.message_email | e }}`,
+              'est_actif': {{ 'true' if seuil.est_actif else 'false' }}
+          })">
             <i class="fas fa-pen"></i>
           </button>
           <form method="POST" action="{{ url_for('admin.supprimer_seuil', seuil_id=seuil.id) }}"
@@ -175,7 +182,6 @@
         <label class="form-label">{{ _('Action') }} *</label>
         <select name="action" class="form-input" required>
           <option value="email_etudiant">📧 {{ _('Email à l\'étudiant') }}</option>
-          <option value="email_parents">📧 {{ _('Email étudiant + parents') }}</option>
           <option value="convocation">📋 {{ _('Convocation scolarité') }}</option>
           <option value="conseil_discipline">⚖️ {{ _('Conseil de discipline') }}</option>
         </select>
@@ -222,7 +228,6 @@
         <label class="form-label">{{ _('Action') }} *</label>
         <select name="action" id="editAction" class="form-input" required>
           <option value="email_etudiant">📧 {{ _('Email à l\'étudiant') }}</option>
-          <option value="email_parents">📧 {{ _('Email étudiant + parents') }}</option>
           <option value="convocation">📋 {{ _('Convocation scolarité') }}</option>
           <option value="conseil_discipline">⚖️ {{ _('Conseil de discipline') }}</option>
         </select>

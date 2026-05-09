@@ -671,3 +671,38 @@ def changer_langue(lang):
     if lang in ['fr', 'ar', 'en']:
         session['langue'] = lang
     return jsonify({'succes': True})
+
+@auth.route('/profil', methods=['GET', 'POST'])
+@login_required
+def profil():
+    from app.models import Configuration
+    config = Configuration.get_config()
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'changer_mot_de_passe':
+            ancien = request.form.get('ancien_mot_de_passe')
+            nouveau = request.form.get('nouveau_mot_de_passe')
+            confirmation = request.form.get('confirmation_mot_de_passe')
+            
+            if not bcrypt.check_password_hash(current_user.mot_de_passe_hache, ancien):
+                flash('Ancien mot de passe incorrect.', 'danger')
+            elif nouveau != confirmation:
+                flash('Les nouveaux mots de passe ne correspondent pas.', 'danger')
+            elif len(nouveau) < 8:
+                flash('Le mot de passe doit contenir au moins 8 caractères.', 'danger')
+            elif not any(c.isupper() for c in nouveau):
+                flash('Le mot de passe doit contenir au moins une majuscule.', 'danger')
+            elif not any(c.isdigit() for c in nouveau):
+                flash('Le mot de passe doit contenir au moins un chiffre.', 'danger')
+            elif not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in nouveau):
+                flash('Le mot de passe doit contenir au moins un caractère spécial.', 'danger')
+            else:
+                current_user.mot_de_passe_hache = bcrypt.generate_password_hash(nouveau).decode('utf-8')
+                db.session.commit()
+                flash('Mot de passe changé avec succès.', 'success')
+        
+        return redirect(url_for('auth.profil'))
+    
+    return render_template('auth/profil.html')

@@ -89,6 +89,12 @@
       </div>
 
       <div class="emploi-details">
+        {% if e.departement %}
+        <div class="emploi-detail-row">
+          <i class="fas fa-building"></i>
+          <span>{{ e.departement }}{% if e.niveau %} — {{ e.niveau }}{% endif %}</span>
+        </div>
+        {% endif %}
         <div class="emploi-detail-row">
           <i class="fas fa-calendar-day"></i>
           <span>{{ jours[e.jour_semaine] if 0 <= e.jour_semaine <= 6 else '?' }}</span>
@@ -158,6 +164,17 @@
         <label class="form-label">{{ _('Groupe') }}</label>
         <input type="text" class="form-input" id="groupe" placeholder="Ex: G1">
       </div>
+            <!-- Après le champ Groupe -->
+      <div class="form-group">
+        <label class="form-label">{{ _('Département / Filière') }}</label>
+        <input type="text" class="form-input" id="departement" placeholder="Ex: Informatique">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ _('Niveau') }}</label>
+        <input type="text" class="form-input" id="niveau" placeholder="Ex: L3, BTS2...">
+      </div>
+
       <div class="form-group">
         <label class="form-label">{{ _('Salle') }}</label>
         <input type="text" class="form-input" id="salle" placeholder="Ex: Salle 12">
@@ -228,6 +245,8 @@ function creerEmploi() {
         nom_cours: document.getElementById('nomCours').value.trim(),
         groupe: document.getElementById('groupe').value.trim(),
         salle: document.getElementById('salle').value.trim(),
+        departement: document.getElementById('departement').value.trim(),
+        niveau: document.getElementById('niveau').value.trim(),
         jour_semaine: document.getElementById('jourSemaine').value,
         heure_debut: document.getElementById('heureDebut').value,
         heure_fin: document.getElementById('heureFin').value,

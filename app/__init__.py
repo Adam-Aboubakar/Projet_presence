@@ -57,10 +57,12 @@ def create_app(config_name='default'):
     def inject_config():
         try:
             from app.models import Configuration
+            from flask import session as flask_session
             cfg = Configuration.get_config()
-            return {'config': cfg}
+            langue = flask_session.get('langue', 'fr')
+            return {'config': cfg, 'langue': langue}
         except Exception:
-            return {'config': None}
+            return {'config': None, 'langue': 'fr'}
 
     @app.before_request
     def verifier_inactivite():

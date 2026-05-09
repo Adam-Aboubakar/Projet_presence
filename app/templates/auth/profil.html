@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Mon profil') }} — ESTE{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+
+  .profil-body { padding:16px 28px 36px; display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:900px; }
+
+  .card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .card-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+  .card-title { font-size:13px; font-weight:600; color:var(--text); }
+  .card-body { padding:18px; }
+
+  /* AVATAR */
+  .avatar-section { display:flex; align-items:center; gap:16px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+  .avatar-big { width:64px; height:64px; border-radius:16px; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; flex-shrink:0; }
+  .avatar-info { display:flex; flex-direction:column; gap:3px; }
+  .avatar-name { font-size:16px; font-weight:700; color:var(--text); }
+  .avatar-role { font-size:12px; color:var(--text-muted); }
+
+  /* INFO ITEMS */
+  .info-item { display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+  .info-item:last-child { margin-bottom:0; }
+  .info-label { font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+  .info-value { font-size:13.5px; color:var(--text); font-weight:500; }
+  .info-value.mono { font-family:'JetBrains Mono',monospace; font-size:12.5px; }
+
+  .badge-role { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:50px; font-size:12px; font-weight:600; }
+  .badge-admin      { background:var(--danger-soft); color:var(--danger); }
+  .badge-enseignant { background:var(--info-soft); color:var(--info); }
+  .badge-agent      { background:var(--success-soft); color:var(--success); }
+
+  /* FORM */
+  .form-group { margin-bottom:14px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
+  .input-wrap { position:relative; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 38px 9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .form-input:focus { border-color:var(--info); }
+  .eye-btn { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:13px; }
+
+  /* PWD strength */
+  .pwd-bar  { height:3px; border-radius:50px; background:var(--border); overflow:hidden; margin:5px 0 4px; }
+  .pwd-fill { height:100%; border-radius:50px; transition:width 0.3s, background 0.3s; width:0%; }
+  .pwd-rules { display:grid; grid-template-columns:1fr 1fr; gap:2px; margin-bottom:10px; }
+  .pwd-rule  { font-size:10.5px; color:var(--text-muted); display:flex; align-items:center; gap:3px; transition:color 0.2s; }
+  .pwd-rule.ok { color:var(--success); }
+
+  .btn-submit { width:100%; background:var(--accent); color:white; border:none; padding:10px; border-radius:var(--radius); font-size:13.5px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; justify-content:center; gap:7px; transition:background 0.15s; margin-top:4px; }
+  .btn-submit:hover { background:#D4400E; }
+
+  .flash { border-radius:var(--radius); padding:9px 13px; font-size:12.5px; margin-bottom:14px; display:flex; align-items:center; gap:7px; }
+  .flash.success { background:var(--success-soft); color:var(--success); }
+  .flash.danger  { background:var(--danger-soft);  color:var(--danger); }
+
+  @media (max-width:768px) {
+    .profil-body { grid-template-columns:1fr; padding:14px 14px 28px; }
+    .page-header { padding:14px 14px 0; }
+  }
+</style>
+
+<div class="page-header">
+  <h1><i class="fas fa-user-circle" style="color:var(--accent); margin-right:8px;"></i>{{ _('Mon profil') }}</h1>
+</div>
+
+<div class="profil-body">
+
+  <!-- INFORMATIONS -->
+  <div class="card">
+    <div class="card-header">
+      <i class="fas fa-id-card" style="color:var(--primary);"></i>
+      <span class="card-title">{{ _('Mes informations') }}</span>
+    </div>
+    <div class="card-body">
+      <div class="avatar-section">
+        <div class="avatar-big">
+          {{ current_user.prenom[0]|upper }}{{ current_user.nom[0]|upper }}
+        </div>
+        <div class="avatar-info">
+          <div class="avatar-name">{{ current_user.prenom }} {{ current_user.nom }}</div>
+          <div class="avatar-role">
+            <span class="badge-role badge-{{ current_user.role }}">
+              {% if current_user.role == 'admin' %}<i class="fas fa-shield-halved"></i>
+              {% elif current_user.role == 'enseignant' %}<i class="fas fa-chalkboard-user"></i>
+              {% else %}<i class="fas fa-user-gear"></i>{% endif %}
+              {{ current_user.role | capitalize }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">{{ _('Email') }}</div>
+        <div class="info-value">{{ current_user.email }}</div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">{{ _('Département') }}</div>
+        <div class="info-value">{{ current_user.departement or '—' }}</div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">{{ _('Membre depuis') }}</div>
+        <div class="info-value mono">
+          {{ current_user.cree_le.strftime('%d/%m/%Y') if current_user.cree_le else '—' }}
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">{{ _('Dernière connexion') }}</div>
+        <div class="info-value mono">
+          {{ current_user.derniere_connexion.strftime('%d/%m/%Y %H:%M') if current_user.derniere_connexion else '—' }}
+        </div>
+      </div>
+
+      <div class="info-item">
+        <div class="info-label">{{ _('Statut') }}</div>
+        <div class="info-value">
+          <span style="color:var(--success); font-weight:600;">
+            <i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Actif') }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGER MOT DE PASSE -->
+  <div class="card">
+    <div class="card-header">
+      <i class="fas fa-lock" style="color:var(--primary);"></i>
+      <span class="card-title">{{ _('Changer le mot de passe') }}</span>
+    </div>
+    <div class="card-body">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+          <div class="flash {{ cat }}">
+            <i class="fas fa-{% if cat=='success' %}check-circle{% else %}circle-xmark{% endif %}"></i>
+            {{ msg }}
+          </div>
+        {% endfor %}{% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="changer_mot_de_passe">
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Ancien mot de passe') }} *</label>
+          <div class="input-wrap">
+            <input type="password" name="ancien_mot_de_passe" id="pwd0"
+                   class="form-input" placeholder="••••••••" required>
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd0','e0')">
+              <i class="fas fa-eye" id="e0"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Nouveau mot de passe') }} *</label>
+          <div class="input-wrap">
+            <input type="password" name="nouveau_mot_de_passe" id="pwd1"
+                   class="form-input" placeholder="••••••••"
+                   oninput="checkPwd(this.value)" required>
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd1','e1')">
+              <i class="fas fa-eye" id="e1"></i>
+            </button>
+          </div>
+          <div class="pwd-bar"><div class="pwd-fill" id="pf"></div></div>
+          <div class="pwd-rules">
+            <div class="pwd-rule" id="r1"><i class="fas fa-circle" style="font-size:6px;"></i> 8 car.</div>
+            <div class="pwd-rule" id="r2"><i class="fas fa-circle" style="font-size:6px;"></i> Majuscule</div>
+            <div class="pwd-rule" id="r3"><i class="fas fa-circle" style="font-size:6px;"></i> Chiffre</div>
+            <div class="pwd-rule" id="r4"><i class="fas fa-circle" style="font-size:6px;"></i> Spécial</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ _('Confirmer le mot de passe') }} *</label>
+          <div class="input-wrap">
+            <input type="password" name="confirmation_mot_de_passe" id="pwd2"
+                   class="form-input" placeholder="••••••••" required>
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd2','e2')">
+              <i class="fas fa-eye" id="e2"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-lock"></i> {{ _('Changer le mot de passe') }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function togglePwd(id, iconId) {
+    const i = document.getElementById(id);
+    i.type = i.type === 'password' ? 'text' : 'password';
+    document.getElementById(iconId).className = i.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+
+function checkPwd(v) {
+    const r = [v.length>=8, /[A-Z]/.test(v), /[0-9]/.test(v), /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(v)];
+    const ok = r.filter(Boolean).length;
+    const c = ['','#E53E3E','#F4B400','#F4B400','#0F9D58'];
+    document.getElementById('pf').style.width = (ok/4*100)+'%';
+    document.getElementById('pf').style.background = c[ok];
+    ['r1','r2','r3','r4'].forEach((id,i) => document.getElementById(id).classList.toggle('ok', r[i]));
+}
+</script>
+{% endblock %}
