@@ -166,7 +166,7 @@
         <option value="actif"    {{ 'selected' if request.args.get('statut') == 'actif' }}>{{ _('Actif') }}</option>
         <option value="desactive" {{ 'selected' if request.args.get('statut') == 'desactive' }}>{{ _('Désactivé') }}</option>
       </select>
-      <input type="text" name="q" class="filter-input"
+      <input type="text" name="recherche" class="filter-input"
              placeholder="{{ _('Rechercher nom, prénom...') }}"
              value="{{ request.args.get('q','') }}" style="width:180px;">
       <button type="submit" class="btn-filter">

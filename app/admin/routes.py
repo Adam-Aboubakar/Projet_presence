@@ -381,11 +381,40 @@ def rejeter_compte(utilisateur_id):
 # 5. LISTE DES UTILISATEURS
 # ============================================================
 @admin.route('/utilisateurs')
+@admin.route('/utilisateurs')
 @role_requis('admin')
 def liste_utilisateurs():
-    utilisateurs = Utilisateur.query.filter(
+    role_filtre = request.args.get('role', '')
+    statut_filtre = request.args.get('statut', '')
+    recherche = request.args.get('recherche', '').strip()
+
+    query = Utilisateur.query.filter(
         Utilisateur.role.in_(['enseignant', 'agent'])
-    ).order_by(Utilisateur.cree_le.desc()).all()
+    )
+
+    if role_filtre:
+        query = query.filter_by(role=role_filtre)
+
+    if statut_filtre == 'actif':
+        query = query.filter_by(est_actif=True, statut_compte='actif')
+    elif statut_filtre == 'desactive':
+        query = query.filter(
+            db.or_(
+                Utilisateur.est_actif == False,
+                Utilisateur.statut_compte == 'desactive'
+            )
+        )
+
+    if recherche:
+        query = query.filter(
+            db.or_(
+                Utilisateur.prenom.ilike(f'%{recherche}%'),
+                Utilisateur.nom.ilike(f'%{recherche}%'),
+                Utilisateur.email.ilike(f'%{recherche}%')
+            )
+        )
+
+    utilisateurs = query.order_by(Utilisateur.cree_le.desc()).all()
 
     return render_template(
         'admin/utilisateurs.html',
