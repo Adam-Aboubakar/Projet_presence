@@ -1,10 +1,12 @@
 from flask import request, jsonify
 from datetime import datetime, timezone, timedelta
 from app.presences import presences_bp
-from app.models import db, Presence, Session, Personne, CarteRFID, JournalSecurite
+from app.models import db, Presence, Session, Personne, CarteRFID, JournalSecurite, Photo, Configuration
 from app.utils.chiffrement import dechiffrer_texte
 from app.auth.decorateurs import role_requis
 from flask_login import current_user
+from app import csrf
+ 
 
 
 def journaliser(type_evenement, description, severite='INFO', personne_id=None):
@@ -27,20 +29,30 @@ def journaliser(type_evenement, description, severite='INFO', personne_id=None):
 # CAS 1 — Pointage RFID (Raspberry Pi — Semaine 3)
 # ============================================================
 @presences_bp.route('/api/pointer', methods=['POST'])
+@presences_bp.route('/api/pointer', methods=['POST'])
+@csrf.exempt
 def pointer():
     """
-    Reçoit le numéro RFID du Raspberry Pi.
-    Trouve la personne, vérifie la session en cours,
+    Reçoit le numéro RFID + photo du Raspberry Pi.
+    Vérifie la carte, compare le visage avec DeepFace,
     et enregistre la présence.
     """
+    import base64
+    import tempfile
+    import os
+    from deepface import DeepFace
+    from app.utils.chiffrement import dechiffrer_fichier
+
     data = request.get_json()
     numero_rfid = data.get('numero_rfid', '').strip().upper()
+    photo_base64 = data.get('photo', None)  # Photo en base64 (optionnelle)
 
     if not numero_rfid:
         return jsonify({'succes': False, 'message': 'Numéro RFID manquant'}), 400
 
     # Étape 1 — Trouver la carte RFID
     personne = None
+    carte_trouvee = None
     cartes_actives = CarteRFID.query.filter_by(statut='actif').all()
     for carte in cartes_actives:
         try:
@@ -53,27 +65,113 @@ def pointer():
 
     if not personne:
         journaliser('pointage_carte_inconnue',
-                    f'Tentative pointage carte inconnue', severite='CRITIQUE')
+                    'Tentative pointage carte inconnue', severite='CRITIQUE')
         db.session.commit()
         return jsonify({'succes': False, 'message': 'Carte inconnue'}), 403
 
     if not personne.est_actif:
         return jsonify({'succes': False, 'message': 'Personne inactive'}), 403
 
-    # Étape 2 — Trouver une session en cours
+    # Étape 2 — Vérification DeepFace (si photo envoyée)
+    if photo_base64:
+        photo_principale = Photo.query.filter_by(
+            personne_id=personne.id,
+            est_principale=True
+        ).first()
+
+        if not photo_principale:
+            return jsonify({
+                'succes': False,
+                'message': 'Aucune photo de référence enregistrée pour cet étudiant'
+            }), 403
+
+        try:
+            # Déchiffrer la photo stockée
+            import os
+            chemin_complet = os.path.join('app', 'static', photo_principale.chemin_fichier)
+            with open(chemin_complet, 'rb') as f:
+                donnees_chiffrees = f.read()
+            photo_dechiffree = dechiffrer_fichier(donnees_chiffrees)
+
+            # Sauvegarder temporairement les deux photos
+            chemin_ref = os.path.join(tempfile.gettempdir(), 'ref_photo.jpg')
+            with open(chemin_ref, 'wb') as f_ref:
+                f_ref.write(photo_dechiffree)
+
+            photo_base64_clean = photo_base64.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+            photo_base64_padded = photo_base64_clean + '=' * (4 - len(photo_base64_clean) % 4)
+            photo_bytes = base64.b64decode(photo_base64_padded)
+            chemin_live = os.path.join(tempfile.gettempdir(), 'live_photo.jpg')
+            with open(chemin_live, 'wb') as f_live:
+                    f_live.write(photo_bytes)
+
+            # Vérifier les premiers bytes du fichier live
+            with open(chemin_live, 'rb') as f:
+                premiers_bytes = f.read(4)
+            print(f"[DEBUG] premiers bytes live: {premiers_bytes.hex()}")        
+
+
+            # Comparaison DeepFace
+            config = Configuration.get_config()
+            seuil = config.seuil_similarite if config else 0.40
+
+            # Comparaison DeepFace
+            print(f"[DEBUG] chemin_ref: {chemin_ref}")
+            print(f"[DEBUG] chemin_live: {chemin_live}")
+            print(f"[DEBUG] ref existe: {os.path.exists(chemin_ref)}")
+            print(f"[DEBUG] live existe: {os.path.exists(chemin_live)}")
+            print(f"[DEBUG] taille ref: {os.path.getsize(chemin_ref)}")
+            print(f"[DEBUG] taille live: {os.path.getsize(chemin_live)}")
+
+            try:
+                result = DeepFace.verify(
+                    img1_path=chemin_live,
+                    img2_path=chemin_ref,
+                    enforce_detection=False,
+                    anti_spoofing=True
+                )
+            except Exception as e:
+                import traceback
+                print(f"[DEBUG] Erreur DeepFace: {str(e)}")
+                traceback.print_exc()
+                raise e
+            # Nettoyer les fichiers temporaires
+            os.unlink(chemin_ref)
+            os.unlink(chemin_live)
+
+            if not result['verified'] or result['distance'] > seuil:
+                journaliser(
+                    'pointage_visage_refuse',
+                    f'Visage non reconnu pour {personne.prenom} {personne.nom} — distance: {result["distance"]:.3f}',
+                    severite='WARNING',
+                    personne_id=personne.id
+                )
+                db.session.commit()
+                return jsonify({
+                    'succes': False,
+                    'message': 'Visage non reconnu — tentative de fraude possible'
+                }), 403
+
+        except Exception as e:
+            return jsonify({
+                'succes': False,
+                'message': f'Erreur reconnaissance faciale : {str(e)}'
+            }), 500
+
+    # Étape 3 — Trouver une session en cours
     maintenant = datetime.now(timezone.utc)
-    session = Session.query.filter_by(statut='en_cours').filter(
+    seance = Session.query.filter_by(statut='en_cours').filter(
         Session.heure_debut <= maintenant,
         Session.heure_fin >= maintenant
     ).first()
 
-    if not session:
+    if not seance:
         return jsonify({'succes': False, 'message': 'Aucune session en cours'}), 404
 
-    # Étape 3 — Vérifier doublon
+    # Étape 4 — Vérifier doublon
     presence_existante = Presence.query.filter_by(
         personne_id=personne.id,
-        session_id=session.id
+        session_id=seance.id
     ).filter(Presence.statut.in_(['present', 'retard'])).first()
 
     if presence_existante:
@@ -82,36 +180,37 @@ def pointer():
             'message': f'{personne.prenom} {personne.nom} a déjà pointé pour cette session'
         }), 400
 
-    # Étape 4 — Déterminer statut (présent ou retard)
-    heure_limite = session.heure_debut + timedelta(minutes=session.tolerance_retard_minutes)
+    # Étape 5 — Déterminer statut (présent ou retard)
+    heure_limite = seance.heure_debut + timedelta(minutes=seance.tolerance_retard_minutes)
+    if heure_limite.tzinfo is None:
+        from datetime import timezone as tz
+        heure_limite = heure_limite.replace(tzinfo=tz.utc)
     statut = 'present' if maintenant <= heure_limite else 'retard'
 
-    # Étape 5 — Enregistrer la présence
+    # Étape 6 — Enregistrer la présence
     presence = Presence(
         personne_id=personne.id,
-        session_id=session.id,
+        session_id=seance.id,
         carte_rfid_id=carte_trouvee.id,
-        horodatage=maintenant,
         statut=statut,
-        methode_validation='rfid'
+        methode_validation='rfid_visage' if photo_base64 else 'rfid',
+        horodatage=maintenant
     )
     db.session.add(presence)
 
     journaliser(
-        'pointage_effectue',
-        f'{personne.prenom} {personne.nom} — statut: {statut}',
+        'pointage_valide',
+        f'{personne.prenom} {personne.nom} — {statut} — session: {seance.nom}',
         personne_id=personne.id
     )
     db.session.commit()
 
     return jsonify({
         'succes': True,
-        'nom': personne.nom_complet(),
+        'message': f'Présence enregistrée — {statut.upper()}',
         'statut': statut,
-        'message': f'Pointage enregistré — {statut.upper()}'
-    }), 201
-
-
+        'personne': f'{personne.prenom} {personne.nom}'
+    }), 200
 # ============================================================
 # CAS 2 — Modifier manuellement une présence
 # ============================================================
