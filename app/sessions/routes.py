@@ -500,7 +500,6 @@ def verifier_rfid():
         'personne': f'{personne.prenom} {personne.nom}',
         'message': 'Carte valide — procéder à la reconnaissance faciale'
     }), 200
-
 @sessions_bp.route('/<string:session_id>')
 @role_requis('enseignant')
 def detail(session_id):
@@ -524,10 +523,17 @@ def detail(session_id):
     retards  = sum(1 for p in presences if p.statut == 'retard')
     absents  = sum(1 for p in presences if p.statut == 'absent')
 
+    groupe = None
+    if seance.emploi_du_temps_id:
+        emploi = EmploiDuTemps.query.get(seance.emploi_du_temps_id)
+        if emploi:
+            groupe = emploi.groupe
+
     return render_template('sessions/detail.html',
         session=seance,
         presences_detail=presences_detail,
         total=total, presents=presents,
         retards=retards, absents=absents,
-        mode=mode
+        mode=mode,
+        groupe=groupe
     )

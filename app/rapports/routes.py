@@ -209,3 +209,17 @@ def liste():
     groupes = [g[0] for g in groupes if g[0]]
     
     return render_template('rapports/liste.html', groupes=groupes, mode=mode)
+
+@rapports_bp.route('/api/excel/session/<string:session_id>', methods=['GET'])
+@role_requis('enseignant')
+def excel_session(session_id):
+    from app.models import Session as Seance
+    from app.rapports.utils import generer_excel_session
+    seance = Seance.query.get_or_404(session_id)
+    buffer = generer_excel_session(session_id)
+    nom_fichier = f"session_{seance.nom}_{seance.heure_debut.strftime('%Y-%m-%d')}.xlsx"
+    return send_file(buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=nom_fichier
+    )

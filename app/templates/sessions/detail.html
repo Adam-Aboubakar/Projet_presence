@@ -130,10 +130,10 @@
         {{ _('Présences') }}
       </span>
       {% if session.statut == 'terminee' %}
-      <a href="/rapports/api/excel/groupe/resume?groupe=tous&date_debut={{ session.heure_debut.strftime('%Y-%m-%d') }}&date_fin={{ session.heure_debut.strftime('%Y-%m-%d') }}"
-         style="font-size:12px; color:var(--success); font-weight:600; text-decoration:none;">
-        <i class="fas fa-download"></i> {{ _('Exporter Excel') }}
-      </a>
+      <a href="/rapports/api/excel/session/{{ session.id }}"
+      style="font-size:12px; color:var(--success); font-weight:600; text-decoration:none;">
+      <i class="fas fa-download"></i> {{ _('Exporter Excel') }}
+     </a>
       {% endif %}
     </div>
 
