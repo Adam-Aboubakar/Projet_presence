@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from datetime import datetime, timezone, timedelta
 from app.sessions import sessions_bp
-from app.models import db, Session, Presence, Personne, EmploiDuTemps, JourFerie, JournalSecurite, Configuration
+from app.models import db, Session, Presence, Personne, EmploiDuTemps, JourFerie, JournalSecurite, CarteRFID
 from app.auth.decorateurs import role_requis
 from flask_login import current_user
 
@@ -415,3 +415,93 @@ def detail(session_id):
         retards=retards, absents=absents,
         mode=mode
     )
+
+@sessions_bp.route('/api/session-active', methods=['GET'])
+def session_active():
+    """Route publique pour l'écran de pointage."""
+    from datetime import datetime, timezone
+    maintenant = datetime.now(timezone.utc)
+
+    salle = request.args.get('salle')
+
+    query = Session.query.filter_by(statut='en_cours').filter(
+        Session.heure_debut <= maintenant,
+        Session.heure_fin >= maintenant
+    )
+
+    if salle:
+        query = query.filter(Session.lieu == salle)
+
+    seance = query.first()
+
+    if not seance:
+        return jsonify({'session': None}), 200
+
+    return jsonify({
+        'session': {
+            'id': seance.id,
+            'nom': seance.nom,
+            'lieu': seance.lieu or 'N/A',
+            'heure_debut': seance.heure_debut.isoformat(),
+            'heure_fin': seance.heure_fin.isoformat(),
+            'statut': seance.statut
+        }
+    }), 200
+
+
+@sessions_bp.route('/api/verifier-rfid', methods=['POST'])
+def verifier_rfid():
+    """Vérifie si une carte RFID a déjà pointé pour la session en cours."""
+    from app.utils.chiffrement import dechiffrer_texte
+    from datetime import datetime, timezone
+    
+    data = request.get_json()
+    numero_rfid = data.get('numero_rfid', '').strip().upper()
+    
+    if not numero_rfid:
+        return jsonify({'succes': False, 'message': 'RFID manquant'}), 400
+    
+    # Trouver la personne
+    personne = None
+    cartes_actives = CarteRFID.query.filter_by(statut='actif').all()
+    for carte in cartes_actives:
+        try:
+            if dechiffrer_texte(carte.numero_rfid) == numero_rfid:
+                personne = Personne.query.get(carte.personne_id)
+                break
+        except:
+            continue
+    
+    if not personne:
+        return jsonify({'succes': False, 'statut': 'carte_inconnue', 'message': 'Carte inconnue'}), 403
+    
+    # Trouver session en cours
+    maintenant = datetime.now(timezone.utc)
+    seance = Session.query.filter_by(statut='en_cours').filter(
+        Session.heure_debut <= maintenant,
+        Session.heure_fin >= maintenant
+    ).first()
+    
+    if not seance:
+        return jsonify({'succes': False, 'statut': 'pas_de_session', 'message': 'Aucune session en cours'}), 404
+    
+    # Vérifier doublon
+    presence_existante = Presence.query.filter_by(
+        personne_id=personne.id,
+        session_id=seance.id
+    ).filter(Presence.statut.in_(['present', 'retard'])).first()
+    
+    if presence_existante:
+        return jsonify({
+            'succes': False,
+            'statut': 'deja_pointe',
+            'personne': f'{personne.prenom} {personne.nom}',
+            'message': 'Déjà enregistré pour cette session'
+        }), 200
+    
+    return jsonify({
+        'succes': True,
+        'statut': 'ok',
+        'personne': f'{personne.prenom} {personne.nom}',
+        'message': 'Carte valide — procéder à la reconnaissance faciale'
+    }), 200

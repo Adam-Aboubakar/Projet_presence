@@ -135,4 +135,14 @@ def create_app(config_name='default'):
     from app.scheduler import init_scheduler
     init_scheduler(app)
 
+    from flask import Blueprint
+    pointage_bp = Blueprint('pointage', __name__, url_prefix='/pointage')
+    from app.pointage import routes
+
+    from app.pointage import pointage_bp
+    app.register_blueprint(pointage_bp)
+
+    csrf.exempt('app.presences.routes.pointer')
+    csrf.exempt('app.sessions.routes.verifier_rfid')
+
     return app

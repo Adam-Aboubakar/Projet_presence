@@ -29,23 +29,18 @@ def journaliser(type_evenement, description, severite='INFO', personne_id=None):
 # CAS 1 — Pointage RFID (Raspberry Pi — Semaine 3)
 # ============================================================
 @presences_bp.route('/api/pointer', methods=['POST'])
-@presences_bp.route('/api/pointer', methods=['POST'])
 @csrf.exempt
 def pointer():
-    """
-    Reçoit le numéro RFID + photo du Raspberry Pi.
-    Vérifie la carte, compare le visage avec DeepFace,
-    et enregistre la présence.
-    """
     import base64
     import tempfile
     import os
     from deepface import DeepFace
     from app.utils.chiffrement import dechiffrer_fichier
+    import cv2 as cv2_local
 
-    data = request.get_json()
-    numero_rfid = data.get('numero_rfid', '').strip().upper()
-    photo_base64 = data.get('photo', None)  # Photo en base64 (optionnelle)
+    data = request.get_json(force=True, silent=True) or {}
+    numero_rfid = (data.get('numero_rfid') or '').strip().upper()
+    photo_base64 = data.get('photo', None)
 
     if not numero_rfid:
         return jsonify({'succes': False, 'message': 'Numéro RFID manquant'}), 400
@@ -72,7 +67,7 @@ def pointer():
     if not personne.est_actif:
         return jsonify({'succes': False, 'message': 'Personne inactive'}), 403
 
-    # Étape 2 — Vérification DeepFace (si photo envoyée)
+    # Étape 2 — Vérification DeepFace
     if photo_base64:
         photo_principale = Photo.query.filter_by(
             personne_id=personne.id,
@@ -82,60 +77,56 @@ def pointer():
         if not photo_principale:
             return jsonify({
                 'succes': False,
-                'message': 'Aucune photo de référence enregistrée pour cet étudiant'
+                'message': 'Aucune photo de référence enregistrée'
             }), 403
 
         try:
-            # Déchiffrer la photo stockée
-            import os
+            # Déchiffrer photo stockée
             chemin_complet = os.path.join('app', 'static', photo_principale.chemin_fichier)
             with open(chemin_complet, 'rb') as f:
                 donnees_chiffrees = f.read()
             photo_dechiffree = dechiffrer_fichier(donnees_chiffrees)
 
-            # Sauvegarder temporairement les deux photos
             chemin_ref = os.path.join(tempfile.gettempdir(), 'ref_photo.jpg')
             with open(chemin_ref, 'wb') as f_ref:
                 f_ref.write(photo_dechiffree)
 
-            photo_base64_clean = photo_base64.strip().replace('\n', '').replace('\r', '').replace(' ', '')
-            photo_base64_padded = photo_base64_clean + '=' * (4 - len(photo_base64_clean) % 4)
-            photo_bytes = base64.b64decode(photo_base64_padded)
+            # Décoder photo live
+            photo_b64_clean = photo_base64.strip().replace('\n','').replace('\r','').replace(' ','')
+            photo_b64_padded = photo_b64_clean + '=' * (4 - len(photo_b64_clean) % 4)
+            photo_bytes = base64.b64decode(photo_b64_padded)
             chemin_live = os.path.join(tempfile.gettempdir(), 'live_photo.jpg')
             with open(chemin_live, 'wb') as f_live:
-                    f_live.write(photo_bytes)
+                f_live.write(photo_bytes)
 
-            # Vérifier les premiers bytes du fichier live
-            with open(chemin_live, 'rb') as f:
-                premiers_bytes = f.read(4)
-            print(f"[DEBUG] premiers bytes live: {premiers_bytes.hex()}")        
+            # Détecter visage localement avant DeepFace
+            cascade = cv2_local.CascadeClassifier(
+                cv2_local.data.haarcascades + 'haarcascade_frontalface_default.xml'
+            )
+            img_check = cv2_local.imread(chemin_live)
+            gris = cv2_local.cvtColor(img_check, cv2_local.COLOR_BGR2GRAY)
+            visages = cascade.detectMultiScale(gris, scaleFactor=1.1, minNeighbors=5, minSize=(80, 80))
 
+            if len(visages) == 0:
+                os.unlink(chemin_ref)
+                os.unlink(chemin_live)
+                return jsonify({
+                    'succes': False,
+                    'statut': 'pas_de_visage',
+                    'message': 'Aucun visage detecte — regardez la camera'
+                }), 400
 
             # Comparaison DeepFace
             config = Configuration.get_config()
             seuil = config.seuil_similarite if config else 0.40
 
-            # Comparaison DeepFace
-            print(f"[DEBUG] chemin_ref: {chemin_ref}")
-            print(f"[DEBUG] chemin_live: {chemin_live}")
-            print(f"[DEBUG] ref existe: {os.path.exists(chemin_ref)}")
-            print(f"[DEBUG] live existe: {os.path.exists(chemin_live)}")
-            print(f"[DEBUG] taille ref: {os.path.getsize(chemin_ref)}")
-            print(f"[DEBUG] taille live: {os.path.getsize(chemin_live)}")
+            result = DeepFace.verify(
+                img1_path=chemin_live,
+                img2_path=chemin_ref,
+                enforce_detection=False,
+                anti_spoofing=True
+            )
 
-            try:
-                result = DeepFace.verify(
-                    img1_path=chemin_live,
-                    img2_path=chemin_ref,
-                    enforce_detection=False,
-                    anti_spoofing=True
-                )
-            except Exception as e:
-                import traceback
-                print(f"[DEBUG] Erreur DeepFace: {str(e)}")
-                traceback.print_exc()
-                raise e
-            # Nettoyer les fichiers temporaires
             os.unlink(chemin_ref)
             os.unlink(chemin_live)
 
@@ -143,7 +134,7 @@ def pointer():
                 journaliser(
                     'pointage_visage_refuse',
                     f'Visage non reconnu pour {personne.prenom} {personne.nom} — distance: {result["distance"]:.3f}',
-                    severite='WARNING',
+                    severite='INFO',
                     personne_id=personne.id
                 )
                 db.session.commit()
@@ -158,7 +149,7 @@ def pointer():
                 'message': f'Erreur reconnaissance faciale : {str(e)}'
             }), 500
 
-    # Étape 3 — Trouver une session en cours
+    # Étape 3 — Session en cours
     maintenant = datetime.now(timezone.utc)
     seance = Session.query.filter_by(statut='en_cours').filter(
         Session.heure_debut <= maintenant,
@@ -168,7 +159,7 @@ def pointer():
     if not seance:
         return jsonify({'succes': False, 'message': 'Aucune session en cours'}), 404
 
-    # Étape 4 — Vérifier doublon
+    # Étape 4 — Doublon
     presence_existante = Presence.query.filter_by(
         personne_id=personne.id,
         session_id=seance.id
@@ -180,14 +171,14 @@ def pointer():
             'message': f'{personne.prenom} {personne.nom} a déjà pointé pour cette session'
         }), 400
 
-    # Étape 5 — Déterminer statut (présent ou retard)
+    # Étape 5 — Statut
     heure_limite = seance.heure_debut + timedelta(minutes=seance.tolerance_retard_minutes)
     if heure_limite.tzinfo is None:
         from datetime import timezone as tz
         heure_limite = heure_limite.replace(tzinfo=tz.utc)
     statut = 'present' if maintenant <= heure_limite else 'retard'
 
-    # Étape 6 — Enregistrer la présence
+    # Étape 6 — Enregistrer
     presence = Presence(
         personne_id=personne.id,
         session_id=seance.id,
@@ -218,7 +209,7 @@ def pointer():
 @role_requis('enseignant')
 def modifier_presence(presence_id):
     presence = Presence.query.get_or_404(presence_id)
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
 
     nouveau_statut = data.get('statut', '').strip()
     justification = data.get('justification', '').strip()

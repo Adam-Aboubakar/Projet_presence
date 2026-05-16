@@ -26,14 +26,8 @@ def journaliser(type_evenement, description, severite='INFO'):
 @emplois_bp.route('/api/creer', methods=['POST'])
 @role_requis('enseignant')
 def creer_emploi():
-    """
-    Créer un emploi du temps pour le semestre.
-    Génère automatiquement toutes les sessions
-    entre date_debut_validite et date_fin_validite.
-    """
     data = request.get_json()
 
-    # Validation des champs obligatoires
     champs_requis = ['nom_cours', 'jour_semaine', 'heure_debut', 'heure_fin',
                      'date_debut_validite', 'date_fin_validite']
     for champ in champs_requis:
@@ -68,14 +62,31 @@ def creer_emploi():
             return jsonify({'succes': False, 'message': 'Format heure_debut_pause invalide. Utiliser HH:MM'}), 400
         duree_pause_minutes = int(data['duree_pause_minutes'])
 
+    # Vérifier conflit de salle
+    salle = data.get('salle')
+    if salle:
+        conflit = EmploiDuTemps.query.filter(
+            EmploiDuTemps.salle == salle,
+            EmploiDuTemps.jour_semaine == int(data['jour_semaine']),
+            EmploiDuTemps.est_actif == True,
+            EmploiDuTemps.date_fin_validite >= date_debut,
+            EmploiDuTemps.date_debut_validite <= date_fin,
+            EmploiDuTemps.heure_debut < heure_fin,
+            EmploiDuTemps.heure_fin > heure_debut
+        ).first()
+
+        if conflit:
+            return jsonify({
+                'succes': False,
+                'message': f'Conflit de salle : la salle "{salle}" est déjà occupée par "{conflit.nom_cours}" de {conflit.heure_debut.strftime("%H:%M")} à {conflit.heure_fin.strftime("%H:%M")} ce jour'
+            }), 400
+
     # Créer l'emploi du temps
     emploi = EmploiDuTemps(
-        #enseignant_id=current_user.id if current_user.is_authenticated else None,
-        #enseignant_id='5c39490c-1fdc-4a83-aef1-8300d6b63475',  # ID admin pour test
         enseignant_id=current_user.id if current_user.is_authenticated else None,
         nom_cours=data['nom_cours'],
         groupe=data.get('groupe'),
-        salle=data.get('salle'),
+        salle=salle,
         departement=data.get('departement'),
         niveau=data.get('niveau'),
         jour_semaine=int(data['jour_semaine']),
@@ -90,9 +101,8 @@ def creer_emploi():
         duree_pause_minutes=duree_pause_minutes
     )
     db.session.add(emploi)
-    db.session.flush()  # Pour avoir l'ID avant de générer les sessions
+    db.session.flush()
 
-    # Générer automatiquement toutes les sessions du semestre
     sessions_creees = _generer_sessions(emploi)
 
     journaliser('emploi_cree',
@@ -109,26 +119,18 @@ def creer_emploi():
 
 # ============================================================
 # CAS 2 — Modifier un emploi du temps
-# Modifications appliquées aux sessions FUTURES uniquement
 # ============================================================
 @emplois_bp.route('/api/<string:emploi_id>/modifier', methods=['PUT'])
 @role_requis('enseignant')
 def modifier_emploi(emploi_id):
-    """
-    Modifier un emploi du temps existant.
-    Les sessions passées ne sont pas modifiées.
-    Les sessions futures sont supprimées et régénérées.
-    """
     emploi = EmploiDuTemps.query.get_or_404(emploi_id)
 
-    # Vérifier que c'est bien l'enseignant propriétaire
     if current_user.is_authenticated and emploi.enseignant_id != current_user.id:
         return jsonify({'succes': False, 'message': 'Accès refusé — ce n\'est pas votre emploi du temps'}), 403
 
     data = request.get_json()
     maintenant = datetime.now(timezone.utc)
 
-    # Mettre à jour les champs modifiés
     if 'nom_cours' in data:
         emploi.nom_cours = data['nom_cours']
     if 'groupe' in data:
@@ -150,6 +152,26 @@ def modifier_emploi(emploi_id):
     if 'duree_pause_minutes' in data:
         emploi.duree_pause_minutes = data['duree_pause_minutes']
 
+    # Vérifier conflit de salle après modification
+    if emploi.salle:
+        conflit = EmploiDuTemps.query.filter(
+            EmploiDuTemps.salle == emploi.salle,
+            EmploiDuTemps.jour_semaine == emploi.jour_semaine,
+            EmploiDuTemps.est_actif == True,
+            EmploiDuTemps.id != emploi_id,
+            EmploiDuTemps.date_fin_validite >= emploi.date_debut_validite,
+            EmploiDuTemps.date_debut_validite <= emploi.date_fin_validite,
+            EmploiDuTemps.heure_debut < emploi.heure_fin,
+            EmploiDuTemps.heure_fin > emploi.heure_debut
+        ).first()
+
+        if conflit:
+            db.session.rollback()
+            return jsonify({
+                'succes': False,
+                'message': f'Conflit de salle : la salle "{emploi.salle}" est déjà occupée par "{conflit.nom_cours}" de {conflit.heure_debut.strftime("%H:%M")} à {conflit.heure_fin.strftime("%H:%M")} ce jour'
+            }), 400
+
     # Supprimer les sessions FUTURES non commencées
     Session.query.filter(
         Session.emploi_du_temps_id == emploi_id,
@@ -157,7 +179,6 @@ def modifier_emploi(emploi_id):
         Session.statut == 'planifiee'
     ).delete()
 
-    # Régénérer les sessions futures
     sessions_creees = _generer_sessions(emploi, depuis_aujourd_hui=True)
 
     journaliser('emploi_modifie',
@@ -169,65 +190,6 @@ def modifier_emploi(emploi_id):
         'message': f'Emploi du temps modifié — {sessions_creees} sessions régénérées',
         'sessions_creees': sessions_creees
     }), 200
-
-
-# ============================================================
-# CAS 3 — Ajouter une séance exceptionnelle
-# ============================================================
-@emplois_bp.route('/api/seance-exceptionnelle', methods=['POST'])
-@role_requis('enseignant')
-def seance_exceptionnelle():
-    """
-    Ajouter une séance exceptionnelle (rattrapage, cours supplémentaire).
-    Cette séance n'est pas liée à l'emploi du temps récurrent.
-    """
-    data = request.get_json()
-
-    champs_requis = ['nom', 'date', 'heure_debut', 'heure_fin']
-    for champ in champs_requis:
-        if not data.get(champ):
-            return jsonify({'succes': False, 'message': f'{champ} obligatoire'}), 400
-
-    try:
-        date_seance = datetime.strptime(data['date'], '%Y-%m-%d').date()
-        heure_debut = datetime.strptime(data['heure_debut'], '%H:%M').time()
-        heure_fin = datetime.strptime(data['heure_fin'], '%H:%M').time()
-    except ValueError:
-        return jsonify({'succes': False, 'message': 'Format invalide'}), 400
-
-    if heure_fin <= heure_debut:
-        return jsonify({'succes': False, 'message': 'heure_fin doit être après heure_debut'}), 400
-
-    # Vérifier que ce n'est pas un jour férié
-    from datetime import date
-    jour_ferie = JourFerie.query.filter_by(date=date_seance).first()
-    if jour_ferie:
-        return jsonify({'succes': False,
-                        'message': f'Cette date est un jour férié : {jour_ferie.nom}'}), 400
-
-    session = Session(
-        nom=data['nom'],
-        lieu=data.get('lieu', ''),
-        heure_debut=datetime.combine(date_seance, heure_debut),
-        heure_fin=datetime.combine(date_seance, heure_fin),
-        tolerance_retard_minutes=data.get('tolerance_retard_minutes', 10),
-        type_session='cours',
-        statut='planifiee',
-        est_exceptionnelle=True,
-        cree_par=current_user.id if current_user.is_authenticated else None
-    )
-    db.session.add(session)
-
-    journaliser('seance_exceptionnelle_creee',
-                f'Séance exceptionnelle créée : {data["nom"]} le {date_seance}')
-    db.session.commit()
-
-    return jsonify({
-        'succes': True,
-        'message': 'Séance exceptionnelle créée',
-        'session_id': session.id
-    }), 201
-
 
 # ============================================================
 # CAS 4 — Suspendre une séance

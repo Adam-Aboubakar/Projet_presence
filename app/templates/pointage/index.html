@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointage</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: #0d1117;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#barre-top {
+    background: #161b22;
+    border-bottom: 2px solid #e8531a;
+    padding: 0 24px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+#heure {
+    font-size: 28px;
+    font-weight: 600;
+    color: #e8531a;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+}
+#titre-top { font-size: 14px; color: #8b949e; letter-spacing: 3px; }
+#date-top { font-size: 13px; color: #8b949e; }
+
+#barre-session {
+    background: #0f1a2e;
+    border-bottom: 1px solid #1d2d44;
+    padding: 0 24px;
+    height: 44px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+#barre-session.visible { display: flex; }
+#session-nom {
+    color: #e8531a;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#session-nom::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e8531a;
+    animation: pulse-dot 2s infinite;
+}
+#session-info { color: #8b949e; font-size: 12px; }
+
+#contenu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.ecran { display: none; flex-direction: column; align-items: center; gap: 20px; }
+.ecran.actif { display: flex; }
+
+.lune {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid #30363d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-lune 3s infinite;
+}
+.lune svg { opacity: 0.3; }
+.titre-attente { font-size: 22px; color: #8b949e; }
+.sous-titre-attente { font-size: 13px; color: #30363d; }
+
+.cercle-rfid {
+    width: 140px;
+    height: 140px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.anneau {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(232, 83, 26, 0.3);
+    animation: expand 2s infinite;
+}
+.anneau-1 { width: 140px; height: 140px; animation-delay: 0s; }
+.anneau-2 { width: 110px; height: 110px; animation-delay: 0.4s; }
+.anneau-3 { width: 80px; height: 80px; animation-delay: 0.8s; }
+.icone-carte {
+    width: 60px;
+    height: 60px;
+    background: #e8531a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+.titre-rfid { font-size: 28px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+.sous-titre-rfid { font-size: 14px; color: #8b949e; letter-spacing: 1px; }
+
+#ecran-camera { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+#video-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #070a0f;
+}
+#video {
+    height: 100%;
+    max-height: calc(100vh - 109px);
+    transform: scaleX(-1);
+}
+#cadre-visage {
+    position: absolute;
+    width: 220px;
+    height: 280px;
+    border: 2px solid #e8531a;
+    border-radius: 4px;
+    pointer-events: none;
+}
+.coin { position: absolute; width: 24px; height: 24px; }
+.coin-tl { top: -2px; left: -2px; border-top: 4px solid #e8531a; border-left: 4px solid #e8531a; }
+.coin-tr { top: -2px; right: -2px; border-top: 4px solid #e8531a; border-right: 4px solid #e8531a; }
+.coin-bl { bottom: -2px; left: -2px; border-bottom: 4px solid #e8531a; border-left: 4px solid #e8531a; }
+.coin-br { bottom: -2px; right: -2px; border-bottom: 4px solid #e8531a; border-right: 4px solid #e8531a; }
+#camera-label {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #e8531a;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.spinner {
+    width: 80px;
+    height: 80px;
+    border: 3px solid #1d2d44;
+    border-top: 3px solid #e8531a;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+.titre-verif { font-size: 24px; font-weight: 600; letter-spacing: 2px; }
+.sous-titre-verif { font-size: 13px; color: #8b949e; }
+
+.cercle-succes {
+    width: 120px; height: 120px;
+    background: #0f9d58; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid #34a853;
+    animation: pop 0.4s ease;
+}
+.titre-succes { font-size: 28px; font-weight: 700; color: #34a853; letter-spacing: 3px; }
+.nom-succes { font-size: 32px; font-weight: 600; color: #fff; }
+.badge-statut { padding: 6px 24px; border-radius: 20px; font-size: 14px; font-weight: 600; letter-spacing: 2px; }
+.badge-present { background: #0f9d58; color: #fff; }
+.badge-retard { background: #ba7517; color: #fff; }
+
+.cercle-echec {
+    width: 120px; height: 120px;
+    background: #a32d2d; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid #e24b4a;
+    animation: pop 0.4s ease;
+}
+.titre-echec { font-size: 28px; font-weight: 700; letter-spacing: 3px; }
+.msg-echec { font-size: 15px; color: #8b949e; text-align: center; max-width: 400px; }
+.sous-msg-echec { font-size: 12px; color: #30363d; }
+
+.cercle-deja {
+    width: 120px; height: 120px;
+    background: #ba7517; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid #ef9f27;
+    animation: pop 0.4s ease;
+}
+.titre-deja { font-size: 28px; font-weight: 700; color: #ef9f27; letter-spacing: 3px; }
+.nom-deja { font-size: 28px; font-weight: 600; color: #fff; }
+.sous-deja { font-size: 13px; color: #8b949e; }
+
+#barre-bas {
+    background: #161b22;
+    border-top: 1px solid #21262d;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    flex-shrink: 0;
+}
+#barre-bas span { font-size: 11px; color: #30363d; letter-spacing: 1px; }
+#label-salle { font-size: 11px; color: #e8531a; letter-spacing: 1px; }
+
+.overlay-resultat {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px; z-index: 100;
+    opacity: 0; transition: opacity 0.3s;
+}
+.overlay-resultat.visible { opacity: 1; }
+.overlay-succes { background: rgba(7, 18, 16, 0.97); }
+.overlay-echec { background: rgba(19, 10, 10, 0.97); }
+.overlay-deja { background: rgba(15, 15, 8, 0.97); }
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+@keyframes pulse-lune {
+    0%, 100% { transform: scale(1); border-color: #30363d; }
+    50% { transform: scale(1.05); border-color: #48535f; }
+}
+@keyframes expand {
+    0% { transform: scale(0.5); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 0; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<div id="barre-top">
+    <div id="heure">00:00:00</div>
+    <div id="titre-top">SYSTÈME DE GESTION DE PRÉSENCE</div>
+    <div id="date-top"></div>
+</div>
+
+<div id="barre-session">
+    <div id="session-nom">Session</div>
+    <div id="session-info"></div>
+</div>
+
+<div id="contenu">
+
+    <div id="ecran-attente" class="ecran actif">
+        <div class="lune">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        </div>
+        <div class="titre-attente">Aucune session en cours</div>
+        <div class="sous-titre-attente">Le système est en veille</div>
+    </div>
+
+    <div id="ecran-rfid" class="ecran">
+        <div class="cercle-rfid">
+            <div class="anneau anneau-1"></div>
+            <div class="anneau anneau-2"></div>
+            <div class="anneau anneau-3"></div>
+            <div class="icone-carte">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/>
+                    <line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+            </div>
+        </div>
+        <div class="titre-rfid">APPROCHEZ VOTRE CARTE</div>
+        <div class="sous-titre-rfid">Placez la carte sur le lecteur RFID</div>
+    </div>
+
+    <div id="ecran-camera" class="ecran">
+        <div id="video-container">
+            <video id="video" autoplay playsinline muted></video>
+            <div id="cadre-visage">
+                <div class="coin coin-tl"></div>
+                <div class="coin coin-tr"></div>
+                <div class="coin coin-bl"></div>
+                <div class="coin coin-br"></div>
+            </div>
+            <div id="camera-label">REGARDEZ LA CAMÉRA<br><small style="font-size:12px;font-weight:400;color:#8b949e">Centrez votre visage dans le cadre</small></div>
+        </div>
+    </div>
+
+    <div id="ecran-verif" class="ecran">
+        <div class="spinner"></div>
+        <div class="titre-verif">VÉRIFICATION EN COURS</div>
+        <div class="sous-titre-verif">Analyse du visage...</div>
+    </div>
+
+    <div id="overlay-succes" class="overlay-resultat overlay-succes">
+        <div class="cercle-succes">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <div class="titre-succes">PRÉSENCE VALIDÉE</div>
+        <div class="nom-succes" id="nom-succes"></div>
+        <div class="badge-statut" id="badge-statut"></div>
+    </div>
+
+    <div id="overlay-echec" class="overlay-resultat overlay-echec">
+        <div class="cercle-echec">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </div>
+        <div class="titre-echec" id="titre-echec">ACCÈS REFUSÉ</div>
+        <div class="msg-echec" id="msg-echec"></div>
+        <div class="sous-msg-echec">Veuillez réessayer ou contacter un responsable</div>
+    </div>
+
+    <div id="overlay-deja" class="overlay-resultat overlay-deja">
+        <div class="cercle-deja">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+        </div>
+        <div class="titre-deja">DÉJÀ ENREGISTRÉ</div>
+        <div class="nom-deja" id="nom-deja"></div>
+        <div class="sous-deja">Présence déjà enregistrée pour cette session</div>
+    </div>
+
+</div>
+
+<div id="barre-bas">
+    <span>EST Essaouira &nbsp;|&nbsp; Système de Gestion de Présence</span>
+    <span id="label-salle"></span>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATION SALLE
+// ============================================================
+const params = new URLSearchParams(window.location.search);
+const salleParam = params.get('salle');
+
+if (salleParam) {
+    localStorage.setItem('pointage_salle', salleParam);
+}
+const SALLE = salleParam || localStorage.getItem('pointage_salle');
+
+if (SALLE) {
+    document.title = `Pointage — Salle ${SALLE}`;
+    document.getElementById('label-salle').textContent = `SALLE ${SALLE}`;
+}
+
+// ============================================================
+// ÉTAT
+// ============================================================
+let mode = 'attente';
+let sessionActuelle = null;
+let streamCamera = null;
+let pollRFIDInterval = null;
+let rfidCourant = null;
+
+// ============================================================
+// HORLOGE
+// ============================================================
+function mettreAJourHorloge() {
+    const now = new Date();
+    document.getElementById('heure').textContent =
+        now.toLocaleTimeString('fr-FR', {hour12: false});
+    document.getElementById('date-top').textContent =
+        now.toLocaleDateString('fr-FR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+}
+setInterval(mettreAJourHorloge, 1000);
+mettreAJourHorloge();
+
+// ============================================================
+// AFFICHER ÉCRAN
+// ============================================================
+function afficherEcran(nom) {
+    document.querySelectorAll('.ecran').forEach(e => e.classList.remove('actif'));
+    document.querySelectorAll('.overlay-resultat').forEach(e => e.classList.remove('visible'));
+
+    if (nom === 'succes' || nom === 'echec' || nom === 'deja') {
+        // Garder l'écran en arrière-plan sans changer le mode
+        const ecranArriere = mode === 'camera' ? 'camera' : 'rfid';
+        document.getElementById('ecran-' + ecranArriere)?.classList.add('actif');
+        document.getElementById('overlay-' + nom)?.classList.add('visible');
+    } else {
+        const ecran = document.getElementById('ecran-' + nom);
+        if (ecran) ecran.classList.add('actif');
+        mode = nom;
+    }
+}
+
+// ============================================================
+// SESSION
+// ============================================================
+function formaterDate(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    return d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+}
+
+async function verifierSession() {
+    try {
+        const url = SALLE
+            ? `/sessions/api/session-active?salle=${encodeURIComponent(SALLE)}`
+            : '/sessions/api/session-active';
+
+        const r = await fetch(url);
+        const data = await r.json();
+
+        if (data.session) {
+            sessionActuelle = data.session;
+            const nom = data.session.nom || '';
+            const debut = formaterDate(data.session.heure_debut);
+            const fin = formaterDate(data.session.heure_fin);
+            const lieu = data.session.lieu || 'N/A';
+
+            document.getElementById('session-nom').textContent = nom;
+            document.getElementById('session-info').textContent =
+                `${debut} → ${fin}   |   Salle: ${lieu}`;
+            document.getElementById('barre-session').classList.add('visible');
+
+            if (mode === 'attente') afficherEcran('rfid');
+        } else {
+            sessionActuelle = null;
+            document.getElementById('barre-session').classList.remove('visible');
+            if (mode === 'rfid' || mode === 'attente') afficherEcran('attente');
+        }
+    } catch(e) {
+        console.error('Erreur session:', e);
+    }
+}
+
+// ============================================================
+// CAMÉRA
+// ============================================================
+async function ouvrirCamera() {
+    try {
+        streamCamera = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1280, height: 720, facingMode: 'user' }
+        });
+        document.getElementById('video').srcObject = streamCamera;
+        afficherEcran('camera');
+        // Attendre 2 secondes pour que la caméra soit bien initialisée
+        setTimeout(capturerEtEnvoyer, 2000);
+    } catch(e) {
+        console.error('Erreur caméra:', e);
+        afficherResultat('echec', 'Caméra non disponible', null);
+    }
+}
+
+function fermerCamera() {
+    if (streamCamera) {
+        streamCamera.getTracks().forEach(t => t.stop());
+        streamCamera = null;
+        document.getElementById('video').srcObject = null;
+    }
+}
+
+// ============================================================
+// CAPTURE ET ENVOI
+// ============================================================
+async function capturerEtEnvoyer() {
+    const rfidPourEnvoi = rfidCourant; // Sauvegarder avant tout changement
+    console.log('RFID pour envoi:', rfidPourEnvoi);
+
+    afficherEcran('verif');
+
+    const video = document.getElementById('video');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    const photoBase64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+
+    fermerCamera();
+
+    if (!rfidPourEnvoi) {
+        console.error('RFID manquant !');
+        afficherResultat('echec', 'Erreur système — RFID manquant', null);
+        return;
+    }
+
+    try {
+        const r = await fetch('/presences/api/pointer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                numero_rfid: rfidPourEnvoi,
+                photo: photoBase64
+            })
+        });
+        const data = await r.json();
+        console.log('Réponse serveur:', data);
+
+        if (data.succes) {
+            afficherResultat('succes', data.message, data.personne, data.statut);
+        } else if (data.statut === 'pas_de_visage') {
+            afficherResultat('echec', 'Aucun visage détecté — regardez la caméra', null);
+            setTimeout(() => {
+                rfidCourant = rfidPourEnvoi; // Restaurer le RFID pour réessayer
+                ouvrirCamera();
+            }, 2000);
+        } else {
+            afficherResultat('echec', data.message, null);
+        }
+    } catch(e) {
+        console.error('Erreur fetch:', e);
+        afficherResultat('echec', 'Erreur de connexion au serveur', null);
+    }
+}
+
+// ============================================================
+// RÉSULTATS
+// ============================================================
+function afficherResultat(type, message, personne, statut) {
+    fermerCamera();
+
+    if (type === 'succes') {
+        document.getElementById('nom-succes').textContent = personne.toUpperCase();
+        const badge = document.getElementById('badge-statut');
+        badge.textContent = statut === 'present' ? 'PRÉSENT' : 'RETARD';
+        badge.className = 'badge-statut badge-' + statut;
+        afficherEcran('succes');
+        setTimeout(() => retourRFID(), 2000);
+
+    } else if (type === 'deja') {
+        document.getElementById('nom-deja').textContent = personne.toUpperCase();
+        afficherEcran('deja');
+        setTimeout(() => retourRFID(), 2000);
+
+    } else {
+        const titreEchec = document.getElementById('titre-echec');
+        titreEchec.textContent = (message && message.toLowerCase().includes('visage'))
+            ? 'VISAGE NON DÉTECTÉ'
+            : 'ACCÈS REFUSÉ';
+        document.getElementById('msg-echec').textContent = message || '';
+        afficherEcran('echec');
+        setTimeout(() => retourRFID(), 3000);
+    }
+}
+
+function retourRFID() {
+    rfidCourant = null;
+    mode = 'rfid';
+    afficherEcran('rfid');
+    demarrerPollRFID();
+}
+
+// ============================================================
+// POLL RFID
+// ============================================================
+function demarrerPollRFID() {
+    if (pollRFIDInterval) clearInterval(pollRFIDInterval);
+    pollRFIDInterval = setInterval(async () => {
+        if (mode !== 'rfid') return;
+        try {
+            const r = await fetch('/pointage/api/rfid/poll');
+            const data = await r.json();
+            if (data.succes && data.numero_rfid) {
+                clearInterval(pollRFIDInterval);
+                rfidCourant = data.numero_rfid;
+                await traiterRFID(rfidCourant);
+            }
+        } catch(e) {}
+    }, 500);
+}
+
+async function traiterRFID(numero) {
+    try {
+        const r = await fetch('/sessions/api/verifier-rfid', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({numero_rfid: numero})
+        });
+        const data = await r.json();
+
+        if (data.statut === 'deja_pointe') {
+            afficherResultat('deja', null, data.personne);
+        } else if (data.succes) {
+            await ouvrirCamera();
+        } else {
+            afficherResultat('echec', data.message, null);
+        }
+    } catch(e) {
+        afficherResultat('echec', 'Erreur de connexion', null);
+    }
+}
+
+// ============================================================
+// DÉMARRAGE
+// ============================================================
+verifierSession();
+setInterval(verifierSession, 10000);
+demarrerPollRFID();
+</script>
+</body>
+</html>
