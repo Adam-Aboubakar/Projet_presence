@@ -128,8 +128,8 @@ def generer_sessions():
                         tolerance_retard_minutes=emploi.tolerance_retard_minutes,
                         type_session='cours',
                         statut='planifiee',
-                        #cree_par=current_user.id
-                        cree_par=current_user.id if current_user.is_authenticated else None
+                        cree_par=current_user.id if current_user.is_authenticated else None,
+                        emploi_du_temps_id=emploi.id
                     )
                     db.session.add(session)
                     sessions_creees += 1
@@ -383,37 +383,32 @@ def liste():
     from app.models import Configuration
     config = Configuration.get_config()
     mode = config.mode if config else 'ecole'
-    sessions = Session.query.order_by(Session.heure_debut.desc()).limit(100).all()
-    return render_template('sessions/liste.html', sessions=sessions, mode=mode)
-@sessions_bp.route('/<string:session_id>')
-@role_requis('enseignant')
-def detail(session_id):
-    from app.models import Configuration
-    config = Configuration.get_config()
-    mode = config.mode if config else 'ecole'
-    seance = Session.query.get_or_404(session_id)
-    presences = Presence.query.filter_by(session_id=session_id)\
-        .order_by(Presence.horodatage).all()
-    
-    presences_detail = []
-    for p in presences:
-        personne = Personne.query.get(p.personne_id)
-        presences_detail.append({
-            'presence': p,
-            'personne': personne
-        })
-    
-    total = len(presences)
-    presents = sum(1 for p in presences if p.statut == 'present')
-    retards = sum(1 for p in presences if p.statut == 'retard')
-    absents = sum(1 for p in presences if p.statut == 'absent')
-    
-    return render_template('sessions/detail.html',
-        session=seance,
-        presences_detail=presences_detail,
-        total=total, presents=presents,
-        retards=retards, absents=absents,
-        mode=mode
+
+    emploi_id = request.args.get('emploi')
+    emploi_filtre = None
+
+    if emploi_id:
+        emploi_filtre = EmploiDuTemps.query.filter_by(
+            id=emploi_id,
+            enseignant_id=current_user.id
+        ).first_or_404()
+        sessions = Session.query.filter_by(
+            emploi_du_temps_id=emploi_filtre.id
+        ).order_by(Session.heure_debut.desc()).limit(100).all()
+    else:
+        sessions = Session.query.filter(
+            db.or_(
+                Session.cree_par == current_user.id,
+                Session.emploi_du_temps_id.in_(
+                    db.session.query(EmploiDuTemps.id).filter_by(enseignant_id=current_user.id)
+                )
+            )
+        ).order_by(Session.heure_debut.desc()).limit(100).all()
+
+    return render_template('sessions/liste.html',
+        sessions=sessions,
+        mode=mode,
+        emploi_filtre=emploi_filtre
     )
 
 @sessions_bp.route('/api/session-active', methods=['GET'])
@@ -505,3 +500,34 @@ def verifier_rfid():
         'personne': f'{personne.prenom} {personne.nom}',
         'message': 'Carte valide — procéder à la reconnaissance faciale'
     }), 200
+
+@sessions_bp.route('/<string:session_id>')
+@role_requis('enseignant')
+def detail(session_id):
+    from app.models import Configuration
+    config = Configuration.get_config()
+    mode = config.mode if config else 'ecole'
+    seance = Session.query.get_or_404(session_id)
+    presences = Presence.query.filter_by(session_id=session_id)\
+        .order_by(Presence.horodatage).all()
+
+    presences_detail = []
+    for p in presences:
+        personne = Personne.query.get(p.personne_id)
+        presences_detail.append({
+            'presence': p,
+            'personne': personne
+        })
+
+    total = len(presences)
+    presents = sum(1 for p in presences if p.statut == 'present')
+    retards  = sum(1 for p in presences if p.statut == 'retard')
+    absents  = sum(1 for p in presences if p.statut == 'absent')
+
+    return render_template('sessions/detail.html',
+        session=seance,
+        presences_detail=presences_detail,
+        total=total, presents=presents,
+        retards=retards, absents=absents,
+        mode=mode
+    )

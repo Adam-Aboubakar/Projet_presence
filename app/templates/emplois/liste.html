@@ -1,43 +1,225 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Emploi du temps') }} — ESTE{% endblock %}
+{% block title %}{{ _('Emploi du temps') }} – ESTE{% endblock %}
 
 {% block content %}
 <style>
-  .page-header { padding:18px 28px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+  /* ── Layout ── */
+  .page-header {
+    padding: 20px 28px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .page-header h1 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .page-header h1 i { color: var(--accent); }
 
-  .emplois-body { padding:16px 28px 36px; }
+  .emplois-body { padding: 16px 28px 40px; }
 
-  .emplois-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:14px; }
+  /* ── Filtres rapides ── */
+  .filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-input {
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 12px;
+    font-size: 12.5px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 160px;
+  }
+  .filter-input:focus { border-color: var(--info); }
+  .filter-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
 
-  .emploi-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); padding:18px 20px; transition:box-shadow 0.15s; }
-  .emploi-card:hover { box-shadow:var(--shadow-md); }
+  /* ── Tableau ── */
+  .table-wrapper {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .emplois-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .emplois-table thead th {
+    background: var(--input-bg);
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .emplois-table thead th:first-child { padding-left: 18px; }
+  .emplois-table thead th:last-child  { padding-right: 18px; text-align: right; }
 
-  .emploi-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
-  .emploi-nom { font-size:14px; font-weight:700; color:var(--text); }
-  .emploi-groupe { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .emplois-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+  .emplois-table tbody tr:last-child { border-bottom: none; }
+  .emplois-table tbody tr:hover { background: var(--input-bg); }
 
-  .badge-actif   { background:var(--success-soft); color:var(--success); padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
-  .badge-inactif { background:var(--border); color:var(--text-muted); padding:3px 9px; border-radius:50px; font-size:11px; font-weight:600; }
+  .emplois-table tbody td {
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .emplois-table tbody td:first-child { padding-left: 18px; }
+  .emplois-table tbody td:last-child  { padding-right: 18px; text-align: right; }
 
-  .emploi-details { display:flex; flex-direction:column; gap:6px; }
-  .emploi-detail-row { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted); }
-  .emploi-detail-row i { width:14px; color:var(--primary); font-size:12px; }
-  .emploi-detail-row span { color:var(--text); font-weight:500; }
+  /* ── Cellule cours ── */
+  .cours-name {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cours-sub {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
 
-  .emploi-footer { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); display:flex; gap:8px; }
-  .btn-small { display:flex; align-items:center; gap:5px; padding:6px 12px; border-radius:var(--radius); font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; border:none; transition:all 0.15s; text-decoration:none; }
-  .btn-voir   { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); }
-  .btn-voir:hover { border-color:var(--accent); color:var(--accent); }
+  /* ── Jour pill ── */
+  .jour-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 11.5px;
+    font-weight: 600;
+    background: var(--input-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .jour-pill i { font-size: 10px; color: var(--primary); }
 
-  .empty { padding:60px; text-align:center; color:var(--text-muted); background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); }
-  .empty i { font-size:40px; opacity:.2; display:block; margin-bottom:12px; }
-  .empty p { font-size:14px; margin-bottom:16px; }
+  /* ── Horaire ── */
+  .horaire {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  .horaire i { color: var(--accent); font-size: 11px; }
+  .duree {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
 
-  .btn-new { background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
-  .btn-new:hover { background:#D4400E; }
+  /* ── Salle ── */
+  .salle-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .salle-badge i { color: var(--info); font-size: 11px; }
 
-  /* MODAL */
+  /* ── Validité ── */
+  .validite {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .validite i { font-size: 10px; }
+
+  /* ── Badges statut ── */
+  .badge-actif   { background: var(--success-soft); color: var(--success); padding: 3px 9px; border-radius: 50px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .badge-inactif { background: var(--border); color: var(--text-muted); padding: 3px 9px; border-radius: 50px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .badge-actif::before   { content:''; width:6px; height:6px; border-radius:50%; background:var(--success); display:inline-block; }
+  .badge-inactif::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--text-muted); display:inline-block; }
+
+  /* ── Actions ── */
+  .btn-voir {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    border: 1.5px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-voir:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Btn new ── */
+  .btn-new {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .btn-new:hover { background: #D4400E; }
+
+  /* ── Empty ── */
+  .empty {
+    padding: 60px;
+    text-align: center;
+    color: var(--text-muted);
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+  .empty i { font-size: 40px; opacity: .2; display: block; margin-bottom: 12px; }
+  .empty p { font-size: 14px; margin-bottom: 16px; }
+
+  /* ── MODAL ── */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
   .modal-overlay.show { display:flex; }
   .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:22px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
@@ -45,23 +227,28 @@
   .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .form-group { margin-bottom:12px; }
   .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
-  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; box-sizing:border-box; }
   .form-input:focus { border-color:var(--info); }
   select.form-input { cursor:pointer; }
   .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
   .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
   .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
 
-  @media (max-width:768px) {
-    .emplois-body { padding:14px 14px 28px; }
-    .page-header { padding:14px 14px 0; }
-    .form-row { grid-template-columns:1fr; }
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .col-validite, .col-statut { display: none; }
+  }
+  @media (max-width: 700px) {
+    .col-salle { display: none; }
+    .emplois-body { padding: 12px 14px 28px; }
+    .page-header { padding: 14px 14px 0; }
+    .form-row { grid-template-columns: 1fr; }
   }
 </style>
 
 <div class="page-header">
   <h1>
-    <i class="fas fa-calendar-week" style="color:var(--accent); margin-right:8px;"></i>
+    <i class="fas fa-calendar-week"></i>
     {% if mode == 'entreprise' %}{{ _('Planning') }}{% else %}{{ _('Emploi du temps') }}{% endif %}
   </h1>
   <button class="btn-new" onclick="document.getElementById('modalNouvel').classList.add('show')">
@@ -72,71 +259,140 @@
 <div class="emplois-body">
 
   {% if emplois %}
-  <div class="emplois-grid">
-    {% set jours = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'] %}
-    {% for e in emplois %}
-    <div class="emploi-card">
-      <div class="emploi-header">
-        <div>
-          <div class="emploi-nom">{{ e.nom_cours }}</div>
-          <div class="emploi-groupe">{{ e.groupe or _('Tous les groupes') }}</div>
-        </div>
-        {% if e.est_actif %}
-          <span class="badge-actif">{{ _('Actif') }}</span>
-        {% else %}
-          <span class="badge-inactif">{{ _('Inactif') }}</span>
-        {% endif %}
-      </div>
 
-      <div class="emploi-details">
-        {% if e.departement %}
-        <div class="emploi-detail-row">
-          <i class="fas fa-building"></i>
-          <span>{{ e.departement }}{% if e.niveau %} — {{ e.niveau }}{% endif %}</span>
-        </div>
-        {% endif %}
-        <div class="emploi-detail-row">
-          <i class="fas fa-calendar-day"></i>
-          <span>{{ jours[e.jour_semaine] if 0 <= e.jour_semaine <= 6 else '?' }}</span>
-        </div>
-        <div class="emploi-detail-row">
-          <i class="fas fa-clock"></i>
-          <span>{{ e.heure_debut.strftime('%H:%M') }} → {{ e.heure_fin.strftime('%H:%M') }}</span>
-        </div>
-        {% if e.salle %}
-        <div class="emploi-detail-row">
-          <i class="fas fa-door-open"></i>
-          <span>{{ e.salle }}</span>
-        </div>
-        {% endif %}
-        {% if e.date_debut_validite and e.date_fin_validite %}
-        <div class="emploi-detail-row">
-          <i class="fas fa-calendar-range"></i>
-          <span>{{ e.date_debut_validite.strftime('%d/%m/%Y') }} → {{ e.date_fin_validite.strftime('%d/%m/%Y') }}</span>
-        </div>
-        {% endif %}
-        {% if e.a_pause %}
-        <div class="emploi-detail-row">
-          <i class="fas fa-coffee"></i>
-          <span>{{ _('Pause') }} {{ e.heure_debut_pause.strftime('%H:%M') if e.heure_debut_pause else '' }} ({{ e.duree_pause_minutes }} min)</span>
-        </div>
-        {% endif %}
-      </div>
+  <!-- Filtres -->
+  <div class="filters-bar">
+    <input type="text" class="filter-input" id="searchInput"
+           placeholder="🔍  Rechercher un cours, groupe…"
+           oninput="filtrerTable()">
+    <select class="filter-input" id="jourFilter" onchange="filtrerTable()" style="min-width:120px;">
+      <option value="">Tous les jours</option>
+      <option value="Lundi">Lundi</option>
+      <option value="Mardi">Mardi</option>
+      <option value="Mercredi">Mercredi</option>
+      <option value="Jeudi">Jeudi</option>
+      <option value="Vendredi">Vendredi</option>
+      <option value="Samedi">Samedi</option>
+      <option value="Dimanche">Dimanche</option>
+    </select>
+    <select class="filter-input" id="statutFilter" onchange="filtrerTable()" style="min-width:110px;">
+      <option value="">Tous statuts</option>
+      <option value="actif">Actif</option>
+      <option value="inactif">Inactif</option>
+    </select>
+    <span class="filter-count" id="filterCount">{{ emplois|length }} emploi(s)</span>
+  </div>
 
-      <div class="emploi-footer">
-        <a href="{{ url_for('sessions.liste') }}?emploi={{ e.id }}" class="btn-small btn-voir">
-          <i class="fas fa-eye"></i> {{ _('Voir sessions') }}
-        </a>
-      </div>
-    </div>
-    {% endfor %}
+  <!-- Tableau -->
+  <div class="table-wrapper">
+    <table class="emplois-table" id="emploisTable">
+      <thead>
+        <tr>
+          <th>{{ _('Cours') }}</th>
+          <th>{{ _('Jour') }}</th>
+          <th>{{ _('Horaire') }}</th>
+          <th class="col-salle">{{ _('Salle') }}</th>
+          <th class="col-validite">{{ _('Validité') }}</th>
+          <th class="col-statut">{{ _('Statut') }}</th>
+          <th>{{ _('Actions') }}</th>
+        </tr>
+      </thead>
+      <tbody id="emploisBody">
+        {% set jours = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'] %}
+        {% for e in emplois %}
+        <tr data-nom="{{ e.nom_cours|lower }}"
+            data-groupe="{{ (e.groupe or '')|lower }}"
+            data-jour="{{ jours[e.jour_semaine] if 0 <= e.jour_semaine <= 6 else '' }}"
+            data-statut="{{ 'actif' if e.est_actif else 'inactif' }}">
+
+          <!-- Cours -->
+          <td>
+            <div class="cours-name">
+              <i class="fas fa-book-open" style="color:var(--accent); font-size:12px;"></i>
+              {{ e.nom_cours }}
+            </div>
+            <div class="cours-sub">
+              {% if e.groupe %}{{ e.groupe }}{% endif %}
+              {% if e.groupe and e.departement %} · {% endif %}
+              {% if e.departement %}{{ e.departement }}{% if e.niveau %} — {{ e.niveau }}{% endif %}{% endif %}
+            </div>
+          </td>
+
+          <!-- Jour -->
+          <td>
+            <span class="jour-pill">
+              <i class="fas fa-calendar-day"></i>
+              {{ jours[e.jour_semaine] if 0 <= e.jour_semaine <= 6 else '?' }}
+            </span>
+          </td>
+
+          <!-- Horaire -->
+          <td>
+            <div class="horaire">
+              <i class="fas fa-clock"></i>
+              {{ e.heure_debut.strftime('%H:%M') }} → {{ e.heure_fin.strftime('%H:%M') }}
+            </div>
+            {% set debut_min = e.heure_debut.hour * 60 + e.heure_debut.minute %}
+            {% set fin_min   = e.heure_fin.hour   * 60 + e.heure_fin.minute   %}
+            {% set duree     = fin_min - debut_min %}
+            {% if duree > 0 %}
+            <div class="duree">{{ duree }} min{% if e.a_pause %} · pause {{ e.duree_pause_minutes }} min{% endif %}</div>
+            {% endif %}
+          </td>
+
+          <!-- Salle -->
+          <td class="col-salle">
+            {% if e.salle %}
+            <span class="salle-badge">
+              <i class="fas fa-door-open"></i>
+              {{ e.salle }}
+            </span>
+            {% else %}
+            <span style="color:var(--text-muted); font-size:12px;">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Validité -->
+          <td class="col-validite">
+            {% if e.date_debut_validite and e.date_fin_validite %}
+            <div class="validite">
+              <i class="fas fa-calendar-range"></i>
+              {{ e.date_debut_validite.strftime('%d/%m/%Y') }}<br>
+              → {{ e.date_fin_validite.strftime('%d/%m/%Y') }}
+            </div>
+            {% else %}
+            <span style="color:var(--text-muted); font-size:12px;">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Statut -->
+          <td class="col-statut">
+            {% if e.est_actif %}
+              <span class="badge-actif">{{ _('Actif') }}</span>
+            {% else %}
+              <span class="badge-inactif">{{ _('Inactif') }}</span>
+            {% endif %}
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <a href="{{ url_for('sessions.liste') }}?emploi={{ e.id }}" class="btn-voir">
+              <i class="fas fa-eye"></i> {{ _('Sessions') }}
+            </a>
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
   {% else %}
   <div class="empty">
     <i class="fas fa-calendar-week"></i>
     <p>{{ _('Aucun emploi du temps créé') }}</p>
-    <button class="btn-new" style="margin:0 auto;" onclick="document.getElementById('modalNouvel').classList.add('show')">
+    <button class="btn-new" style="margin:0 auto;"
+            onclick="document.getElementById('modalNouvel').classList.add('show')">
       <i class="fas fa-plus"></i> {{ _('Créer le premier') }}
     </button>
   </div>
@@ -144,7 +400,7 @@
 
 </div>
 
-<!-- MODAL NOUVEL EMPLOI -->
+<!-- ── MODAL NOUVEL EMPLOI ── -->
 <div class="modal-overlay" id="modalNouvel">
   <div class="modal-box">
     <div class="modal-title">
@@ -164,17 +420,14 @@
         <label class="form-label">{{ _('Groupe') }}</label>
         <input type="text" class="form-input" id="groupe" placeholder="Ex: G1">
       </div>
-            <!-- Après le champ Groupe -->
       <div class="form-group">
         <label class="form-label">{{ _('Département / Filière') }}</label>
         <input type="text" class="form-input" id="departement" placeholder="Ex: Informatique">
       </div>
-
       <div class="form-group">
         <label class="form-label">{{ _('Niveau') }}</label>
-        <input type="text" class="form-input" id="niveau" placeholder="Ex: L3, BTS2...">
+        <input type="text" class="form-input" id="niveau" placeholder="Ex: L3, BTS2…">
       </div>
-
       <div class="form-group">
         <label class="form-label">{{ _('Salle') }}</label>
         <input type="text" class="form-input" id="salle" placeholder="Ex: Salle 12">
@@ -236,26 +489,57 @@
 <script>
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
 
+/* ── Filtrage ── */
+function filtrerTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const jour   = document.getElementById('jourFilter').value;
+    const statut = document.getElementById('statutFilter').value;
+    const rows   = document.querySelectorAll('#emploisBody tr');
+    let visible  = 0;
+
+    rows.forEach(row => {
+        const nom    = row.dataset.nom    || '';
+        const groupe = row.dataset.groupe || '';
+        const rJour  = row.dataset.jour   || '';
+        const rStat  = row.dataset.statut || '';
+
+        const matchSearch = !search || nom.includes(search) || groupe.includes(search);
+        const matchJour   = !jour   || rJour === jour;
+        const matchStatut = !statut || rStat === statut;
+
+        if (matchSearch && matchJour && matchStatut) {
+            row.style.display = '';
+            visible++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    document.getElementById('filterCount').textContent = visible + ' emploi(s)';
+}
+
+/* ── Modal ── */
 function fermerModals() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
 }
 
 function creerEmploi() {
     const data = {
-        nom_cours: document.getElementById('nomCours').value.trim(),
-        groupe: document.getElementById('groupe').value.trim(),
-        salle: document.getElementById('salle').value.trim(),
-        departement: document.getElementById('departement').value.trim(),
-        niveau: document.getElementById('niveau').value.trim(),
-        jour_semaine: document.getElementById('jourSemaine').value,
-        heure_debut: document.getElementById('heureDebut').value,
-        heure_fin: document.getElementById('heureFin').value,
-        date_debut_validite: document.getElementById('dateDebut').value,
-        date_fin_validite: document.getElementById('dateFin').value,
-        tolerance_retard_minutes: parseInt(document.getElementById('tolerance').value)
+        nom_cours:                  document.getElementById('nomCours').value.trim(),
+        groupe:                     document.getElementById('groupe').value.trim(),
+        salle:                      document.getElementById('salle').value.trim(),
+        departement:                document.getElementById('departement').value.trim(),
+        niveau:                     document.getElementById('niveau').value.trim(),
+        jour_semaine:               document.getElementById('jourSemaine').value,
+        heure_debut:                document.getElementById('heureDebut').value,
+        heure_fin:                  document.getElementById('heureFin').value,
+        date_debut_validite:        document.getElementById('dateDebut').value,
+        date_fin_validite:          document.getElementById('dateFin').value,
+        tolerance_retard_minutes:   parseInt(document.getElementById('tolerance').value)
     };
 
-    if (!data.nom_cours || !data.heure_debut || !data.heure_fin || !data.date_debut_validite || !data.date_fin_validite) {
+    if (!data.nom_cours || !data.heure_debut || !data.heure_fin ||
+        !data.date_debut_validite || !data.date_fin_validite) {
         afficherFeedback('emploiFeedback', '{{ _("Tous les champs * sont obligatoires") }}', 'danger');
         return;
     }
@@ -266,18 +550,14 @@ function creerEmploi() {
         body: JSON.stringify(data)
     })
     .then(r => r.json())
-    .then(data => {
-        if (data.succes) {
-            fermerModals();
-            location.reload();
-        } else {
-            afficherFeedback('emploiFeedback', data.message, 'danger');
-        }
+    .then(d => {
+        if (d.succes) { fermerModals(); location.reload(); }
+        else { afficherFeedback('emploiFeedback', d.message, 'danger'); }
     });
 }
 
 function afficherFeedback(id, msg, type) {
-    const c = { success:'var(--success)', danger:'var(--danger)', info:'var(--info)' };
+    const c = { success: 'var(--success)', danger: 'var(--danger)', info: 'var(--info)' };
     document.getElementById(id).innerHTML = `<span style="color:${c[type]}">${msg}</span>`;
 }
 

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Sessions') }} — ESTE{% endblock %}
+{% block title %}{{ _('Sessions') }} – ESTE{% endblock %}
 
 {% block content %}
 <style>
@@ -43,6 +43,20 @@
   .empty { padding:40px; text-align:center; color:var(--text-muted); }
   .empty i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
 
+  /* BANDEAU FILTRE EMPLOI */
+  .filtre-emploi-banner {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:14px; padding:10px 14px;
+    background:var(--accent-soft); border-radius:var(--radius);
+    border:1.5px solid var(--accent); font-size:13px;
+  }
+  .filtre-emploi-banner i { color:var(--accent); }
+  .filtre-emploi-banner .clear-link {
+    margin-left:auto; font-size:12px; color:var(--accent);
+    font-weight:600; text-decoration:none; display:flex; align-items:center; gap:4px;
+  }
+  .filtre-emploi-banner .clear-link:hover { opacity:0.75; }
+
   /* NOUVELLE SESSION */
   .btn-new { background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
   .btn-new:hover { background:#D4400E; }
@@ -54,7 +68,7 @@
   .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
   .form-group { margin-bottom:12px; }
   .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
-  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; box-sizing:border-box; }
   .form-input:focus { border-color:var(--info); }
   .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
   .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
@@ -68,7 +82,15 @@
 </style>
 
 <div class="page-header">
-  <h1><i class="fas fa-clock" style="color:var(--accent); margin-right:8px;"></i>{{ _('Sessions') }}</h1>
+  <h1>
+    <i class="fas fa-clock" style="color:var(--accent); margin-right:8px;"></i>
+    {% if emploi_filtre %}
+      {{ emploi_filtre.nom_cours }}
+      {% if emploi_filtre.groupe %} · {{ emploi_filtre.groupe }}{% endif %}
+    {% else %}
+      {{ _('Sessions') }}
+    {% endif %}
+  </h1>
   <button class="btn-new" onclick="document.getElementById('modalNouvelle').classList.add('show')">
     <i class="fas fa-plus"></i> {{ _('Nouvelle session') }}
   </button>
@@ -76,18 +98,43 @@
 
 <div class="sessions-body">
 
-  <!-- FILTRES -->
+  <!-- BANDEAU FILTRE EMPLOI DU TEMPS -->
+  {% if emploi_filtre %}
+  <div class="filtre-emploi-banner">
+    <i class="fas fa-calendar-week"></i>
+    <span>
+      Filtré par emploi du temps :
+      <strong>{{ emploi_filtre.nom_cours }}</strong>
+      {% if emploi_filtre.groupe %} · {{ emploi_filtre.groupe }}{% endif %}
+      {% if emploi_filtre.departement %} · {{ emploi_filtre.departement }}{% endif %}
+    </span>
+    <a href="{{ url_for('sessions.liste') }}" class="clear-link">
+      <i class="fas fa-times"></i> Voir toutes les sessions
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- FILTRES STATUT -->
   <div class="filtres">
     <button class="filtre-btn actif" onclick="filtrer('', this)">{{ _('Toutes') }}</button>
     <button class="filtre-btn" onclick="filtrer('planifiee', this)">{{ _('Planifiées') }}</button>
-    <button class="filtre-btn" onclick="filtrer('en_cours', this)"><i class="fas fa-circle" style="font-size:7px; color:var(--success);"></i> {{ _('En cours') }}</button>
+    <button class="filtre-btn" onclick="filtrer('en_cours', this)">
+      <i class="fas fa-circle" style="font-size:7px; color:var(--success);"></i> {{ _('En cours') }}
+    </button>
     <button class="filtre-btn" onclick="filtrer('terminee', this)">{{ _('Terminées') }}</button>
     <button class="filtre-btn" onclick="filtrer('annulee', this)">{{ _('Annulées') }}</button>
   </div>
 
   <div class="table-card">
     <div class="table-header">
-      <span class="table-title"><i class="fas fa-list"></i> {{ sessions|length }} {{ _('session(s)') }}</span>
+      <span class="table-title">
+        <i class="fas fa-list"></i>
+        {% if emploi_filtre %}
+          {{ sessions|length }} session(s) — {{ emploi_filtre.nom_cours }}
+        {% else %}
+          {{ sessions|length }} {{ _('session(s)') }}
+        {% endif %}
+      </span>
     </div>
 
     {% if sessions %}
@@ -136,7 +183,13 @@
     {% else %}
     <div class="empty">
       <i class="fas fa-clock"></i>
-      <p>{{ _('Aucune session') }}</p>
+      <p>
+        {% if emploi_filtre %}
+          Aucune session pour cet emploi du temps
+        {% else %}
+          {{ _('Aucune session') }}
+        {% endif %}
+      </p>
     </div>
     {% endif %}
   </div>
@@ -145,14 +198,20 @@
 <!-- MODAL NOUVELLE SESSION -->
 <div class="modal-overlay" id="modalNouvelle">
   <div class="modal-box">
-    <div class="modal-title"><i class="fas fa-plus" style="color:var(--accent);"></i> {{ _('Nouvelle session') }}</div>
+    <div class="modal-title">
+      <i class="fas fa-plus" style="color:var(--accent);"></i> {{ _('Nouvelle session') }}
+    </div>
     <div class="form-group">
       <label class="form-label">{{ _('Nom') }} *</label>
-      <input type="text" class="form-input" id="nomSession" placeholder="Ex: Cours Algorithmique G1">
+      <input type="text" class="form-input" id="nomSession"
+             placeholder="Ex: Cours Algorithmique G1"
+             value="{% if emploi_filtre %}{{ emploi_filtre.nom_cours }}{% if emploi_filtre.groupe %} – {{ emploi_filtre.groupe }}{% endif %}{% endif %}">
     </div>
     <div class="form-group">
       <label class="form-label">{{ _('Lieu') }}</label>
-      <input type="text" class="form-input" id="lieuSession" placeholder="Ex: Salle 12">
+      <input type="text" class="form-input" id="lieuSession"
+             placeholder="Ex: Salle 12"
+             value="{% if emploi_filtre %}{{ emploi_filtre.salle or '' }}{% endif %}">
     </div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
       <div class="form-group">
@@ -166,7 +225,9 @@
     </div>
     <div class="form-group">
       <label class="form-label">{{ _('Tolérance retard (min)') }}</label>
-      <input type="number" class="form-input" id="toleranceSession" value="10" min="0" max="60">
+      <input type="number" class="form-input" id="toleranceSession"
+             value="{% if emploi_filtre %}{{ emploi_filtre.tolerance_retard_minutes }}{% else %}10{% endif %}"
+             min="0" max="60">
     </div>
     <div id="modalFeedback" style="font-size:12px; margin-top:8px;"></div>
     <div class="modal-actions">
@@ -194,10 +255,10 @@ function fermerModals() {
 }
 
 function creerSession() {
-    const nom = document.getElementById('nomSession').value.trim();
-    const lieu = document.getElementById('lieuSession').value.trim();
-    const debut = document.getElementById('debutSession').value;
-    const fin = document.getElementById('finSession').value;
+    const nom       = document.getElementById('nomSession').value.trim();
+    const lieu      = document.getElementById('lieuSession').value.trim();
+    const debut     = document.getElementById('debutSession').value;
+    const fin       = document.getElementById('finSession').value;
     const tolerance = document.getElementById('toleranceSession').value;
 
     if (!nom || !debut || !fin) {
@@ -217,27 +278,21 @@ function creerSession() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.succes) {
-            fermerModals();
-            location.reload();
-        } else {
-            afficherFeedback('modalFeedback', data.message, 'danger');
-        }
+        if (data.succes) { fermerModals(); location.reload(); }
+        else { afficherFeedback('modalFeedback', data.message, 'danger'); }
     });
 }
 
 function ouvrirSession(id) {
     fetch(`/sessions/api/${id}/ouvrir`, {
-        method: 'PUT',
-        headers: { 'X-CSRFToken': CSRF }
+        method: 'PUT', headers: { 'X-CSRFToken': CSRF }
     }).then(() => location.reload());
 }
 
 function fermerSession(id) {
     if (!confirm('{{ _("Fermer la session ? Les absents seront marqués automatiquement.") }}')) return;
     fetch(`/sessions/api/${id}/fermer`, {
-        method: 'PUT',
-        headers: { 'X-CSRFToken': CSRF }
+        method: 'PUT', headers: { 'X-CSRFToken': CSRF }
     }).then(() => location.reload());
 }
 
