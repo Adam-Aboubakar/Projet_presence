@@ -21,6 +21,7 @@ csrf = CSRFProtect()
 def create_app(config_name='default'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+    app.config['SESSION_PERMANENT'] = True
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -37,6 +38,8 @@ def create_app(config_name='default'):
     csrf.exempt('app.photos.routes.uploader_photo')
     csrf.exempt('app.photos.routes.capturer_photo')
     csrf.exempt('app.journal.routes.liste_logs')
+    csrf.exempt('app.presences.routes.pointer')
+    csrf.exempt('app.sessions.routes.verifier_rfid')
 
     def get_locale():
         try:
@@ -131,18 +134,11 @@ def create_app(config_name='default'):
     from app.emplois import emplois_bp
     app.register_blueprint(emplois_bp)
 
-        # Démarrer le scheduler
+    # Démarrer le scheduler
     from app.scheduler import init_scheduler
     init_scheduler(app)
 
-    from flask import Blueprint
-    pointage_bp = Blueprint('pointage', __name__, url_prefix='/pointage')
-    from app.pointage import routes
-
     from app.pointage import pointage_bp
     app.register_blueprint(pointage_bp)
-
-    csrf.exempt('app.presences.routes.pointer')
-    csrf.exempt('app.sessions.routes.verifier_rfid')
 
     return app

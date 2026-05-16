@@ -382,6 +382,12 @@
                 <i class="fas fa-triangle-exclamation"></i> {{ _('Seuils absences') }}
             </a>
         </li>
+        <li>
+              <a href="{{ url_for('admin.emplois_du_temps') }}"
+              class="sidebar-link {{ 'actif' if request.endpoint == 'admin.emplois_du_temps' }}">
+                  <i class="fas fa-calendar-alt"></i> {{ _('Emplois du temps') }}
+              </a>
+        </li>
 
         {% elif current_user.role == 'agent' %}
         <li><span class="sidebar-section">

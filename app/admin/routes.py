@@ -1043,3 +1043,37 @@ def supprimer_seuil(seuil_id):
         db.session.rollback()
         flash(f'Erreur : {str(e)}', 'danger')
     return redirect(url_for('admin.seuils_absences'))
+
+@admin.route('/emplois-du-temps')
+@role_requis('admin')
+def emplois_du_temps():
+    from app.models import EmploiDuTemps, Utilisateur
+
+    emplois = db.session.query(EmploiDuTemps).order_by(
+        EmploiDuTemps.jour_semaine,
+        EmploiDuTemps.heure_debut
+    ).all()
+
+    emplois_data = []
+    jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+
+    for emploi in emplois:
+        enseignant = Utilisateur.query.get(emploi.enseignant_id) if emploi.enseignant_id else None
+        emplois_data.append({
+            'id': emploi.id,
+            'nom_cours': emploi.nom_cours,
+            'enseignant': f'{enseignant.prenom} {enseignant.nom}' if enseignant else 'N/A',
+            'groupe': emploi.groupe or 'N/A',
+            'departement': emploi.departement or 'N/A',
+            'niveau': emploi.niveau or 'N/A',
+            'salle': emploi.salle or 'N/A',
+            'jour': jours[emploi.jour_semaine] if emploi.jour_semaine < 7 else 'N/A',
+            'heure_debut': emploi.heure_debut.strftime('%H:%M') if emploi.heure_debut else 'N/A',
+            'heure_fin': emploi.heure_fin.strftime('%H:%M') if emploi.heure_fin else 'N/A',
+            'duree': f'{int((emploi.heure_fin.hour * 60 + emploi.heure_fin.minute - emploi.heure_debut.hour * 60 - emploi.heure_debut.minute))} min' if emploi.heure_debut and emploi.heure_fin else 'N/A',
+            'est_actif': emploi.est_actif,
+            'date_debut': emploi.date_debut_validite.strftime('%d/%m/%Y') if emploi.date_debut_validite else 'N/A',
+            'date_fin': emploi.date_fin_validite.strftime('%d/%m/%Y') if emploi.date_fin_validite else 'N/A',
+        })
+
+    return render_template('admin/emplois_du_temps.html', emplois=emplois_data)

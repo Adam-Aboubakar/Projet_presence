@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% block title %}Emplois du temps — Administration{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+.page-header {
+    padding: 20px 28px 0;
+    display: flex; align-items: flex-start;
+    justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.page-header h1 { font-size: 18px; font-weight: 700; color: var(--primary); }
+.page-header p  { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+.dashboard-body { padding: 18px 28px 36px; display: flex; flex-direction: column; gap: 20px; }
+
+/* FILTRES */
+.filtres {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.filtre-input {
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    min-width: 160px;
+}
+.filtre-input:focus { outline: none; border-color: var(--accent); }
+.btn-reset {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+}
+.btn-reset:hover { background: var(--hover); }
+
+/* STATS */
+.stats-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.stat-mini {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 140px;
+}
+.stat-mini-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+}
+.stat-mini-val { font-size: 20px; font-weight: 700; }
+.stat-mini-label { font-size: 11px; color: var(--text-muted); }
+
+/* TABLE */
+.table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.table-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.table-header h3 { font-size: 14px; font-weight: 600; }
+.count-badge {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 50px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+table { width: 100%; border-collapse: collapse; }
+thead th {
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    background: var(--bg);
+    white-space: nowrap;
+}
+tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--hover); }
+tbody td {
+    padding: 11px 16px;
+    font-size: 13px;
+    vertical-align: middle;
+}
+.badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 50px;
+    font-size: 11px; font-weight: 600;
+}
+.badge-actif   { background: var(--success-soft); color: var(--success); }
+.badge-inactif { background: var(--danger-soft);  color: var(--danger); }
+.badge-jour    { background: var(--info-soft);    color: var(--info); }
+.badge-salle   { background: var(--accent-soft);  color: var(--accent); }
+.cours-nom { font-weight: 600; color: var(--text); }
+.enseignant { color: var(--text-muted); font-size: 12px; }
+.empty-state {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-muted);
+}
+.empty-state i { font-size: 32px; margin-bottom: 12px; display: block; }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-calendar-alt" style="color:var(--accent);margin-right:8px;"></i>Emplois du temps</h1>
+        <p>Vue globale de tous les emplois du temps enregistrés</p>
+    </div>
+</div>
+
+<div class="dashboard-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-mini">
+            <div class="stat-mini-icon" style="background:var(--info-soft);color:var(--info);">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div>
+                <div class="stat-mini-val">{{ emplois|length }}</div>
+                <div class="stat-mini-label">Total emplois</div>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-icon" style="background:var(--success-soft);color:var(--success);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+                <div class="stat-mini-val">{{ emplois|selectattr('est_actif')|list|length }}</div>
+                <div class="stat-mini-label">Actifs</div>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-icon" style="background:var(--accent-soft);color:var(--accent);">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div>
+                <div class="stat-mini-val">{{ emplois|map(attribute='enseignant')|unique|list|length }}</div>
+                <div class="stat-mini-label">Enseignants</div>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-icon" style="background:var(--warning-soft);color:var(--warning);">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <div>
+                <div class="stat-mini-val">{{ emplois|map(attribute='salle')|unique|list|length }}</div>
+                <div class="stat-mini-label">Salles utilisées</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="filtres">
+        <input type="text" class="filtre-input" id="f-cours" placeholder="🔍 Cours..." oninput="filtrer()">
+        <input type="text" class="filtre-input" id="f-enseignant" placeholder="👤 Enseignant..." oninput="filtrer()">
+        <input type="text" class="filtre-input" id="f-groupe" placeholder="👥 Groupe..." oninput="filtrer()">
+        <input type="text" class="filtre-input" id="f-salle" placeholder="🚪 Salle..." oninput="filtrer()">
+        <select class="filtre-input" id="f-jour" onchange="filtrer()">
+            <option value="">Tous les jours</option>
+            <option>Lundi</option><option>Mardi</option><option>Mercredi</option>
+            <option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
+        </select>
+        <select class="filtre-input" id="f-statut" onchange="filtrer()">
+            <option value="">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+        </select>
+        <button class="btn-reset" onclick="resetFiltres()">↺ Réinitialiser</button>
+        <span id="compteur" style="font-size:12px;color:var(--text-muted);margin-left:auto;"></span>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+        <div class="table-header">
+            <h3><i class="fas fa-list" style="margin-right:8px;color:var(--accent);"></i>Liste des emplois du temps</h3>
+            <span class="count-badge" id="badge-count">{{ emplois|length }} emplois</span>
+        </div>
+        {% if emplois %}
+        <table id="table-emplois">
+            <thead>
+                <tr>
+                    <th>Cours</th>
+                    <th>Enseignant</th>
+                    <th>Filière / Niveau</th>
+                    <th>Groupe</th>
+                    <th>Jour</th>
+                    <th>Horaire</th>
+                    <th>Durée</th>
+                    <th>Salle</th>
+                    <th>Validité</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-emplois">
+                {% for e in emplois %}
+                <tr class="row-emploi"
+                    data-cours="{{ e.nom_cours|lower }}"
+                    data-enseignant="{{ e.enseignant|lower }}"
+                    data-groupe="{{ e.groupe|lower }}"
+                    data-salle="{{ e.salle|lower }}"
+                    data-jour="{{ e.jour|lower }}"
+                    data-statut="{{ 'actif' if e.est_actif else 'inactif' }}">
+                    <td>
+                        <div class="cours-nom">{{ e.nom_cours }}</div>
+                    </td>
+                    <td class="enseignant">{{ e.enseignant }}</td>
+                    <td>
+                        <span style="font-size:12px;">{{ e.departement }}</span>
+                        {% if e.niveau != 'N/A' %}
+                        <span style="color:var(--text-muted);font-size:12px;"> / {{ e.niveau }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ e.groupe }}</td>
+                    <td><span class="badge badge-jour">{{ e.jour }}</span></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">
+                        {{ e.heure_debut }} → {{ e.heure_fin }}
+                    </td>
+                    <td style="color:var(--text-muted);font-size:12px;">{{ e.duree }}</td>
+                    <td><span class="badge badge-salle">{{ e.salle }}</span></td>
+                    <td style="font-size:11px;color:var(--text-muted);">
+                        {{ e.date_debut }} → {{ e.date_fin }}
+                    </td>
+                    <td>
+                        <span class="badge {{ 'badge-actif' if e.est_actif else 'badge-inactif' }}">
+                            {{ 'Actif' if e.est_actif else 'Inactif' }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <p>Aucun emploi du temps enregistré</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+function filtrer() {
+    const cours = document.getElementById('f-cours').value.toLowerCase();
+    const ens   = document.getElementById('f-enseignant').value.toLowerCase();
+    const grp   = document.getElementById('f-groupe').value.toLowerCase();
+    const salle = document.getElementById('f-salle').value.toLowerCase();
+    const jour  = document.getElementById('f-jour').value.toLowerCase();
+    const statut = document.getElementById('f-statut').value.toLowerCase();
+
+    const rows = document.querySelectorAll('.row-emploi');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const ok =
+            (!cours  || row.dataset.cours.includes(cours)) &&
+            (!ens    || row.dataset.enseignant.includes(ens)) &&
+            (!grp    || row.dataset.groupe.includes(grp)) &&
+            (!salle  || row.dataset.salle.includes(salle)) &&
+            (!jour   || row.dataset.jour.includes(jour)) &&
+            (!statut || row.dataset.statut === statut);
+
+        row.style.display = ok ? '' : 'none';
+        if (ok) visible++;
+    });
+
+    document.getElementById('badge-count').textContent = visible + ' emplois';
+    document.getElementById('compteur').textContent = visible + ' résultat(s)';
+}
+
+function resetFiltres() {
+    ['f-cours','f-enseignant','f-groupe','f-salle','f-jour','f-statut'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = '';
+    });
+    filtrer();
+}
+</script>
+{% endblock %}

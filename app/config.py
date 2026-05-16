@@ -52,7 +52,7 @@ class Config:
 
     # --- Sécurité session ---
     from datetime import timedelta
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=5)
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     SESSION_COOKIE_SECURE = False      # True en production HTTPS
     SESSION_COOKIE_HTTPONLY = True     # protection XSS
     SESSION_COOKIE_SAMESITE = 'Lax'   # protection CSRF
