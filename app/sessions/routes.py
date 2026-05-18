@@ -44,6 +44,9 @@ def creer_session():
         fin = datetime.fromisoformat(heure_fin)
     except ValueError:
         return jsonify({'succes': False, 'message': 'Format datetime invalide. Utiliser ISO 8601'}), 400
+    
+    if debut < datetime.now():
+        return jsonify({'succes': False, 'message': 'L\'heure de début doit être dans le futur'}), 400
 
     if fin <= debut:
         return jsonify({'succes': False, 'message': 'heure_fin doit être après heure_debut'}), 400
@@ -537,3 +540,68 @@ def detail(session_id):
         mode=mode,
         groupe=groupe
     )
+
+@sessions_bp.route('/api/verifier-salle', methods=['GET'])
+@role_requis('enseignant')
+def verifier_salle():
+    salle     = request.args.get('salle', '').strip()
+    debut_str = request.args.get('debut', '')
+    fin_str   = request.args.get('fin', '')
+
+    if not salle or not debut_str or not fin_str:
+        return jsonify({'libre': True})
+
+    try:
+        debut = datetime.fromisoformat(debut_str)
+        fin   = datetime.fromisoformat(fin_str)
+    except ValueError:
+        return jsonify({'libre': True})
+
+    conflit = Session.query.filter(
+        Session.lieu == salle,
+        Session.statut.in_(['planifiee', 'en_cours']),
+        Session.heure_debut < fin,
+        Session.heure_fin   > debut
+    ).first()
+
+    if conflit:
+        return jsonify({'libre': False, 'session': conflit.nom})
+    return jsonify({'libre': True})
+
+@sessions_bp.route('/api/<string:session_id>/modifier', methods=['PUT'])
+@role_requis('enseignant')
+def modifier_session(session_id):
+    session = Session.query.get_or_404(session_id)
+    
+    if session.statut != 'planifiee':
+        return jsonify({'succes': False, 'message': 'Seules les sessions planifiées peuvent être modifiées'}), 400
+
+    data = request.get_json()
+    nom         = data.get('nom', '').strip()
+    lieu        = data.get('lieu', '').strip()
+    heure_debut = data.get('heure_debut')
+    heure_fin   = data.get('heure_fin')
+    tolerance   = data.get('tolerance_retard_minutes', 10)
+
+    if not nom or not heure_debut or not heure_fin:
+        return jsonify({'succes': False, 'message': 'Nom, début et fin obligatoires'}), 400
+
+    try:
+        debut = datetime.fromisoformat(heure_debut)
+        fin   = datetime.fromisoformat(heure_fin)
+    except ValueError:
+        return jsonify({'succes': False, 'message': 'Format datetime invalide'}), 400
+
+    if fin <= debut:
+        return jsonify({'succes': False, 'message': 'La fin doit être après le début'}), 400
+
+    session.nom                    = nom
+    session.lieu                   = lieu
+    session.heure_debut            = debut
+    session.heure_fin              = fin
+    session.tolerance_retard_minutes = tolerance
+
+    journaliser('session_modifiee', f'Session modifiée : {nom}')
+    db.session.commit()
+
+    return jsonify({'succes': True, 'message': 'Session modifiée avec succès'})

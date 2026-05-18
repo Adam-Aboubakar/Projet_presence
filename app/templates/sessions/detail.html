@@ -34,7 +34,7 @@
   .badge-retard  { background:var(--warning-soft); color:var(--warning); }
   .badge-absent  { background:var(--danger-soft);  color:var(--danger); }
 
-  .session-info { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); padding:16px 20px; display:flex; gap:24px; flex-wrap:wrap; }
+  .session-info { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); padding:16px 20px; display:flex; gap:24px; flex-wrap:wrap; align-items:center; }
   .info-item { display:flex; flex-direction:column; gap:3px; }
   .info-label { font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
   .info-value { font-size:13px; font-weight:500; color:var(--text); font-family:'JetBrains Mono',monospace; }
@@ -45,16 +45,42 @@
   .statut-terminee  { background:var(--border); color:var(--text-muted); }
   .statut-annulee   { background:var(--danger-soft); color:var(--danger); }
 
-  .btn-ouvrir { background:var(--success); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
-  .btn-fermer { background:var(--danger); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
+  /* Boutons actions */
+  .actions-groupe { margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .btn-action-sm { display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; border:none; transition:all 0.15s; }
+  .btn-ouvrir  { background:var(--success); color:white; }
+  .btn-ouvrir:hover  { background:#0d8a4d; }
+  .btn-fermer  { background:var(--danger); color:white; }
+  .btn-fermer:hover  { background:#c23b2e; }
+  .btn-modifier { background:var(--info-soft); color:var(--info); border:1.5px solid var(--info-soft); }
+  .btn-modifier:hover { background:var(--info); color:white; }
+  .btn-annuler  { background:var(--danger-soft); color:var(--danger); border:1.5px solid var(--danger-soft); }
+  .btn-annuler:hover  { background:var(--danger); color:white; }
 
   .empty { padding:30px; text-align:center; color:var(--text-muted); font-size:12.5px; }
   .empty i { font-size:24px; opacity:.3; display:block; margin-bottom:8px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:16px; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:22px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
+  .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .form-group { margin-bottom:10px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
+  .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; box-sizing:border-box; }
+  .form-input:focus { border-color:var(--info); }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+  .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-confirm:disabled { opacity:0.6; cursor:not-allowed; }
+  .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-danger  { background:var(--danger); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
 
   @media (max-width:768px) {
     .stat-row { grid-template-columns:1fr 1fr; }
     .detail-body { padding:14px 14px 28px; }
     .page-header { padding:14px 14px 0; }
+    .form-grid-2 { grid-template-columns:1fr; }
   }
 </style>
 
@@ -89,15 +115,23 @@
       <div class="info-label">{{ _('Tolérance retard') }}</div>
       <div class="info-value">{{ session.tolerance_retard_minutes }} min</div>
     </div>
-    <div style="margin-left:auto; display:flex; align-items:center;">
+
+    <!-- Boutons selon statut -->
+    <div class="actions-groupe">
       {% if session.statut == 'planifiee' %}
-      <button class="btn-ouvrir" onclick="ouvrirSession('{{ session.id }}')">
-        <i class="fas fa-play"></i> {{ _('Ouvrir') }}
-      </button>
+        <button class="btn-action-sm btn-modifier" onclick="ouvrirModalModifier()">
+          <i class="fas fa-pen"></i> {{ _('Modifier') }}
+        </button>
+        <button class="btn-action-sm btn-annuler" onclick="ouvrirModalAnnuler()">
+          <i class="fas fa-ban"></i> {{ _('Annuler') }}
+        </button>
+        <button class="btn-action-sm btn-ouvrir" onclick="ouvrirSession('{{ session.id }}')">
+          <i class="fas fa-play"></i> {{ _('Ouvrir') }}
+        </button>
       {% elif session.statut == 'en_cours' %}
-      <button class="btn-fermer" onclick="fermerSession('{{ session.id }}')">
-        <i class="fas fa-stop"></i> {{ _('Fermer la session') }}
-      </button>
+        <button class="btn-action-sm btn-fermer" onclick="fermerSession('{{ session.id }}')">
+          <i class="fas fa-stop"></i> {{ _('Fermer la session') }}
+        </button>
       {% endif %}
     </div>
   </div>
@@ -131,9 +165,9 @@
       </span>
       {% if session.statut == 'terminee' %}
       <a href="/rapports/api/excel/session/{{ session.id }}"
-      style="font-size:12px; color:var(--success); font-weight:600; text-decoration:none;">
-      <i class="fas fa-download"></i> {{ _('Exporter Excel') }}
-     </a>
+         style="font-size:12px; color:var(--success); font-weight:600; text-decoration:none;">
+        <i class="fas fa-download"></i> {{ _('Exporter Excel') }}
+      </a>
       {% endif %}
     </div>
 
@@ -151,9 +185,7 @@
       <tbody>
         {% for item in presences_detail %}
         <tr>
-          <td>
-            <strong>{{ item.personne.prenom }} {{ item.personne.nom }}</strong>
-          </td>
+          <td><strong>{{ item.personne.prenom }} {{ item.personne.nom }}</strong></td>
           <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">
             {{ item.personne.identifiant if item.personne else '—' }}
           </td>
@@ -185,20 +217,170 @@
 
 </div>
 
+<!-- ── MODAL MODIFIER ── -->
+<div class="modal-overlay" id="modalModifier">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="fas fa-pen" style="color:var(--info);"></i> {{ _('Modifier la session') }}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">{{ _('Nom') }} *</label>
+      <input type="text" class="form-input" id="modNom" value="{{ session.nom }}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">{{ _('Lieu / Salle') }}</label>
+      <input type="text" class="form-input" id="modLieu" value="{{ session.lieu or '' }}">
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">{{ _('Début') }} *</label>
+        <input type="text" class="form-input" id="modDebut"
+               placeholder="jj/mm/aaaa hh:mm" maxlength="16"
+               value="{{ session.heure_debut.strftime('%d/%m/%Y %H:%M') if session.heure_debut else '' }}"
+               oninput="masqueDateHeure(this)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Fin') }} *</label>
+        <input type="text" class="form-input" id="modFin"
+               placeholder="jj/mm/aaaa hh:mm" maxlength="16"
+               value="{{ session.heure_fin.strftime('%d/%m/%Y %H:%M') if session.heure_fin else '' }}"
+               oninput="masqueDateHeure(this)">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">{{ _('Tolérance retard (min)') }}</label>
+      <input type="number" class="form-input" id="modTolerance"
+             value="{{ session.tolerance_retard_minutes }}" min="0" max="60">
+    </div>
+
+    <div id="modFeedback" style="font-size:12px; margin-top:8px;"></div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <button class="btn-confirm" id="btnModifier" onclick="modifierSession()">
+        <i class="fas fa-save"></i> {{ _('Enregistrer') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL ANNULER ── -->
+<div class="modal-overlay" id="modalAnnuler">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="fas fa-ban" style="color:var(--danger);"></i> {{ _('Annuler la session') }}
+    </div>
+    <p style="font-size:13px; color:var(--text); margin-bottom:16px; line-height:1.6;">
+      Voulez-vous vraiment annuler la session <strong>{{ session.nom }}</strong> ?<br>
+      <span style="color:var(--text-muted); font-size:12px;">Cette action est irréversible.</span>
+    </p>
+    <div id="annulerFeedback" style="font-size:12px; margin-top:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Retour') }}</button>
+      <button class="btn-danger" onclick="annulerSession()">
+        <i class="fas fa-ban"></i> {{ _('Confirmer l\'annulation') }}
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
 
-function ouvrirSession(id) {
-    fetch(`/sessions/api/${id}/ouvrir`, {
+// ── Masque date heure ──────────────────────────────────────
+function masqueDateHeure(input) {
+    let v = input.value.replace(/[^\d]/g, '').substring(0, 12);
+    let r = '';
+    if (v.length > 0)  r += v.substring(0,2);
+    if (v.length > 2)  r += '/' + v.substring(2,4);
+    if (v.length > 4)  r += '/' + v.substring(4,8);
+    if (v.length > 8)  r += ' ' + v.substring(8,10);
+    if (v.length > 10) r += ':' + v.substring(10,12);
+    input.value = r;
+}
+
+function versISO(str) {
+    if (!str || str.length < 16) return null;
+    const [datePart, timePart] = str.split(' ');
+    if (!datePart || !timePart) return null;
+    const [j, m, a] = datePart.split('/');
+    if (!j || !m || !a || a.length !== 4) return null;
+    return `${a}-${m}-${j}T${timePart}:00`;
+}
+
+// ── Modals ─────────────────────────────────────────────────
+function ouvrirModalModifier() {
+    document.getElementById('modalModifier').classList.add('show');
+}
+function ouvrirModalAnnuler() {
+    document.getElementById('modalAnnuler').classList.add('show');
+}
+function fermerModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+// ── Modifier session ───────────────────────────────────────
+function modifierSession() {
+    const nom       = document.getElementById('modNom').value.trim();
+    const lieu      = document.getElementById('modLieu').value.trim();
+    const debut     = versISO(document.getElementById('modDebut').value);
+    const fin       = versISO(document.getElementById('modFin').value);
+    const tolerance = parseInt(document.getElementById('modTolerance').value);
+
+    if (!nom)   { afficherFeedback('modFeedback', 'Le nom est obligatoire', 'danger'); return; }
+    if (!debut) { afficherFeedback('modFeedback', 'Date début invalide — format : jj/mm/aaaa hh:mm', 'danger'); return; }
+    if (!fin)   { afficherFeedback('modFeedback', 'Date fin invalide — format : jj/mm/aaaa hh:mm', 'danger'); return; }
+    if (fin <= debut) { afficherFeedback('modFeedback', 'La fin doit être après le début', 'danger'); return; }
+
+    const btn = document.getElementById('btnModifier');
+    btn.disabled = true;
+
+    fetch('/sessions/api/{{ session.id }}/modifier', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify({ nom, lieu, heure_debut: debut, heure_fin: fin, tolerance_retard_minutes: tolerance })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        if (data.succes) { fermerModals(); location.reload(); }
+        else { afficherFeedback('modFeedback', data.message, 'danger'); }
+    })
+    .catch(() => { btn.disabled = false; afficherFeedback('modFeedback', 'Erreur réseau', 'danger'); });
+}
+
+// ── Annuler session ────────────────────────────────────────
+function annulerSession() {
+    fetch('/sessions/api/{{ session.id }}/annuler', {
         method: 'PUT', headers: { 'X-CSRFToken': CSRF }
-    }).then(() => location.reload());
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.succes) { window.location.href = '{{ url_for("sessions.liste") }}'; }
+        else { afficherFeedback('annulerFeedback', data.message, 'danger'); }
+    });
+}
+
+// ── Actions existantes ─────────────────────────────────────
+function ouvrirSession(id) {
+    fetch(`/sessions/api/${id}/ouvrir`, { method:'PUT', headers:{'X-CSRFToken':CSRF} })
+    .then(() => location.reload());
 }
 
 function fermerSession(id) {
     if (!confirm('{{ _("Fermer la session ? Les absents seront marqués automatiquement.") }}')) return;
-    fetch(`/sessions/api/${id}/fermer`, {
-        method: 'PUT', headers: { 'X-CSRFToken': CSRF }
-    }).then(() => location.reload());
+    fetch(`/sessions/api/${id}/fermer`, { method:'PUT', headers:{'X-CSRFToken':CSRF} })
+    .then(() => location.reload());
 }
+
+function afficherFeedback(id, msg, type) {
+    const c = { success:'var(--success)', danger:'var(--danger)', info:'var(--info)' };
+    document.getElementById(id).innerHTML = `<span style="color:${c[type]}; display:flex; align-items:center; gap:5px;"><i class="fas fa-exclamation-circle"></i>${msg}</span>`;
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) fermerModals(); });
+});
 </script>
 {% endblock %}

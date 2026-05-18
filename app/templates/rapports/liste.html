@@ -16,7 +16,7 @@
   .form-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; align-items:end; }
   .form-group { display:flex; flex-direction:column; gap:5px; }
   .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
-  .form-input { background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; width:100%; }
+  .form-input { background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; width:100%; box-sizing:border-box; }
   .form-input:focus { border-color:var(--info); }
   select.form-input { cursor:pointer; }
 
@@ -29,6 +29,8 @@
 
   .etudiant-search { display:flex; gap:10px; align-items:end; flex-wrap:wrap; }
   .etudiant-search .form-group { flex:1; min-width:180px; }
+
+  .form-error { font-size:11.5px; color:var(--danger); margin-top:6px; display:none; align-items:center; gap:5px; }
 
   @media (max-width:768px) {
     .body { padding:14px 14px 28px; }
@@ -64,13 +66,16 @@
         </div>
         <div class="form-group">
           <label class="form-label">{{ _('Date début') }}</label>
-          <input type="date" class="form-input" id="dateDebutGroupe">
+          <input type="text" class="form-input" id="dateDebutGroupe"
+                 placeholder="jj/mm/aaaa" maxlength="10" oninput="masqueDate(this)">
         </div>
         <div class="form-group">
           <label class="form-label">{{ _('Date fin') }}</label>
-          <input type="date" class="form-input" id="dateFinGroupe">
+          <input type="text" class="form-input" id="dateFinGroupe"
+                 placeholder="jj/mm/aaaa" maxlength="10" oninput="masqueDate(this)">
         </div>
       </div>
+      <div id="erreurGroupe" class="form-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
       <div class="btn-row">
         <a href="#" class="btn-dl btn-excel" onclick="telechargerGroupe('resume'); return false;">
           <i class="fas fa-table"></i> {{ _('Excel Résumé') }}
@@ -99,30 +104,34 @@
           <label class="form-label">{{ _('Rechercher un étudiant') }}</label>
           <input type="text" class="form-input" id="rechercheEtudiant"
                  placeholder="{{ _('Nom, prénom ou identifiant...') }}"
-                 oninput="rechercherEtudiant(this.value)">
+                 oninput="rechercherEtudiant(this.value)" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">{{ _('Date début') }}</label>
-          <input type="date" class="form-input" id="dateDebutEtudiant">
+          <input type="text" class="form-input" id="dateDebutEtudiant"
+                 placeholder="jj/mm/aaaa" maxlength="10" oninput="masqueDate(this)">
         </div>
         <div class="form-group">
           <label class="form-label">{{ _('Date fin') }}</label>
-          <input type="date" class="form-input" id="dateFinEtudiant">
+          <input type="text" class="form-input" id="dateFinEtudiant"
+                 placeholder="jj/mm/aaaa" maxlength="10" oninput="masqueDate(this)">
         </div>
       </div>
 
-      <!-- Résultats recherche -->
-      <div id="resultatsRecherche" style="margin-top:12px; display:none;">
-        <div style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">
-          {{ _('Résultats') }}
-        </div>
+      <div id="resultatsRecherche" style="margin-top:12px; display:none; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
         <div id="listeResultats"></div>
       </div>
 
       <input type="hidden" id="etudiantId">
-      <div id="etudiantSelectionne" style="display:none; margin-top:12px; padding:10px 14px; background:var(--success-soft); border-radius:var(--radius); font-size:13px; color:var(--success); font-weight:600;">
-        <i class="fas fa-user-check"></i> <span id="etudiantNom"></span>
+      <div id="etudiantSelectionne" style="display:none; margin-top:12px; padding:10px 14px; background:var(--success-soft); border-radius:var(--radius); font-size:13px; color:var(--success); font-weight:600; align-items:center; gap:8px;">
+        <i class="fas fa-user-check"></i>
+        <span id="etudiantNom"></span>
+        <button onclick="effacerEtudiant()" style="margin-left:auto; background:none; border:none; cursor:pointer; color:var(--success); font-size:13px;">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
+
+      <div id="erreurEtudiant" class="form-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
 
       <div class="btn-row" style="margin-top:14px;">
         <a href="#" class="btn-dl btn-pdf" onclick="telechargerEtudiant(); return false;">
@@ -135,55 +144,95 @@
 </div>
 
 <script>
+// ── Pré-remplir dates au chargement ────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const auj = new Date();
+    const jj  = String(auj.getDate()).padStart(2, '0');
+    const mm  = String(auj.getMonth() + 1).padStart(2, '0');
+    const aa  = auj.getFullYear();
+    document.getElementById('dateDebutGroupe').value   = `01/${mm}/${aa}`;
+    document.getElementById('dateFinGroupe').value     = `${jj}/${mm}/${aa}`;
+    document.getElementById('dateDebutEtudiant').value = `01/${mm}/${aa}`;
+    document.getElementById('dateFinEtudiant').value   = `${jj}/${mm}/${aa}`;
+});
+
+// ── Masque automatique jj/mm/aaaa ──────────────────────────
+function masqueDate(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 8);
+    if (v.length >= 5)      v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
+    else if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+    input.value = v;
+}
+
+// ── Convertit jj/mm/aaaa → aaaa-mm-jj pour l'API ──────────
+function versISO(dateStr) {
+    if (!dateStr || dateStr.length !== 10) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3 || parts[2].length !== 4) return null;
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+}
+
+// ── Affichage erreur inline ────────────────────────────────
+function afficherErreur(id, msg) {
+    const el = document.getElementById(id);
+    el.querySelector('span').textContent = msg;
+    el.style.display = 'flex';
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// ── Téléchargement groupe ──────────────────────────────────
 function telechargerGroupe(type) {
     const groupe = document.getElementById('groupeSelect').value;
-    const debut  = document.getElementById('dateDebutGroupe').value;
-    const fin    = document.getElementById('dateFinGroupe').value;
+    const debut  = versISO(document.getElementById('dateDebutGroupe').value);
+    const fin    = versISO(document.getElementById('dateFinGroupe').value);
 
-    if (!groupe || !debut || !fin) {
-        alert('{{ _("Sélectionnez un groupe et les dates") }}');
-        return;
-    }
+    if (!groupe) { afficherErreur('erreurGroupe', 'Veuillez sélectionner un groupe'); return; }
+    if (!debut)  { afficherErreur('erreurGroupe', 'Date début invalide — format : jj/mm/aaaa'); return; }
+    if (!fin)    { afficherErreur('erreurGroupe', 'Date fin invalide — format : jj/mm/aaaa'); return; }
+    if (fin < debut) { afficherErreur('erreurGroupe', 'La date de fin doit être après la date de début'); return; }
+
     window.open(`/rapports/api/excel/groupe/${type}?groupe=${groupe}&date_debut=${debut}&date_fin=${fin}`);
 }
 
+// ── Téléchargement étudiant ────────────────────────────────
 function telechargerEtudiant() {
     const id    = document.getElementById('etudiantId').value;
-    const debut = document.getElementById('dateDebutEtudiant').value;
-    const fin   = document.getElementById('dateFinEtudiant').value;
+    const debut = versISO(document.getElementById('dateDebutEtudiant').value);
+    const fin   = versISO(document.getElementById('dateFinEtudiant').value);
 
-    if (!id || !debut || !fin) {
-        alert('{{ _("Sélectionnez un étudiant et les dates") }}');
-        return;
-    }
+    if (!id)    { afficherErreur('erreurEtudiant', 'Veuillez sélectionner un étudiant'); return; }
+    if (!debut) { afficherErreur('erreurEtudiant', 'Date début invalide — format : jj/mm/aaaa'); return; }
+    if (!fin)   { afficherErreur('erreurEtudiant', 'Date fin invalide — format : jj/mm/aaaa'); return; }
+    if (fin < debut) { afficherErreur('erreurEtudiant', 'La date de fin doit être après la date de début'); return; }
+
     window.open(`/rapports/api/pdf/etudiant/${id}?date_debut=${debut}&date_fin=${fin}`);
 }
 
+// ── Recherche étudiant ─────────────────────────────────────
 function rechercherEtudiant(q) {
     if (q.length < 2) {
         document.getElementById('resultatsRecherche').style.display = 'none';
         return;
     }
-
     fetch(`/personnes/api/rechercher?q=${encodeURIComponent(q)}`)
     .then(r => r.json())
     .then(data => {
-        const liste = document.getElementById('listeResultats');
+        const liste     = document.getElementById('listeResultats');
         const conteneur = document.getElementById('resultatsRecherche');
-
         if (data.personnes && data.personnes.length > 0) {
             liste.innerHTML = data.personnes.map(p => `
                 <div onclick="selectionnerEtudiant('${p.id}', '${p.prenom} ${p.nom}')"
-                     style="padding:8px 12px; cursor:pointer; border-radius:var(--radius); font-size:13px; transition:background 0.12s;"
+                     style="padding:9px 14px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--border); transition:background 0.12s; display:flex; align-items:center; gap:10px;"
                      onmouseover="this.style.background='var(--row-hover)'"
                      onmouseout="this.style.background='transparent'">
+                    <i class="fas fa-user" style="color:var(--text-muted); font-size:11px;"></i>
                     <strong>${p.prenom} ${p.nom}</strong>
-                    <span style="color:var(--text-muted); font-size:11px; margin-left:8px; font-family:'JetBrains Mono',monospace;">${p.identifiant}</span>
+                    <span style="color:var(--text-muted); font-size:11px; margin-left:auto; font-family:'JetBrains Mono',monospace;">${p.identifiant}</span>
                 </div>
             `).join('');
             conteneur.style.display = 'block';
         } else {
-            liste.innerHTML = '<div style="padding:8px 12px; color:var(--text-muted); font-size:13px;">{{ _("Aucun résultat") }}</div>';
+            liste.innerHTML = '<div style="padding:10px 14px; color:var(--text-muted); font-size:13px;">{{ _("Aucun résultat") }}</div>';
             conteneur.style.display = 'block';
         }
     });
@@ -192,9 +241,22 @@ function rechercherEtudiant(q) {
 function selectionnerEtudiant(id, nom) {
     document.getElementById('etudiantId').value = id;
     document.getElementById('etudiantNom').textContent = nom;
-    document.getElementById('etudiantSelectionne').style.display = 'block';
+    document.getElementById('etudiantSelectionne').style.display = 'flex';
     document.getElementById('resultatsRecherche').style.display = 'none';
     document.getElementById('rechercheEtudiant').value = nom;
 }
+
+function effacerEtudiant() {
+    document.getElementById('etudiantId').value = '';
+    document.getElementById('etudiantNom').textContent = '';
+    document.getElementById('etudiantSelectionne').style.display = 'none';
+    document.getElementById('rechercheEtudiant').value = '';
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('#rechercheEtudiant') && !e.target.closest('#resultatsRecherche')) {
+        document.getElementById('resultatsRecherche').style.display = 'none';
+    }
+});
 </script>
 {% endblock %}

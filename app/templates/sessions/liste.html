@@ -8,13 +8,11 @@
 
   .sessions-body { padding:16px 28px 36px; }
 
-  /* FILTRES */
   .filtres { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
   .filtre-btn { padding:6px 14px; border-radius:50px; border:1.5px solid var(--border); background:var(--input-bg); font-size:12px; font-weight:600; color:var(--text-muted); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
   .filtre-btn:hover { border-color:var(--accent); color:var(--accent); }
   .filtre-btn.actif { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
 
-  /* TABLE */
   .table-card { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
   .table-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
   .table-title { font-size:13px; font-weight:600; color:var(--text); }
@@ -43,41 +41,42 @@
   .empty { padding:40px; text-align:center; color:var(--text-muted); }
   .empty i { font-size:32px; opacity:.3; display:block; margin-bottom:10px; }
 
-  /* BANDEAU FILTRE EMPLOI */
-  .filtre-emploi-banner {
-    display:flex; align-items:center; gap:10px;
-    margin-bottom:14px; padding:10px 14px;
-    background:var(--accent-soft); border-radius:var(--radius);
-    border:1.5px solid var(--accent); font-size:13px;
-  }
+  .filtre-emploi-banner { display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:10px 14px; background:var(--accent-soft); border-radius:var(--radius); border:1.5px solid var(--accent); font-size:13px; }
   .filtre-emploi-banner i { color:var(--accent); }
-  .filtre-emploi-banner .clear-link {
-    margin-left:auto; font-size:12px; color:var(--accent);
-    font-weight:600; text-decoration:none; display:flex; align-items:center; gap:4px;
-  }
-  .filtre-emploi-banner .clear-link:hover { opacity:0.75; }
+  .filtre-emploi-banner .clear-link { margin-left:auto; font-size:12px; color:var(--accent); font-weight:600; text-decoration:none; display:flex; align-items:center; gap:4px; }
 
-  /* NOUVELLE SESSION */
   .btn-new { background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:var(--radius); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition:background 0.15s; }
   .btn-new:hover { background:#D4400E; }
 
-  /* MODAL */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+  /* ── MODAL ── */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:16px; }
   .modal-overlay.show { display:flex; }
-  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:22px; width:100%; max-width:420px; }
+  .modal-box { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:22px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; }
   .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-  .form-group { margin-bottom:12px; }
+
+  .form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .form-group { margin-bottom:10px; }
   .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px; }
   .form-input { width:100%; background:var(--input-bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:9px 12px; font-size:13px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; box-sizing:border-box; }
   .form-input:focus { border-color:var(--info); }
+
+  .section-sep { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin:14px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+
+  .salle-status { font-size:11.5px; margin-top:5px; display:none; align-items:center; gap:5px; }
+  .salle-status.libre   { color:var(--success); display:flex; }
+  .salle-status.occupe  { color:var(--danger);  display:flex; }
+  .salle-status.loading { color:var(--text-muted); display:flex; }
+
   .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
   .btn-confirm { background:var(--accent); color:white; border:none; padding:8px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-confirm:disabled { opacity:0.6; cursor:not-allowed; }
   .btn-cancel  { background:var(--input-bg); color:var(--text); border:1.5px solid var(--border); padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
 
   @media (max-width:768px) {
     .sessions-body { padding:14px 14px 28px; }
     .page-header { padding:14px 14px 0; }
     th:nth-child(3), td:nth-child(3) { display:none; }
+    .form-grid-2 { grid-template-columns:1fr; }
   }
 </style>
 
@@ -85,26 +84,23 @@
   <h1>
     <i class="fas fa-clock" style="color:var(--accent); margin-right:8px;"></i>
     {% if emploi_filtre %}
-      {{ emploi_filtre.nom_cours }}
-      {% if emploi_filtre.groupe %} · {{ emploi_filtre.groupe }}{% endif %}
+      {{ emploi_filtre.nom_cours }}{% if emploi_filtre.groupe %} · {{ emploi_filtre.groupe }}{% endif %}
     {% else %}
       {{ _('Sessions') }}
     {% endif %}
   </h1>
-  <button class="btn-new" onclick="document.getElementById('modalNouvelle').classList.add('show')">
+  <button class="btn-new" onclick="ouvrirModal()">
     <i class="fas fa-plus"></i> {{ _('Nouvelle session') }}
   </button>
 </div>
 
 <div class="sessions-body">
 
-  <!-- BANDEAU FILTRE EMPLOI DU TEMPS -->
   {% if emploi_filtre %}
   <div class="filtre-emploi-banner">
     <i class="fas fa-calendar-week"></i>
     <span>
-      Filtré par emploi du temps :
-      <strong>{{ emploi_filtre.nom_cours }}</strong>
+      Filtré par emploi du temps : <strong>{{ emploi_filtre.nom_cours }}</strong>
       {% if emploi_filtre.groupe %} · {{ emploi_filtre.groupe }}{% endif %}
       {% if emploi_filtre.departement %} · {{ emploi_filtre.departement }}{% endif %}
     </span>
@@ -114,7 +110,6 @@
   </div>
   {% endif %}
 
-  <!-- FILTRES STATUT -->
   <div class="filtres">
     <button class="filtre-btn actif" onclick="filtrer('', this)">{{ _('Toutes') }}</button>
     <button class="filtre-btn" onclick="filtrer('planifiee', this)">{{ _('Planifiées') }}</button>
@@ -129,11 +124,8 @@
     <div class="table-header">
       <span class="table-title">
         <i class="fas fa-list"></i>
-        {% if emploi_filtre %}
-          {{ sessions|length }} session(s) — {{ emploi_filtre.nom_cours }}
-        {% else %}
-          {{ sessions|length }} {{ _('session(s)') }}
-        {% endif %}
+        {% if emploi_filtre %}{{ sessions|length }} session(s) — {{ emploi_filtre.nom_cours }}
+        {% else %}{{ sessions|length }} {{ _('session(s)') }}{% endif %}
       </span>
     </div>
 
@@ -183,56 +175,90 @@
     {% else %}
     <div class="empty">
       <i class="fas fa-clock"></i>
-      <p>
-        {% if emploi_filtre %}
-          Aucune session pour cet emploi du temps
-        {% else %}
-          {{ _('Aucune session') }}
-        {% endif %}
-      </p>
+      <p>{% if emploi_filtre %}Aucune session pour cet emploi du temps{% else %}{{ _('Aucune session') }}{% endif %}</p>
     </div>
     {% endif %}
   </div>
 </div>
 
-<!-- MODAL NOUVELLE SESSION -->
+<!-- ── MODAL NOUVELLE SESSION ── -->
 <div class="modal-overlay" id="modalNouvelle">
   <div class="modal-box">
     <div class="modal-title">
       <i class="fas fa-plus" style="color:var(--accent);"></i> {{ _('Nouvelle session') }}
     </div>
+
     <div class="form-group">
-      <label class="form-label">{{ _('Nom') }} *</label>
+      <label class="form-label">{{ _('Nom du cours') }} *</label>
       <input type="text" class="form-input" id="nomSession"
-             placeholder="Ex: Cours Algorithmique G1"
-             value="{% if emploi_filtre %}{{ emploi_filtre.nom_cours }}{% if emploi_filtre.groupe %} – {{ emploi_filtre.groupe }}{% endif %}{% endif %}">
+             placeholder="Ex: Algorithmique, Réseaux…"
+             value="{% if emploi_filtre %}{{ emploi_filtre.nom_cours }}{% endif %}">
+    </div>
+
+    <div class="section-sep">{{ _('Ciblage') }}</div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">{{ _('Filière / Département') }}</label>
+        <input type="text" class="form-input" id="filiereSession"
+               placeholder="Ex: Informatique"
+               value="{% if emploi_filtre %}{{ emploi_filtre.departement or '' }}{% endif %}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ _('Niveau') }}</label>
+        <input type="text" class="form-input" id="niveauSession"
+               placeholder="Ex: L3, BTS2…"
+               value="{% if emploi_filtre %}{{ emploi_filtre.niveau or '' }}{% endif %}">
+      </div>
     </div>
     <div class="form-group">
-      <label class="form-label">{{ _('Lieu') }}</label>
-      <input type="text" class="form-input" id="lieuSession"
-             placeholder="Ex: Salle 12"
-             value="{% if emploi_filtre %}{{ emploi_filtre.salle or '' }}{% endif %}">
+      <label class="form-label">
+        {{ _('Groupe') }}
+        <span style="font-weight:400; text-transform:none; font-size:10px; color:var(--text-muted);"> — optionnel</span>
+      </label>
+      <input type="text" class="form-input" id="groupeSession"
+             placeholder="Ex: G1, G2…"
+             value="{% if emploi_filtre %}{{ emploi_filtre.groupe or '' }}{% endif %}">
     </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+
+    <div class="section-sep">{{ _('Lieu & Horaires') }}</div>
+    <div class="form-group">
+      <label class="form-label">{{ _('Salle') }}</label>
+      <input type="text" class="form-input" id="lieuSession"
+             placeholder="Ex: Salle 12, Amphi A…"
+             value="{% if emploi_filtre %}{{ emploi_filtre.salle or '' }}{% endif %}"
+             oninput="verifierSalle()">
+      <div class="salle-status" id="salleStatus">
+        <i class="fas fa-circle-notch fa-spin"></i><span></span>
+      </div>
+    </div>
+
+    <div class="form-grid-2">
       <div class="form-group">
         <label class="form-label">{{ _('Début') }} *</label>
-        <input type="datetime-local" class="form-input" id="debutSession">
+        <input type="text" class="form-input" id="debutSession"
+               placeholder="jj/mm/aaaa hh:mm" maxlength="16"
+               oninput="masqueDateHeure(this); verifierSalle()">
       </div>
       <div class="form-group">
         <label class="form-label">{{ _('Fin') }} *</label>
-        <input type="datetime-local" class="form-input" id="finSession">
+        <input type="text" class="form-input" id="finSession"
+               placeholder="jj/mm/aaaa hh:mm" maxlength="16"
+               oninput="masqueDateHeure(this); verifierSalle()">
       </div>
     </div>
+
     <div class="form-group">
       <label class="form-label">{{ _('Tolérance retard (min)') }}</label>
       <input type="number" class="form-input" id="toleranceSession"
              value="{% if emploi_filtre %}{{ emploi_filtre.tolerance_retard_minutes }}{% else %}10{% endif %}"
              min="0" max="60">
     </div>
+
     <div id="modalFeedback" style="font-size:12px; margin-top:8px;"></div>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
-      <button class="btn-confirm" onclick="creerSession()">
+      <button class="btn-confirm" id="btnCreer" onclick="creerSession()">
         <i class="fas fa-plus"></i> {{ _('Créer') }}
       </button>
     </div>
@@ -241,6 +267,110 @@
 
 <script>
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
+let salleVerifTimer = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const jj = pad(now.getDate()), mm = pad(now.getMonth()+1), aa = now.getFullYear();
+    const hh = pad(now.getHours()), mn = pad(now.getMinutes());
+    const fin = new Date(now.getTime() + 2*3600*1000);
+    const hf = pad(fin.getHours()), mf = pad(fin.getMinutes());
+    document.getElementById('debutSession').value = `${jj}/${mm}/${aa} ${hh}:${mn}`;
+    document.getElementById('finSession').value   = `${jj}/${mm}/${aa} ${hf}:${mf}`;
+});
+
+function masqueDateHeure(input) {
+    let v = input.value.replace(/[^\d]/g, '').substring(0, 12);
+    let r = '';
+    if (v.length > 0)  r += v.substring(0,2);
+    if (v.length > 2)  r += '/' + v.substring(2,4);
+    if (v.length > 4)  r += '/' + v.substring(4,8);
+    if (v.length > 8)  r += ' ' + v.substring(8,10);
+    if (v.length > 10) r += ':' + v.substring(10,12);
+    input.value = r;
+}
+
+function versISO(str) {
+    if (!str || str.length < 16) return null;
+    const [datePart, timePart] = str.split(' ');
+    if (!datePart || !timePart) return null;
+    const [j, m, a] = datePart.split('/');
+    if (!j || !m || !a || a.length !== 4) return null;
+    return `${a}-${m}-${j}T${timePart}:00`;
+}
+
+function verifierSalle() {
+    clearTimeout(salleVerifTimer);
+    const salle = document.getElementById('lieuSession').value.trim();
+    const debut = versISO(document.getElementById('debutSession').value);
+    const fin   = versISO(document.getElementById('finSession').value);
+    const status = document.getElementById('salleStatus');
+
+    if (!salle || !debut || !fin) { status.className = 'salle-status'; return; }
+
+    salleVerifTimer = setTimeout(() => {
+        status.className = 'salle-status loading';
+        status.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i><span>Vérification…</span>';
+
+        fetch(`/sessions/api/verifier-salle?salle=${encodeURIComponent(salle)}&debut=${encodeURIComponent(debut)}&fin=${encodeURIComponent(fin)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.libre) {
+                status.className = 'salle-status libre';
+                status.innerHTML = '<i class="fas fa-check-circle"></i><span>Salle disponible</span>';
+            } else {
+                status.className = 'salle-status occupe';
+                status.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>Salle occupée — ${data.session || ''}</span>`;
+            }
+        })
+        .catch(() => { status.className = 'salle-status'; });
+    }, 600);
+}
+
+function ouvrirModal() {
+    document.getElementById('modalNouvelle').classList.add('show');
+}
+
+function fermerModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+    document.getElementById('salleStatus').className = 'salle-status';
+    document.getElementById('modalFeedback').innerHTML = '';
+}
+
+function creerSession() {
+    const nom      = document.getElementById('nomSession').value.trim();
+    const lieu     = document.getElementById('lieuSession').value.trim();
+    const debut    = versISO(document.getElementById('debutSession').value);
+    const fin      = versISO(document.getElementById('finSession').value);
+    const tolerance = document.getElementById('toleranceSession').value;
+
+    if (!nom)   { afficherFeedback('modalFeedback', 'Le nom est obligatoire', 'danger'); return; }
+    if (!debut) { afficherFeedback('modalFeedback', 'Date début invalide — format : jj/mm/aaaa hh:mm', 'danger'); return; }
+    if (!fin)   { afficherFeedback('modalFeedback', 'Date fin invalide — format : jj/mm/aaaa hh:mm', 'danger'); return; }
+    if (fin <= debut) { afficherFeedback('modalFeedback', 'La fin doit être après le début', 'danger'); return; }
+
+    if (document.getElementById('salleStatus').classList.contains('occupe')) {
+        afficherFeedback('modalFeedback', 'La salle est occupée sur ce créneau', 'danger');
+        return;
+    }
+
+    const btn = document.getElementById('btnCreer');
+    btn.disabled = true;
+
+    fetch('/sessions/api/creer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify({ nom, lieu, heure_debut: debut, heure_fin: fin, tolerance_retard_minutes: parseInt(tolerance) })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        if (data.succes) { fermerModals(); location.reload(); }
+        else { afficherFeedback('modalFeedback', data.message, 'danger'); }
+    })
+    .catch(() => { btn.disabled = false; afficherFeedback('modalFeedback', 'Erreur réseau', 'danger'); });
+}
 
 function filtrer(statut, btn) {
     document.querySelectorAll('.filtre-btn').forEach(b => b.classList.remove('actif'));
@@ -250,55 +380,18 @@ function filtrer(statut, btn) {
     });
 }
 
-function fermerModals() {
-    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
-}
-
-function creerSession() {
-    const nom       = document.getElementById('nomSession').value.trim();
-    const lieu      = document.getElementById('lieuSession').value.trim();
-    const debut     = document.getElementById('debutSession').value;
-    const fin       = document.getElementById('finSession').value;
-    const tolerance = document.getElementById('toleranceSession').value;
-
-    if (!nom || !debut || !fin) {
-        afficherFeedback('modalFeedback', '{{ _("Nom, début et fin obligatoires") }}', 'danger');
-        return;
-    }
-
-    fetch('/sessions/api/creer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-        body: JSON.stringify({
-            nom, lieu,
-            heure_debut: debut,
-            heure_fin: fin,
-            tolerance_retard_minutes: parseInt(tolerance)
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.succes) { fermerModals(); location.reload(); }
-        else { afficherFeedback('modalFeedback', data.message, 'danger'); }
-    });
-}
-
 function ouvrirSession(id) {
-    fetch(`/sessions/api/${id}/ouvrir`, {
-        method: 'PUT', headers: { 'X-CSRFToken': CSRF }
-    }).then(() => location.reload());
+    fetch(`/sessions/api/${id}/ouvrir`, { method:'PUT', headers:{'X-CSRFToken':CSRF} }).then(() => location.reload());
 }
 
 function fermerSession(id) {
     if (!confirm('{{ _("Fermer la session ? Les absents seront marqués automatiquement.") }}')) return;
-    fetch(`/sessions/api/${id}/fermer`, {
-        method: 'PUT', headers: { 'X-CSRFToken': CSRF }
-    }).then(() => location.reload());
+    fetch(`/sessions/api/${id}/fermer`, { method:'PUT', headers:{'X-CSRFToken':CSRF} }).then(() => location.reload());
 }
 
 function afficherFeedback(id, msg, type) {
-    const c = { success: 'var(--success)', danger: 'var(--danger)', info: 'var(--info)' };
-    document.getElementById(id).innerHTML = `<span style="color:${c[type]}">${msg}</span>`;
+    const c = { success:'var(--success)', danger:'var(--danger)', info:'var(--info)' };
+    document.getElementById(id).innerHTML = `<span style="color:${c[type]}; display:flex; align-items:center; gap:5px;"><i class="fas fa-exclamation-circle"></i>${msg}</span>`;
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
