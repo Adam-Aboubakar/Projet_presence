@@ -346,7 +346,8 @@ def renvoyer_email_verification():
         pour ne pas révéler si une adresse est enregistrée dans le système.
     """
     if request.method == 'POST':
-        email = request.formulaire.get('email', '').lower().strip()
+        #email = request.formulaire.get('email', '').lower().strip()
+        email = request.form.get('email', '').lower().strip()
 
         utilisateur = Utilisateur.query.filter_by(email=email).first()
 
@@ -664,14 +665,7 @@ def api_statut_compte():
         'role': utilisateur.role
     }), 200
 
-@auth.route('/langue/<string:lang>', methods=['POST'])
-@login_required
-def changer_langue(lang):
-    from flask import session
-    if lang in ['fr', 'ar', 'en']:
-        session['langue'] = lang
-    return jsonify({'succes': True})
-
+ 
 @auth.route('/profil', methods=['GET', 'POST'])
 @login_required
 def profil():

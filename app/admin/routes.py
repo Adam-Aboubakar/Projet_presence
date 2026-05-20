@@ -381,7 +381,6 @@ def rejeter_compte(utilisateur_id):
 # 5. LISTE DES UTILISATEURS
 # ============================================================
 @admin.route('/utilisateurs')
-@admin.route('/utilisateurs')
 @role_requis('admin')
 def liste_utilisateurs():
     role_filtre = request.args.get('role', '')

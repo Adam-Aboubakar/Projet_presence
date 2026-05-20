@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, render_template
 from datetime import datetime, timezone, timedelta
 from app.presences import presences_bp
 from app.models import db, Presence, Session, Personne, CarteRFID, JournalSecurite, Photo, Configuration
@@ -6,7 +6,6 @@ from app.utils.chiffrement import dechiffrer_texte
 from app.auth.decorateurs import role_requis
 from flask_login import current_user
 from app import csrf
- 
 
 
 def journaliser(type_evenement, description, severite='INFO', personne_id=None):
@@ -19,14 +18,12 @@ def journaliser(type_evenement, description, severite='INFO', personne_id=None):
         adresse_ip=request.remote_addr
     )
     db.session.add(entree)
-
-    # Envoyer alerte email si WARNING ou CRITIQUE
     from app.journal.routes import envoyer_alerte
     envoyer_alerte(entree)
 
 
 # ============================================================
-# CAS 1 — Pointage RFID (Raspberry Pi — Semaine 3)
+# CAS 1 — Pointage RFID + Reconnaissance faciale (Raspberry Pi)
 # ============================================================
 @presences_bp.route('/api/pointer', methods=['POST'])
 @csrf.exempt
@@ -81,7 +78,6 @@ def pointer():
             }), 403
 
         try:
-            # Déchiffrer photo stockée
             chemin_complet = os.path.join('app', 'static', photo_principale.chemin_fichier)
             with open(chemin_complet, 'rb') as f:
                 donnees_chiffrees = f.read()
@@ -91,15 +87,13 @@ def pointer():
             with open(chemin_ref, 'wb') as f_ref:
                 f_ref.write(photo_dechiffree)
 
-            # Décoder photo live
-            photo_b64_clean = photo_base64.strip().replace('\n','').replace('\r','').replace(' ','')
+            photo_b64_clean = photo_base64.strip().replace('\n', '').replace('\r', '').replace(' ', '')
             photo_b64_padded = photo_b64_clean + '=' * (4 - len(photo_b64_clean) % 4)
             photo_bytes = base64.b64decode(photo_b64_padded)
             chemin_live = os.path.join(tempfile.gettempdir(), 'live_photo.jpg')
             with open(chemin_live, 'wb') as f_live:
                 f_live.write(photo_bytes)
 
-            # Détecter visage localement avant DeepFace
             cascade = cv2_local.CascadeClassifier(
                 cv2_local.data.haarcascades + 'haarcascade_frontalface_default.xml'
             )
@@ -116,7 +110,6 @@ def pointer():
                     'message': 'Aucun visage detecte — regardez la camera'
                 }), 400
 
-            # Comparaison DeepFace
             config = Configuration.get_config()
             seuil = config.seuil_similarite if config else 0.40
 
@@ -171,7 +164,7 @@ def pointer():
             'message': f'{personne.prenom} {personne.nom} a déjà pointé pour cette session'
         }), 400
 
-    # Étape 5 — Statut
+    # Étape 5 — Statut présent / retard
     heure_limite = seance.heure_debut + timedelta(minutes=seance.tolerance_retard_minutes)
     if heure_limite.tzinfo is None:
         from datetime import timezone as tz
@@ -202,6 +195,8 @@ def pointer():
         'statut': statut,
         'personne': f'{personne.prenom} {personne.nom}'
     }), 200
+
+
 # ============================================================
 # CAS 2 — Modifier manuellement une présence
 # ============================================================
@@ -212,7 +207,7 @@ def modifier_presence(presence_id):
     data = request.get_json(force=True, silent=True) or {}
 
     nouveau_statut = data.get('statut', '').strip()
-    justification = data.get('justification', '').strip()
+    justification  = data.get('justification', '').strip()
 
     if nouveau_statut not in ['present', 'retard', 'absent']:
         return jsonify({
@@ -226,10 +221,10 @@ def modifier_presence(presence_id):
             'message': 'Justification obligatoire pour toute modification manuelle'
         }), 400
 
-    ancien_statut = presence.statut
-    presence.statut = nouveau_statut
-    presence.modifie_par = current_user.id
-    presence.modifie_le = datetime.now(timezone.utc)
+    ancien_statut               = presence.statut
+    presence.statut             = nouveau_statut
+    presence.modifie_par        = current_user.id
+    presence.modifie_le         = datetime.now(timezone.utc)
     presence.justification_modification = justification
     presence.methode_validation = 'manuel'
 
@@ -245,9 +240,9 @@ def modifier_presence(presence_id):
 
 
 # ============================================================
-# GET — Liste des présences d'une session
+# GET — Liste des présences d'une session (API mobile + web)
 # ============================================================
-@presences_bp.route('/api/<string:session_id>/liste', methods=['GET'])
+@presences_bp.route('/api/session/<string:session_id>/liste', methods=['GET'])
 @role_requis('enseignant')
 def liste_presences(session_id):
     Session.query.get_or_404(session_id)
@@ -257,18 +252,18 @@ def liste_presences(session_id):
     return jsonify({
         'succes': True,
         'presences': [{
-            'id': p.id,
-            'personne_id': p.personne_id,
-            'statut': p.statut,
-            'horodatage': p.horodatage.isoformat() if p.horodatage else None,
-            'methode_validation': p.methode_validation,
+            'id':                        p.id,
+            'personne_id':               p.personne_id,
+            'statut':                    p.statut,
+            'horodatage':                p.horodatage.isoformat() if p.horodatage else None,
+            'methode_validation':        p.methode_validation,
             'justification_modification': p.justification_modification
         } for p in presences]
     }), 200
 
 
 # ============================================================
-# GET — Historique des présences d'une personne
+# GET — Historique des présences d'une personne (API mobile)
 # ============================================================
 @presences_bp.route('/api/personne/<string:personne_id>', methods=['GET'])
 @role_requis('enseignant')
@@ -277,88 +272,90 @@ def historique_personne(personne_id):
     presences = Presence.query.filter_by(personne_id=personne_id)\
         .order_by(Presence.horodatage.desc()).limit(50).all()
 
-    # Calculer les statistiques
-    total = len(presences)
+    total    = len(presences)
     presents = sum(1 for p in presences if p.statut == 'present')
-    retards = sum(1 for p in presences if p.statut == 'retard')
-    absents = sum(1 for p in presences if p.statut == 'absent')
+    retards  = sum(1 for p in presences if p.statut == 'retard')
+    absents  = sum(1 for p in presences if p.statut == 'absent')
 
     return jsonify({
         'succes': True,
         'statistiques': {
-            'total': total,
-            'presents': presents,
-            'retards': retards,
-            'absents': absents,
-            'taux_presence': round((presents + retards) / total * 100, 1) if total > 0 else 0
+            'total':          total,
+            'presents':       presents,
+            'retards':        retards,
+            'absents':        absents,
+            'taux_presence':  round((presents + retards) / total * 100, 1) if total > 0 else 0
         },
         'presences': [{
-            'id': p.id,
+            'id':         p.id,
             'session_id': p.session_id,
-            'statut': p.statut,
+            'statut':     p.statut,
             'horodatage': p.horodatage.isoformat() if p.horodatage else None,
         } for p in presences]
     }), 200
 
-from flask import render_template
 
+# ============================================================
+# PAGE WEB — Liste des sessions avec présences
+# ============================================================
 @presences_bp.route('/')
 @role_requis('enseignant')
 def liste():
     from app.models import Configuration
     config = Configuration.get_config()
-    mode = config.mode if config else 'ecole'
-    
-    # Sessions terminées et en cours avec leurs stats
+    mode   = config.mode if config else 'ecole'
+
     sessions = Session.query.filter(
         Session.statut.in_(['terminee', 'en_cours'])
     ).order_by(Session.heure_debut.desc()).limit(50).all()
-    
+
     sessions_avec_stats = []
     for s in sessions:
         presences = Presence.query.filter_by(session_id=s.id).all()
-        total = len(presences)
+        total    = len(presences)
         presents = sum(1 for p in presences if p.statut == 'present')
-        retards = sum(1 for p in presences if p.statut == 'retard')
-        absents = sum(1 for p in presences if p.statut == 'absent')
+        retards  = sum(1 for p in presences if p.statut == 'retard')
+        absents  = sum(1 for p in presences if p.statut == 'absent')
         sessions_avec_stats.append({
-            'session': s,
-            'total': total,
+            'session':  s,
+            'total':    total,
             'presents': presents,
-            'retards': retards,
-            'absents': absents,
-            'taux': round((presents + retards) / total * 100) if total > 0 else 0
+            'retards':  retards,
+            'absents':  absents,
+            'taux':     round((presents + retards) / total * 100) if total > 0 else 0
         })
-    
+
     return render_template('presences/liste.html',
         sessions_avec_stats=sessions_avec_stats, mode=mode)
 
 
+# ============================================================
+# PAGE WEB — Détail des présences d'une session
+# ============================================================
 @presences_bp.route('/session/<string:session_id>')
 @role_requis('enseignant')
 def detail_session(session_id):
     from app.models import Configuration
     config = Configuration.get_config()
-    mode = config.mode if config else 'ecole'
-    
-    session = Session.query.get_or_404(session_id)
+    mode   = config.mode if config else 'ecole'
+
+    session  = Session.query.get_or_404(session_id)
     presences = Presence.query.filter_by(session_id=session_id)\
         .order_by(Presence.horodatage).all()
-    
+
     presences_detail = []
     for p in presences:
         personne = Personne.query.get(p.personne_id)
         presences_detail.append({'presence': p, 'personne': personne})
-    
-    total = len(presences)
+
+    total    = len(presences)
     presents = sum(1 for p in presences if p.statut == 'present')
-    retards = sum(1 for p in presences if p.statut == 'retard')
-    absents = sum(1 for p in presences if p.statut == 'absent')
-    
+    retards  = sum(1 for p in presences if p.statut == 'retard')
+    absents  = sum(1 for p in presences if p.statut == 'absent')
+
     return render_template('presences/detail_session.html',
         session=session,
         presences_detail=presences_detail,
         total=total, presents=presents,
         retards=retards, absents=absents,
         mode=mode)
-

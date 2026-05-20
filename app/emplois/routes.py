@@ -126,7 +126,7 @@ def modifier_emploi(emploi_id):
     emploi = EmploiDuTemps.query.get_or_404(emploi_id)
 
     if current_user.is_authenticated and emploi.enseignant_id != current_user.id:
-        return jsonify({'succes': False, 'message': 'Accès refusé — ce n\'est pas votre emploi du temps'}), 403
+        return jsonify({'succes': False, 'message': "Accès refusé — ce n'est pas votre emploi du temps"}), 403
 
     data = request.get_json()
     maintenant = datetime.now(timezone.utc)
@@ -191,8 +191,9 @@ def modifier_emploi(emploi_id):
         'sessions_creees': sessions_creees
     }), 200
 
+
 # ============================================================
-# CAS 4 — Suspendre une séance
+# CAS 3 — Suspendre une séance
 # ============================================================
 @emplois_bp.route('/api/seance/<string:session_id>/suspendre', methods=['PUT'])
 @role_requis('enseignant')
@@ -216,7 +217,7 @@ def suspendre_seance(session_id):
 
 
 # ============================================================
-# CAS 5 — Reprogrammer une séance suspendue
+# CAS 4 — Reprogrammer une séance suspendue
 # ============================================================
 @emplois_bp.route('/api/seance/<string:session_id>/reprogrammer', methods=['POST'])
 @role_requis('enseignant')
@@ -246,9 +247,10 @@ def reprogrammer_seance(session_id):
 
     # Calculer les nouvelles heures
     duree = session.heure_fin - session.heure_debut
-    nouvelle_heure_debut = datetime.combine(nouvelle_date, session.heure_debut.time()
-                                            if hasattr(session.heure_debut, 'time')
-                                            else session.heure_debut)
+    nouvelle_heure_debut = datetime.combine(
+        nouvelle_date,
+        session.heure_debut.time() if hasattr(session.heure_debut, 'time') else session.heure_debut
+    )
     nouvelle_heure_fin = nouvelle_heure_debut + duree
 
     # Créer la nouvelle session
@@ -281,7 +283,7 @@ def reprogrammer_seance(session_id):
 
 
 # ============================================================
-# CAS 6 — Suspendre la pause pour une séance spécifique
+# CAS 5 — Suspendre la pause pour une séance spécifique
 # ============================================================
 @emplois_bp.route('/api/seance/<string:session_id>/suspendre-pause', methods=['PUT'])
 @role_requis('enseignant')
@@ -391,7 +393,6 @@ def _generer_sessions(emploi, depuis_aujourd_hui=False):
     """
     from datetime import date, timedelta
 
-    # Récupérer les jours fériés sur la période
     jours_feries = {
         jf.date for jf in JourFerie.query.filter(
             JourFerie.date >= emploi.date_debut_validite,
@@ -399,24 +400,16 @@ def _generer_sessions(emploi, depuis_aujourd_hui=False):
         ).all()
     }
 
-    # Déterminer la date de départ
-    if depuis_aujourd_hui:
-        date_depart = date.today()
-    else:
-        date_depart = emploi.date_debut_validite
-
+    date_depart = date.today() if depuis_aujourd_hui else emploi.date_debut_validite
     sessions_creees = 0
     date_courante = date_depart
 
     while date_courante <= emploi.date_fin_validite:
-        # Vérifier que c'est le bon jour de la semaine
         if date_courante.weekday() == emploi.jour_semaine:
-            # Vérifier que ce n'est pas un jour férié
             if date_courante not in jours_feries:
                 debut = datetime.combine(date_courante, emploi.heure_debut)
                 fin = datetime.combine(date_courante, emploi.heure_fin)
 
-                # Vérifier qu'une session n'existe pas déjà
                 existante = Session.query.filter_by(
                     emploi_du_temps_id=emploi.id,
                     heure_debut=debut
@@ -440,8 +433,8 @@ def _generer_sessions(emploi, depuis_aujourd_hui=False):
 
         date_courante += timedelta(days=1)
 
-
     return sessions_creees
+
 
 from flask import render_template
 

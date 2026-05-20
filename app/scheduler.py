@@ -1,17 +1,19 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from datetime import datetime
 import atexit
 import logging
+import os
 
 scheduler = BackgroundScheduler()
+
 
 def ouvrir_sessions_prevues():
     from app import db
     from app.models import Session
-    from datetime import datetime, timezone
 
     with scheduler.app.app_context():
-        maintenant = datetime.now(timezone.utc)
+        maintenant = datetime.now()
         sessions_a_ouvrir = Session.query.filter(
             Session.statut == 'planifiee',
             Session.heure_debut <= maintenant,
@@ -28,10 +30,9 @@ def fermer_sessions_terminees():
     from app import db
     from app.models import Session, Presence, Personne, EmploiDuTemps
     from app.auth.email import envoyer_email
-    from datetime import datetime, timezone
 
     with scheduler.app.app_context():
-        maintenant = datetime.now(timezone.utc)
+        maintenant = datetime.now()
 
         sessions_a_fermer = Session.query.filter(
             Session.statut == 'en_cours',
@@ -48,21 +49,18 @@ def fermer_sessions_terminees():
                 ).filter(Presence.statut.in_(['present', 'retard'])).all()
             }
 
-            departement = None
-            niveau = None
-            groupe = None
+            departement = niveau = groupe = None
 
             if session.emploi_du_temps_id:
                 emploi = EmploiDuTemps.query.get(session.emploi_du_temps_id)
                 if emploi:
                     departement = emploi.departement
-                    niveau = emploi.niveau
-                    groupe = emploi.groupe
+                    niveau      = emploi.niveau
+                    groupe      = emploi.groupe
 
             print(f"[SCHEDULER] Filtres — dept:{departement} niveau:{niveau} groupe:{groupe}")
 
             query = Personne.query.filter_by(est_actif=True)
-            
             if departement:
                 query = query.filter(Personne.departement.ilike(departement))
             if niveau:
@@ -119,13 +117,17 @@ def fermer_sessions_terminees():
                             print(f"[SCHEDULER] Email envoye a {personne.email}")
                         except Exception as e:
                             logging.error(f"[SCHEDULER] Erreur email : {str(e)}")
-                            print(f"[SCHEDULER] Erreur email : {str(e)}")
 
             db.session.commit()
             print(f"[SCHEDULER] Session {session.nom} traitee")
 
 
 def init_scheduler(app):
+    # En debug mode Flask recharge deux fois — on lance le scheduler
+    # uniquement dans le processus principal (WERKZEUG_RUN_MAIN=true)
+    if app.debug and os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        return
+
     scheduler.app = app
 
     scheduler.add_job(
@@ -133,7 +135,9 @@ def init_scheduler(app):
         trigger=IntervalTrigger(minutes=1),
         id='ouvrir_sessions',
         name='Ouvrir sessions planifiees',
-        replace_existing=True
+        replace_existing=True,
+        misfire_grace_time=3600,
+        max_instances=1
     )
 
     scheduler.add_job(
@@ -141,8 +145,16 @@ def init_scheduler(app):
         trigger=IntervalTrigger(minutes=1),
         id='fermer_sessions',
         name='Fermer sessions terminees',
-        replace_existing=True
+        replace_existing=True,
+        misfire_grace_time=3600,
+        max_instances=1
     )
 
     scheduler.start()
+
+    # Exécuter immédiatement au démarrage pour rattraper les sessions manquées
+    with app.app_context():
+        ouvrir_sessions_prevues()
+        fermer_sessions_terminees()
+
     atexit.register(lambda: scheduler.shutdown())

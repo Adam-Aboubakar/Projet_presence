@@ -257,12 +257,11 @@ from flask import render_template
 @photos_bp.route('/')
 @role_requis('agent')
 def liste():
-    from app.models import Configuration, Photo, Personne
+    from app.models import Configuration
     config = Configuration.get_config()
     mode = config.mode if config else 'ecole'
     
     photos = Photo.query.order_by(Photo.cree_le.desc()).all()
-    
     photos_detail = []
     for photo in photos:
         personne = Personne.query.get(photo.personne_id)
