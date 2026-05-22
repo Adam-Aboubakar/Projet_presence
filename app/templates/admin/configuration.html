@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}{{ _('Configuration') }} — ESTE{% endblock %}
+{% block title %}{{ _('Configuration') }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}Gestion de Présence{% endif %}{% endblock %}
 
 {% block content %}
 <style>

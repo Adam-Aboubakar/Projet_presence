@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block title %}{{ _('Rapports') }} — ESTE{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}{{ _('Rapports') }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}Gestion de Présence{% endif %}{% endblock %}
 
 {% block content %}
 <style>
@@ -260,3 +260,4 @@ document.addEventListener('click', e => {
 });
 </script>
 {% endblock %}
+

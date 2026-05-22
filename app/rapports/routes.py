@@ -215,4 +215,4 @@ def liste():
         .distinct().all()
     groupes = [g[0] for g in groupes if g[0]]
 
-    return render_template('rapports/liste.html', groupes=groupes, mode=mode)
+    return render_template('rapports/liste.html', groupes=groupes, mode=mode) 

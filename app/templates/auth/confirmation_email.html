@@ -38,10 +38,10 @@
       <i class="fas fa-school"></i>
     {% endif %}
   </div>
-  <div>
-    <div class="header-name">{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}</div>
+ <div>
+    <div class="header-name">{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}{{ _('Gestion de Présence') }}{% endif %}</div>
     <div class="header-tagline">{{ _('Système de gestion de présence') }}</div>
-  </div>
+</div>
 </div>
 
 <div class="auth-body">

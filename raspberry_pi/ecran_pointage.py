@@ -99,8 +99,7 @@ def barre_top(img, session=None):
 def barre_bas(img):
     cv2.rectangle(img, (0, H - 30), (W, H), SURFACE, -1)
     cv2.line(img, (0, H - 30), (W, H - 30), GRIS_FONCE, 1)
-    txt_centre(img, "EST Essaouira  |  Systeme de Gestion de Presence", H - 10, 0.4, GRIS_FONCE, FONT, 1)
-
+    txt_centre(img, "Systeme de Gestion de Presence", H - 10, 0.4, GRIS_FONCE, FONT, 1)
 
 def cercles_pulse(img, cx, cy, couleur, t):
     for i, (r, alpha) in enumerate([(90, 0.08), (72, 0.15), (56, 0.25)]):

@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block title %}{{ titre }} — ESTE{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}{{ titre }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}Gestion de Présence{% endif %}{% endblock %}
 
 {% block content %}
 <style>
@@ -83,19 +83,19 @@
 
         <div class="form-group">
           <label class="form-label">{{ _('Prénom') }} *</label>
-          {{ formulaire.prenom(class='form-input'+(' error' if formulaire.prenom.errors else ''), placeholder='Ex: Mohamed') }}
+          {{ formulaire.prenom(class='form-input'+(' error' if formulaire.prenom.errors else ''), placeholder='Ex: Abouakar') }}
           {% for e in formulaire.prenom.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
         </div>
 
         <div class="form-group">
           <label class="form-label">{{ _('Nom') }} *</label>
-          {{ formulaire.nom(class='form-input'+(' error' if formulaire.nom.errors else ''), placeholder='Ex: Alaoui') }}
+          {{ formulaire.nom(class='form-input'+(' error' if formulaire.nom.errors else ''), placeholder='Ex: Adam') }}
           {% for e in formulaire.nom.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
         </div>
 
         <div class="form-group">
           <label class="form-label">{{ _('Email') }}</label>
-          {{ formulaire.email(class='form-input'+(' error' if formulaire.email.errors else ''), placeholder='Ex: m.alaoui@este.ac.ma') }}
+          {{ formulaire.email(class='form-input'+(' error' if formulaire.email.errors else ''), placeholder='Ex: m.adam@uca.ac.ma') }}
           {% for e in formulaire.email.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
         </div>
 

@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block title %}{{ _('Étudiants') if config.mode == 'ecole' else _('Employés') }} — ESTE{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}{{ _('Étudiants') if config.mode == 'ecole' else _('Employés') }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}Gestion de Présence{% endif %}{% endblock %}
 
 {% block content %}
 <style>

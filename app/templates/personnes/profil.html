@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block title %}{{ personne.prenom }} {{ personne.nom }} — ESTE{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}{{ personne.prenom }} {{ personne.nom }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}Gestion de Présence{% endif %}{% endblock %}
 
 {% block content %}
 <style>

@@ -351,9 +351,8 @@ body {
     </div>
 
 </div>
-
 <div id="barre-bas">
-    <span>EST Essaouira &nbsp;|&nbsp; Système de Gestion de Présence</span>
+    <span>{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}{{ _('Gestion de Présence') }}{% endif %} &nbsp;|&nbsp; {{ _('Système de Gestion de Présence') }}</span>
     <span id="label-salle"></span>
 </div>
 

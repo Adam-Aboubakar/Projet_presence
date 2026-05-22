@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="{{ session.get('langue', 'fr') }}" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ _('Inscription') }} — {{ config.nom_etablissement if config and config.nom_etablissement else 'ESTE' }}</title>
+    <title>{{ _('Inscription') }} — {{ config.nom_etablissement if config and config.nom_etablissement else 'Gestion de Présence' }}</title>
     {{ bootstrap.load_css() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -157,10 +157,10 @@
       <i class="fas fa-school"></i>
     {% endif %}
   </div>
-  <div>
-    <div class="header-name">{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}</div>
+ <div>
+    <div class="header-name">{% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}{{ _('Gestion de Présence') }}{% endif %}</div>
     <div class="header-tagline">{{ _('Système de gestion de présence') }}</div>
-  </div>
+</div>
 </div>
 
 <!-- BODY -->

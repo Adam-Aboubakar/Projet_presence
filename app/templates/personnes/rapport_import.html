@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block title %}{{ _('Rapport import') }} — ESTE{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}{{ _('Rapport import') }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}Gestion de Présence{% endif %}{% endblock %}
 
 {% block content %}
 <style>

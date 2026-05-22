@@ -333,3 +333,20 @@ body {
     }
     .navbar-brand-sub { display: none; }
 }
+
+/* LIGHT MODE — sidebar légèrement éclaircie */
+[data-theme="light"] .sidebar {
+    background: #1E3A5F;
+}
+
+[data-theme="light"] .navbar-este {
+    background: #1E3A5F;
+}
+
+[data-theme="dark"] body {
+    background: #0D1520;
+}
+
+[data-theme="dark"] .main-wrapper {
+    background: #0D1520;
+}

@@ -1,31 +1,43 @@
 <!DOCTYPE html>
 <html lang="{{ session.get('langue', 'fr') }}">
 <head>
+    <!-- ANTI-FLASH : premier dans le head -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            if (theme === 'dark') {
+                document.documentElement.style.backgroundColor = '#1C2B3A';
+            } else {
+                document.documentElement.style.backgroundColor = '';
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ _('Accueil') }} — ESTE Essaouira</title>
+   <title>{{ _('Accueil') }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}{{ _('Gestion de Présence') }}{% endif %}</title>
     {{ bootstrap.load_css() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <meta http-equiv="refresh" content="30">
     <style>
         body { background:#1C2B3A; margin:0; font-family:'Plus Jakarta Sans',sans-serif; display:flex; flex-direction:column; min-height:100vh; transition: background 0.3s; }
-        body.light { background:#F1F5F9; }
-        body.light nav { background:#1C2B3A !important; }
-        body.light .header-stats { background:#152030 !important; }
-        body.light .session-card { background:white !important; border-color:#E2E8F0 !important; }
-        body.light .session-card .nom { color:#1E293B !important; }
-        body.light .session-card .sub { color:#64748B !important; }
-        body.light .session-card .horaire { color:#1E293B !important; }
-        body.light .session-card .label { color:#64748B !important; }
-        body.light .session-avenir-card { background:white !important; border-color:#E2E8F0 !important; }
-        body.light .session-avenir-card .nom { color:#1E293B !important; }
-        body.light .session-avenir-card .sub { color:#64748B !important; }
-        body.light .session-avenir-card .horaire { color:#64748B !important; }
-        body.light .section-label { color:#64748B !important; }
-        body.light .empty-card { background:#F8FAFC !important; border-color:#E2E8F0 !important; color:#94A3B8 !important; }
-        body.light footer { border-color:#E2E8F0 !important; }
-        body.light footer span { color:#94A3B8 !important; }
+        [data-theme="light"] body { background:#F1F5F9; }
+        [data-theme="light"] nav { background:#1E4D7B !important; }
+        [data-theme="light"] .header-stats { background:#1E4D7B !important; border-bottom:1px solid #DDE3EC !important; }
+        [data-theme="light"] .session-card { background:white !important; border-color:#E2E8F0 !important; }
+        [data-theme="light"] .session-card .nom { color:#1E293B !important; }
+        [data-theme="light"] .session-card .sub { color:#64748B !important; }
+        [data-theme="light"] .session-card .horaire { color:#1E293B !important; }
+        [data-theme="light"] .session-card .label { color:#64748B !important; }
+        [data-theme="light"] .session-avenir-card { background:white !important; border-color:#E2E8F0 !important; }
+        [data-theme="light"] .session-avenir-card .nom { color:#1E293B !important; }
+        [data-theme="light"] .session-avenir-card .sub { color:#64748B !important; }
+        [data-theme="light"] .session-avenir-card .horaire { color:#64748B !important; }
+        [data-theme="light"] .section-label { color:#64748B !important; }
+        [data-theme="light"] .empty-card { background:#F8FAFC !important; border-color:#E2E8F0 !important; color:#94A3B8 !important; }
+        [data-theme="light"] footer { border-color:#E2E8F0 !important; }
+        [data-theme="light"] footer span { color:#94A3B8 !important; }
         .sessions-encours { max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
         .sessions-avenir { display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; -webkit-overflow-scrolling:touch; }
         .session-avenir-card { min-width:220px; flex-shrink:0; background:rgba(255,255,255,0.06); border:0.5px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px 16px; }
@@ -53,13 +65,12 @@
         </a>
     </div>
 
+   
     <!-- Titre centré -->
     <div class="navbar-title" style="position:absolute; left:50%; transform:translateX(-50%); font-size:15px; font-weight:700; color:white; white-space:nowrap;">
         <i class="fas fa-calendar-check" style="color:#E8620A; margin-right:8px;"></i>
-        {{ _('Gestion de Présence') }} —
-        {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}ESTE Essaouira{% endif %}
+        {{ _('Gestion de Présence') }}{% if config and config.nom_etablissement %} — {{ config.nom_etablissement }}{% endif %}
     </div>
-
     <!-- Droite : langue + dark + mon espace + déconnexion -->
     <div style="display:flex; align-items:center; gap:8px;">
 
@@ -338,7 +349,7 @@
 <footer style="padding:12px 24px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
     <span style="font-size:11px; color:rgba(255,255,255,0.3);">
         <i class="fas fa-copyright" style="margin-right:4px;"></i>
-        2026 {{ _('Système de Gestion de Présence') }} — ESTE Essaouira
+         2026 {{ _('Système de Gestion de Présence') }}{% if config and config.nom_etablissement %} — {{ config.nom_etablissement }}{% endif %}
     </span>
     <span style="font-size:10px; font-weight:700; color:#E8620A; background:rgba(232,98,10,0.15); padding:3px 8px; border-radius:6px;">
         <i class="fas fa-fingerprint" style="margin-right:4px;"></i>PresencePro
@@ -359,25 +370,21 @@ document.addEventListener('click', function(e) {
 });
 
 function toggleDarkMode() {
-    const body = document.getElementById('mainBody');
     const icon = document.getElementById('iconDark');
-    const isLight = body.classList.contains('light');
-    if (isLight) {
-        body.classList.remove('light');
-        icon.className = 'fas fa-moon';
-        localStorage.setItem('theme', 'dark');
-    } else {
-        body.classList.add('light');
-        icon.className = 'fas fa-sun';
-        localStorage.setItem('theme', 'light');
-    }
+    const current = localStorage.getItem('theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    // Retirer le background inline quand on passe en light
+    document.documentElement.style.backgroundColor = next === 'dark' ? '#1C2B3A' : '';
+    document.body.style.backgroundColor = next === 'dark' ? '#1C2B3A' : '';
+    icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 }
 
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme === 'light') {
-    document.getElementById('mainBody').classList.add('light');
-    document.getElementById('iconDark').className = 'fas fa-sun';
-}
+// Au chargement
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+document.getElementById('iconDark').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 </script>
 
 {{ bootstrap.load_js() }}
