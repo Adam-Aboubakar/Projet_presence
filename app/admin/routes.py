@@ -194,32 +194,7 @@ def get_statistiques():
             'retards_aujourd_hui':      retards,
             'admins_actifs':            admins_actifs,
         }
-
-def _presence_par_groupe():
-    """Taux de présence groupé par groupe_ou_site (max 6 lignes)."""
-    from app.models import Personne, Presence
-    try:
-        groupes = (
-            db.session.query(Personne.groupe_ou_site)
-            .filter(Personne.est_actif == True, Personne.groupe_ou_site.isnot(None))
-            .distinct().all()
-        )
-        result = []
-        for (groupe,) in groupes:
-            total = Presence.query.join(Personne, Presence.personne_id == Personne.id).filter(
-                Personne.groupe_ou_site == groupe
-            ).count()
-            ok = Presence.query.join(Personne, Presence.personne_id == Personne.id).filter(
-                Personne.groupe_ou_site == groupe,
-                Presence.statut.in_(['present', 'retard'])
-            ).count()
-            taux = round((ok / total * 100) if total > 0 else 0)
-            result.append({'label': groupe, 'taux': taux})
-        return result[:6]
-    except Exception:
-        return []
-
-
+ 
 # ============================================================
 # 1. TABLEAU DE BORD
 # ============================================================
@@ -232,7 +207,7 @@ def tableau_de_bord():
     stats  = get_statistiques()
  
 
-    stats_par_groupe = _presence_par_groupe()
+   
 
     notifications_recentes = Notification.query.filter_by(
         destinataire_id=current_user.id,
@@ -243,7 +218,7 @@ def tableau_de_bord():
         'admin/tableau_de_bord.html',
         config=config,
         stats=stats,
-        stats_par_groupe=stats_par_groupe,
+        
         notifications_recentes=notifications_recentes,
     )
 
@@ -935,11 +910,11 @@ def configuration():
             config.telephone              = request.form.get('telephone', '').strip()
             config.site_web               = request.form.get('site_web', '').strip()
             config.domaine_email_autorise = request.form.get('domaine_email_autorise', '').strip()
-            config.seuil_similarite       = float(request.form.get('seuil_similarite', 0.9))
+            #config.seuil_similarite       = float(request.form.get('seuil_similarite', 0.9))
             config.max_tentatives         = int(request.form.get('max_tentatives', 5))
             config.tolerance_retard_defaut = int(request.form.get('tolerance_retard_defaut', 15))
             config.duree_retention_jours  = int(request.form.get('duree_retention_jours', 365))
-            config.langue_defaut          = request.form.get('langue_defaut', 'fr')
+            #config.langue_defaut          = request.form.get('langue_defaut', 'fr')
 
             if 'logo' in request.files:
                 fichier = request.files['logo']

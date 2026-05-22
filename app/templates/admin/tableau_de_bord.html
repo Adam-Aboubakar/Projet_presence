@@ -264,34 +264,7 @@
 
   </div>
   {% endif %}
-
-  <!-- ══════════════════ ROW 3 : PRÉSENCE PAR GROUPE + ACTIONS ══════════════════ -->
-  <div class="two-col">
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">
-          {% if config.mode == 'ecole' %}<i class="bi bi-diagram-3-fill"></i> {{ _('Présence par groupe') }}
-          {% else %}<i class="bi bi-building"></i> {{ _('Présence par site') }}{% endif %}
-        </span>
-      </div>
-      <div class="panel-body">
-        {% if stats_par_groupe %}
-          {% for item in stats_par_groupe %}
-          <div class="progress-row">
-            <div class="progress-label">{{ item.label }}</div>
-            <div class="progress-track">
-              <div class="progress-fill" style="width:{{ item.taux }}%; background:{% if item.taux >= 80 %}var(--success){% elif item.taux >= 60 %}var(--warning){% else %}var(--danger){% endif %};"></div>
-            </div>
-            <div class="progress-pct">{{ item.taux }}%</div>
-          </div>
-          {% endfor %}
-        {% else %}
-        <div class="empty-state"><i class="bi bi-bar-chart"></i><p>{{ _('Aucune donnée de présence disponible') }}</p></div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+ 
 
 </div>
 
