@@ -181,17 +181,17 @@ def liste():
     elif statut == 'inactif':
         query = query.filter_by(est_actif=False)
 
-    liste_personnes = query.order_by(Personne.nom.asc()).all()
+    liste.personnes = query.order_by(Personne.nom.asc()).all()
 
     return render_template(
         'personnes/liste.html',
-        personnes=liste_personnes,
+        personnes=liste.personnes,
         mode=mode,
         recherche=recherche,
         departement=departement,
         groupe=groupe,
         statut=statut,
-        total=len(liste_personnes)
+        total=len(liste.personnes)
     )
 
 
@@ -437,7 +437,7 @@ def desactiver(personne_id):
         current_app.logger.error(f"Erreur désactivation : {str(e)}")
         flash("Une erreur est survenue.", 'danger')
 
-    return redirect(url_for('personnes.liste_personnes'))
+    return redirect(url_for('personnes.liste'))
 
 
 # ============================================================
@@ -494,7 +494,7 @@ def fin_contrat(personne_id):
     """
     if get_mode() != 'entreprise':
         flash("Cette fonctionnalité n'est disponible qu'en mode entreprise.", 'warning')
-        return redirect(url_for('personnes.liste_personnes'))
+        return redirect(url_for('personnes.liste'))
 
     personne = Personne.query.get_or_404(personne_id)
     formulaire = FormulaireFinContrat()
@@ -700,7 +700,7 @@ def api_liste():
         query = query.filter_by(est_actif=False)
 
     total = query.count()
-    liste_personnes = query.order_by(
+    liste.personnes = query.order_by(
         Personne.nom.asc()
     ).offset((page - 1) * par_page).limit(par_page).all()
 
@@ -710,7 +710,7 @@ def api_liste():
         'page': page,
         'par_page': par_page,
         'pages': (total + par_page - 1) // par_page,
-        'personnes': [personne_vers_dict(p) for p in liste_personnes]
+        'personnes': [personne_vers_dict(p) for p in liste.personnes]
     }), 200
 
 

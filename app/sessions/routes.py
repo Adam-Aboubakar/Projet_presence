@@ -206,44 +206,7 @@ def fermer_session(session_id):
             )
             db.session.add(absence)
             absents_count += 1
-
-            if personne.email:
-                try:
-                    from app.auth.email import envoyer_email
-                    from flask import current_app
-                    corps_html = f"""
-                    <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
-                        <h2 style="color:#e74c3c;">⚠️ Absence enregistrée</h2>
-                        <p>Bonjour <strong>{personne.prenom} {personne.nom}</strong>,</p>
-                        <p>Une absence a été enregistrée pour la session suivante :</p>
-                        <table style="width:100%; border-collapse:collapse; margin:20px 0;">
-                            <tr style="background:#f8f9fa;">
-                                <td style="padding:10px; border:1px solid #dee2e6;"><strong>Session</strong></td>
-                                <td style="padding:10px; border:1px solid #dee2e6;">{session.nom}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:10px; border:1px solid #dee2e6;"><strong>Date</strong></td>
-                                <td style="padding:10px; border:1px solid #dee2e6;">{session.heure_debut.strftime('%d/%m/%Y %H:%M')}</td>
-                            </tr>
-                        </table>
-                        <p style="color:#7f8c8d; font-size:13px;">
-                            Si vous pensez qu'il s'agit d'une erreur, contactez votre responsable.
-                        </p>
-                        <hr style="border:none; border-top:1px solid #ecf0f1; margin:20px 0;">
-                        <p style="color:#95a5a6; font-size:12px; text-align:center;">
-                            Système de Gestion de Présence — Email automatique, ne pas répondre.
-                        </p>
-                    </div>
-                    """
-                    envoyer_email(
-                        destinataire=personne.email,
-                        sujet=f"Absence enregistrée — {session.nom}",
-                        corps_html=corps_html
-                    )
-                except Exception as e:
-                    current_app.logger.error(f"Erreur email absence : {str(e)}")
-
-            _verifier_seuils_absences(personne.id)
+        _verifier_seuils_absences(personne.id)
 
     journaliser('session_fermee',
                 f'Session fermée : {session.nom} — {absents_count} absents marqués')

@@ -374,11 +374,17 @@
             {% endif %}
           </td>
 
-          <!-- Actions -->
+       <!-- Actions -->
           <td>
-            <a href="{{ url_for('sessions.liste') }}?emploi={{ e.id }}" class="btn-voir">
-              <i class="fas fa-eye"></i> {{ _('Sessions') }}
-            </a>
+              <div style="display:flex; align-items:center; gap:6px;">
+                  <a href="{{ url_for('sessions.liste') }}?emploi={{ e.id }}" class="btn-voir">
+                      <i class="fas fa-eye"></i> {{ _('Sessions') }}
+                  </a>
+                  <button class="btn-voir" style="color:var(--danger); border-color:var(--danger-soft);"
+                          onclick="confirmerSupprimer('{{ e.id }}', '{{ e.nom_cours }}')">
+                      <i class="fas fa-trash"></i>
+                  </button>
+              </div>
           </td>
 
         </tr>
@@ -486,7 +492,31 @@
   </div>
 </div>
 
+<!-- MODAL SUPPRIMER -->
+<div class="modal-overlay" id="modalSupprimer">
+  <div class="modal-box" style="max-width:380px;">
+    <div class="modal-title">
+      <i class="fas fa-trash" style="color:var(--danger);"></i>
+      {{ _('Supprimer l\'emploi du temps') }}
+    </div>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+      Voulez-vous supprimer <strong id="nomEmploiSupprimer"></strong> ?
+      Toutes les sessions associées seront également supprimées.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <button class="btn-confirm" style="background:var(--danger);"
+              onclick="supprimerEmploi()">
+        <i class="fas fa-trash"></i> {{ _('Supprimer') }}
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+ 
+
+
 const CSRF = document.querySelector('meta[name=csrf-token]').content;
 
 /* ── Filtrage ── */
@@ -564,6 +594,27 @@ function afficherFeedback(id, msg, type) {
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if (e.target === m) fermerModals(); });
 });
+
+let emploiASupprimer = null;
+
+function confirmerSupprimer(id, nom) {
+    emploiASupprimer = id;
+    document.getElementById('nomEmploiSupprimer').textContent = nom;
+    document.getElementById('modalSupprimer').classList.add('show');
+}
+
+function supprimerEmploi() {
+    if (!emploiASupprimer) return;
+    fetch(`/emplois/api/${emploiASupprimer}/supprimer`, {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': CSRF }
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.succes) { fermerModals(); location.reload(); }
+        else { alert(d.message); }
+    });
+}
 </script>
 {% endblock %}
 

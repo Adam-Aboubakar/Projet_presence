@@ -26,10 +26,49 @@ def ouvrir_sessions_prevues():
             print(f"[SCHEDULER] Session ouverte : {session.nom}")
 
 
+def _verifier_seuils_absences(personne_id):
+    """Vérifie si la personne a atteint un seuil d'absences et envoie l'email configuré."""
+    from app.models import SeuilAbsence, Presence, Personne
+    from app.auth.email import envoyer_email
+
+    nb_absences = Presence.query.filter_by(
+        personne_id=personne_id,
+        statut='absent',
+        justification_absence=None
+    ).count()
+
+    seuils = SeuilAbsence.query.filter_by(est_actif=True)\
+        .order_by(SeuilAbsence.niveau.desc()).all()
+
+    if not seuils:
+        return  # Aucun seuil configuré — pas d'email
+
+    personne = Personne.query.get(personne_id)
+    if not personne:
+        return
+
+    for seuil in seuils:
+        if nb_absences >= seuil.nb_absences:
+            if personne.email:
+                message = seuil.message_email\
+                    .replace('{prenom}', personne.prenom)\
+                    .replace('{nom}', personne.nom)\
+                    .replace('{nb_absences}', str(nb_absences))
+                try:
+                    envoyer_email(
+                        destinataire=personne.email,
+                        sujet=seuil.sujet_email,
+                        corps_html=f"<p>{message}</p>"
+                    )
+                    print(f"[SCHEDULER] Email seuil envoyé à {personne.email} — {nb_absences} absences")
+                except Exception as e:
+                    logging.error(f"[SCHEDULER] Erreur email seuil : {str(e)}")
+            break  # Un seul seuil déclenché à la fois
+
+
 def fermer_sessions_terminees():
     from app import db
     from app.models import Session, Presence, Personne, EmploiDuTemps
-    from app.auth.email import envoyer_email
 
     with scheduler.app.app_context():
         maintenant = datetime.now()
@@ -50,7 +89,6 @@ def fermer_sessions_terminees():
             }
 
             departement = niveau = groupe = None
-
             if session.emploi_du_temps_id:
                 emploi = EmploiDuTemps.query.get(session.emploi_du_temps_id)
                 if emploi:
@@ -81,50 +119,14 @@ def fermer_sessions_terminees():
                         horodatage=maintenant
                     )
                     db.session.add(absence)
-
-                    if personne.email:
-                        try:
-                            date_str = session.heure_debut.strftime('%d/%m/%Y %H:%M') if session.heure_debut else '—'
-                            corps_html = f"""
-                            <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
-                                <h2 style="color:#e74c3c;">Absence enregistree</h2>
-                                <p>Bonjour <strong>{personne.prenom} {personne.nom}</strong>,</p>
-                                <p>Une absence a ete enregistree pour la session suivante :</p>
-                                <table style="width:100%; border-collapse:collapse; margin:20px 0;">
-                                    <tr style="background:#f8f9fa;">
-                                        <td style="padding:10px; border:1px solid #dee2e6;"><strong>Session</strong></td>
-                                        <td style="padding:10px; border:1px solid #dee2e6;">{session.nom}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:10px; border:1px solid #dee2e6;"><strong>Date</strong></td>
-                                        <td style="padding:10px; border:1px solid #dee2e6;">{date_str}</td>
-                                    </tr>
-                                </table>
-                                <p style="color:#7f8c8d; font-size:13px;">
-                                    Si vous pensez qu il s agit d une erreur, contactez votre responsable.
-                                </p>
-                                <hr style="border:none; border-top:1px solid #ecf0f1; margin:20px 0;">
-                                <p style="color:#95a5a6; font-size:12px; text-align:center;">
-                                    Systeme de Gestion de Presence — Email automatique, ne pas repondre.
-                                </p>
-                            </div>
-                            """
-                            envoyer_email(
-                                destinataire=personne.email,
-                                sujet=f"Absence enregistree — {session.nom}",
-                                corps_html=corps_html
-                            )
-                            print(f"[SCHEDULER] Email envoye a {personne.email}")
-                        except Exception as e:
-                            logging.error(f"[SCHEDULER] Erreur email : {str(e)}")
+                    # Email géré uniquement par les seuils configurés par l'admin
+                    _verifier_seuils_absences(personne.id)
 
             db.session.commit()
             print(f"[SCHEDULER] Session {session.nom} traitee")
 
 
 def init_scheduler(app):
-    # En debug mode Flask recharge deux fois — on lance le scheduler
-    # uniquement dans le processus principal (WERKZEUG_RUN_MAIN=true)
     if app.debug and os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         return
 
@@ -152,7 +154,6 @@ def init_scheduler(app):
 
     scheduler.start()
 
-    # Exécuter immédiatement au démarrage pour rattraper les sessions manquées
     with app.app_context():
         ouvrir_sessions_prevues()
         fermer_sessions_terminees()

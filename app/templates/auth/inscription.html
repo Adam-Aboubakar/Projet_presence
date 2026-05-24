@@ -182,12 +182,12 @@
       <div class="row-2">
         <div class="field">
           <label class="label">{{ _('Prénom') }} *</label>
-          {{ formulaire.prenom(class='input'+(' err' if formulaire.prenom.errors else ''), placeholder='Mohamed') }}
+          {{ formulaire.prenom(class='input'+(' err' if formulaire.prenom.errors else ''), placeholder='Aboubakar') }}
           {% for e in formulaire.prenom.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
         </div>
         <div class="field">
           <label class="label">{{ _('Nom') }} *</label>
-          {{ formulaire.nom(class='input'+(' err' if formulaire.nom.errors else ''), placeholder='Alaoui') }}
+          {{ formulaire.nom(class='input'+(' err' if formulaire.nom.errors else ''), placeholder='Adam') }}
           {% for e in formulaire.nom.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
         </div>
       </div>
@@ -195,7 +195,7 @@
       <!-- Email -->
       <div class="field">
         <label class="label">{{ _('Email institutionnel') }} *</label>
-        {{ formulaire.email(class='input'+(' err' if formulaire.email.errors else ''), placeholder='m.alaoui@' + (config.domaine_email_autorise if config and config.domaine_email_autorise else 'este.ac.ma')) }}
+        {{ formulaire.email(class='input'+(' err' if formulaire.email.errors else ''), placeholder='a.aboubakar@' + (config.domaine_email_autorise if config and config.domaine_email_autorise else 'este.ac.ma')) }}
         {% for e in formulaire.email.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
         {% if config and config.domaine_email_autorise %}
           <div class="field-hint"><i class="fas fa-info-circle"></i> @{{ config.domaine_email_autorise }}</div>
@@ -205,7 +205,7 @@
       <!-- Département -->
       <div class="field">
         <label class="label">{{ _('Département / Filière') }} *</label>
-        {{ formulaire.departement(class='input'+(' err' if formulaire.departement.errors else ''), placeholder='Ex: Informatique, RH...') }}
+        {{ formulaire.departement(class='input'+(' err' if formulaire.departement.errors else ''), placeholder='Ex: Informatique, Génie de l\'environnement...') }}
         {% for e in formulaire.departement.errors %}<div class="field-err"><i class="fas fa-circle-exclamation"></i> {{ e }}</div>{% endfor %}
       </div>
 

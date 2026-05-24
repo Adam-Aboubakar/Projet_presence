@@ -448,3 +448,29 @@ def liste():
         enseignant_id=current_user.id
     ).order_by(EmploiDuTemps.cree_le.desc()).all()
     return render_template('emplois/liste.html', emplois=emplois, mode=mode)
+
+@emplois_bp.route('/api/<string:emploi_id>/supprimer', methods=['DELETE'])
+@role_requis('enseignant')
+def supprimer_emploi(emploi_id):
+    from app.models import Session, Presence
+    
+    emploi = EmploiDuTemps.query.get_or_404(emploi_id)
+    
+    if emploi.enseignant_id != current_user.id:
+        return jsonify({'succes': False, 'message': 'Accès refusé'}), 403
+    
+    # 1. Supprimer les présences liées aux sessions
+    sessions = Session.query.filter_by(emploi_du_temps_id=emploi_id).all()
+    for session in sessions:
+        Presence.query.filter_by(session_id=session.id).delete()
+    
+    # 2. Supprimer les sessions
+    Session.query.filter_by(emploi_du_temps_id=emploi_id).delete()
+    
+    # 3. Supprimer l'emploi
+    db.session.delete(emploi)
+    
+    journaliser('emploi_supprime', f'Emploi du temps supprimé : {emploi.nom_cours}')
+    db.session.commit()
+    
+    return jsonify({'succes': True, 'message': 'Emploi du temps supprimé'})
