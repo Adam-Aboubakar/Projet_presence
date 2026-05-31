@@ -287,13 +287,79 @@
         {% if current_user.is_authenticated %}
 
         <!-- Notifications -->
-        <div style="position:relative;">
-            <button class="dark-btn">
+        <div style="position:relative;" id="notifDropdown">
+            <button class="dark-btn" onclick="toggleNotifs()" id="notifBtn">
                 <i class="fas fa-bell" style="font-size:14px;"></i>
                 {% if nb_notifs and nb_notifs > 0 %}
-                    <span class="notif-badge">{{ nb_notifs }}</span>
+                    <span class="notif-badge" id="notifBadge">{{ nb_notifs }}</span>
                 {% endif %}
             </button>
+
+            <div id="notifMenu" style="
+                display:none; position:absolute; top:44px; right:0;
+                background:var(--card); border:1px solid var(--border);
+                border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.2);
+                width:320px; z-index:999; overflow:hidden;">
+
+                <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-size:13px; font-weight:700; color:var(--text);">{{ _('Notifications') }}</span>
+                    {% if nb_notifs and nb_notifs > 0 %}
+                    <form method="POST" action="{{ url_for('admin.marquer_tout_lu') }}" style="margin:0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" style="background:none; border:none; font-size:11px; color:var(--accent); cursor:pointer; font-weight:600; font-family:'DM Sans',sans-serif;">
+                            {{ _('Tout marquer lu') }}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <div style="max-height:320px; overflow-y:auto;">
+                    {% if notifications_recentes %}
+                        {% for notif in notifications_recentes %}
+                        <a href="{% if notif.type_notification == 'compte_bloque' %}{{ url_for('admin.liste_utilisateurs') }}{% elif notif.type_notification == 'compte_en_attente' %}{{ url_for('admin.comptes_attente') }}{% else %}{{ url_for('admin.liste_notifications') }}{% endif %}"
+                        onclick="marquerLue('{{ notif.id }}')"
+                        style="display:flex; align-items:flex-start; gap:10px; padding:12px 16px;
+                                border-bottom:1px solid var(--row-border); text-decoration:none;
+                                background:{% if not notif.est_lue %}var(--accent-soft){% else %}transparent{% endif %};
+                                transition:background 0.15s;">
+                            <div style="width:32px; height:32px; border-radius:8px; flex-shrink:0;
+                                        display:flex; align-items:center; justify-content:center;
+                                        background:{% if notif.type_notification == 'compte_bloque' %}var(--warning-soft){% elif notif.type_notification == 'compte_en_attente' %}var(--info-soft){% else %}var(--accent-soft){% endif %};
+                                        color:{% if notif.type_notification == 'compte_bloque' %}var(--warning){% elif notif.type_notification == 'compte_en_attente' %}var(--info){% else %}var(--accent){% endif %};">
+                                <i class="fas {% if notif.type_notification == 'compte_bloque' %}fa-lock{% elif notif.type_notification == 'compte_en_attente' %}fa-user-clock{% else %}fa-bell{% endif %}" style="font-size:13px;"></i>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    {{ notif.titre }}
+                                </div>
+                                {% if notif.contenu %}
+                                <div style="font-size:11px; color:var(--text-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    {{ notif.contenu }}
+                                </div>
+                                {% endif %}
+                                <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">
+                                    {{ notif.cree_le.strftime('%d/%m/%Y %H:%M') if notif.cree_le else '' }}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div style="padding:24px; text-align:center; color:var(--text-muted); font-size:13px;">
+                            <i class="fas fa-bell-slash" style="font-size:24px; opacity:0.3; display:block; margin-bottom:8px;"></i>
+                            {{ _('Aucune notification') }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <div style="padding:10px 16px; border-top:1px solid var(--border); text-align:center;">
+                    <a href="{{ url_for('admin.liste_notifications') }}"
+                    style="font-size:12px; color:var(--info); text-decoration:none; font-weight:600;">
+                    {{ _('Voir toutes les notifications') }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Utilisateur -->
@@ -615,6 +681,35 @@ function prolongerSession() {
     // Ping silencieux pour renouveler la session côté serveur
     fetch('/health', { method: 'GET', credentials: 'same-origin' });
 }
+
+// ── Notifications dropdown ──────────────────────────────
+function toggleNotifs() {
+    const menu = document.getElementById('notifMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function marquerLue(id) {
+    fetch(`/admin/notifications/lire/${id}`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content }
+    }).then(r => r.json()).then(d => {
+        if (d.non_lues === 0) {
+            const badge = document.getElementById('notifBadge');
+            if (badge) badge.remove();
+        } else if (d.non_lues) {
+            const badge = document.getElementById('notifBadge');
+            if (badge) badge.textContent = d.non_lues;
+        }
+    });
+}
+
+document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('notifDropdown');
+    if (dropdown && !dropdown.contains(e.target)) {
+        const menu = document.getElementById('notifMenu');
+        if (menu) menu.style.display = 'none';
+    }
+});
 
 // Vérifier toutes les 30 secondes
 setInterval(verifierSession, 30000);

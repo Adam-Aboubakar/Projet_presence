@@ -11,7 +11,7 @@
   .users-body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
 
   /* MINI STATS */
-  .mini-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .mini-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
   .mini-card { background:var(--card); border-radius:var(--radius); padding:12px 14px; border:1px solid var(--border); box-shadow:var(--shadow); display:flex; align-items:center; gap:12px; }
   .mini-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
   .mini-icon.blue    { background:var(--info-soft);    color:var(--info); }
@@ -146,6 +146,13 @@
         </div>
       </div>
     </div>
+    <div class="mini-card">
+      <div class="mini-icon red"><i class="fas fa-lock"></i></div>
+      <div>
+        <div class="mini-val">{{ stats.comptes_bloques }}</div>
+        <div class="mini-label">{{ _('Bloqués') }}</div>
+      </div>
+    </div>
   </div>
 
   <!-- FILTRES -->
@@ -165,6 +172,7 @@
         <option value="">{{ _('Tous les statuts') }}</option>
         <option value="actif"    {{ 'selected' if request.args.get('statut') == 'actif' }}>{{ _('Actif') }}</option>
         <option value="desactive" {{ 'selected' if request.args.get('statut') == 'desactive' }}>{{ _('Désactivé') }}</option>
+        <option value="bloque" {{ 'selected' if request.args.get('statut') == 'bloque' }}>{{ _('Bloqué') }}</option>
       </select>
       <input type="text" name="recherche" class="filter-input"
              placeholder="{{ _('Rechercher nom, prénom...') }}"
@@ -230,6 +238,8 @@
               <span class="badge badge-success"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Actif') }}</span>
             {% elif u.statut_compte == 'desactive' %}
               <span class="badge badge-danger"><i class="fas fa-circle" style="font-size:7px;"></i> {{ _('Désactivé') }}</span>
+              {% elif u.tentatives_echouees >= 5 %}
+              <span class="badge badge-warning"><i class="fas fa-lock" style="font-size:9px;"></i> {{ _('Bloqué') }}</span>
             {% else %}
               <span class="badge badge-neutral">{{ u.statut_compte }}</span>
             {% endif %}
@@ -261,6 +271,13 @@
                         onclick="ouvrirModalDesactiver('{{ u.id }}', '{{ u.prenom }} {{ u.nom }}')">
                   <i class="fas fa-user-slash"></i>
                 </button>
+              {% if u.tentatives_echouees >= 5 %}
+                <button class="btn-action" style="background:var(--warning-soft); color:var(--warning);"
+                        title="{{ _('Débloquer') }}"
+                        onclick="ouvrirModalDebloquer('{{ u.id }}', '{{ u.prenom }} {{ u.nom }}')">
+                  <i class="fas fa-lock-open"></i>
+                </button>
+              {% endif %}
               {% else %}
                 <button class="btn-action reactiver" title="{{ _('Réactiver') }}"
                         onclick="ouvrirModalReactiver('{{ u.id }}', '{{ u.prenom }} {{ u.nom }}')">
@@ -348,6 +365,27 @@
     </div>
   </div>
 </div>
+<!-- MODAL DÉBLOQUER -->
+<div class="modal-overlay" id="modalDebloquer">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="fas fa-lock-open" style="color:var(--warning);"></i> {{ _('Débloquer le compte') }}
+    </div>
+    <div class="modal-body">
+      {{ _('Débloquer le compte de') }} <strong id="debloquerNom"></strong> ?
+      <br>{{ _('Un email avec un nouveau mot de passe temporaire sera envoyé à l\'utilisateur.') }}
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">{{ _('Annuler') }}</button>
+      <form id="formDebloquer" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-confirm" style="background:var(--warning);">
+          <i class="fas fa-lock-open"></i> {{ _('Débloquer') }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
 
 <script>
 function ouvrirModalRole(id, nom, roleActuel) {
@@ -369,7 +407,11 @@ function ouvrirModalReactiver(id, nom) {
     document.getElementById('formReactiver').action = `/admin/reactiver/${id}`;
     document.getElementById('modalReactiver').classList.add('show');
 }
-
+function ouvrirModalDebloquer(id, nom) {
+    document.getElementById('debloquerNom').textContent = nom;
+    document.getElementById('formDebloquer').action = `/admin/debloquer/${id}`;
+    document.getElementById('modalDebloquer').classList.add('show');
+}
 function fermerModals() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
 }

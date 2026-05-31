@@ -245,24 +245,11 @@ def confirmation_email_envoye():
 # ============================================================
 # 3. VÉRIFICATION DE L'EMAIL
 # ============================================================
+ 
 @auth.route('/verification/<token>')
 def verifier_email(token):
-    """
-    Route appelée quand l'utilisateur clique sur le lien dans son email.
-
-    Le token dans l'URL est comparé à celui stocké en BDD.
-    Si valide et non expiré → statut passe à 'email_verifie'
-    L'admin est notifié pour valider le compte.
-
-    Args:
-        token (str) : token de vérification extrait de l'URL
-    """
-    # Chercher l'utilisateur correspondant à ce token
     utilisateur = Utilisateur.query.filter_by(token_email=token).first()
 
-    # -----------------------------------------------
-    # Cas 1 : Token invalide ou déjà utilisé
-    # -----------------------------------------------
     if not utilisateur:
         journaliser(
             type_evenement='verification_email_invalide',
@@ -274,12 +261,8 @@ def verifier_email(token):
         flash('Lien de vérification invalide ou déjà utilisé.', 'danger')
         return redirect(url_for('auth.connexion'))
 
-    # -----------------------------------------------
-    # Cas 2 : Token expiré (plus de 24 heures)
-    # -----------------------------------------------
     expiration = utilisateur.expiration_token
 
-    # S'assurer que la date est timezone-aware pour la comparaison
     if expiration.tzinfo is None:
         expiration = expiration.replace(tzinfo=timezone.utc)
 
@@ -295,24 +278,15 @@ def verifier_email(token):
         flash('Ce lien de vérification a expiré. Demandez un nouveau lien.', 'warning')
         return redirect(url_for('auth.renvoyer_email_verification'))
 
-    # -----------------------------------------------
-    # Cas 3 : Email déjà vérifié (clic sur ancien lien)
-    # -----------------------------------------------
     if utilisateur.statut_compte in ['email_verifie', 'actif']:
         flash('Votre email a déjà été vérifié.', 'info')
         return redirect(url_for('auth.connexion'))
 
-    # -----------------------------------------------
-    # Cas 4 : Vérification réussie
-    # Mettre à jour le statut et effacer le token
-    # -----------------------------------------------
     utilisateur.statut_compte = 'email_verifie'
-    # Effacer le token pour qu'il ne puisse plus être utilisé
     utilisateur.token_email = None
     utilisateur.expiration_token = None
     db.session.commit()
 
-    # Journaliser la vérification réussie
     journaliser(
         type_evenement='verification_email_reussie',
         severite='info',
@@ -322,16 +296,29 @@ def verifier_email(token):
         resultat='succes'
     )
 
-    # Notifier l'admin qu'il y a un nouveau compte à valider
+    # Envoyer email de notification à l'admin
     envoyer_notification_admin(utilisateur)
+
+    # Notifier tous les admins dans le système via notification interne
+    from app.models import Notification
+    admins = Utilisateur.query.filter_by(role='admin', statut_compte='actif').all()
+    for admin in admins:
+        notif = Notification(
+            destinataire_id=admin.id,
+            expediteur_id=None,
+            type_notification='compte_en_attente',
+            titre=f"Nouveau compte à valider — {utilisateur.prenom} {utilisateur.nom}",
+            contenu=f"{utilisateur.email} attend votre validation.",
+            est_lue=False
+        )
+        db.session.add(notif)
+    db.session.commit()
 
     flash(
         "Email vérifié avec succès ! Votre demande est en attente de validation par l'administrateur.",
         'success'
     )
     return redirect(url_for('auth.attente'))
-
-
 # ============================================================
 # 4. RENVOI DE L'EMAIL DE VÉRIFICATION
 # ============================================================
@@ -489,6 +476,34 @@ def connexion():
                     resultat='bloque'
                 )
 
+                # ── NOUVEAU : Notifier tous les admins ──
+                from app.models import Notification
+                admins = Utilisateur.query.filter_by(role='admin', statut_compte='actif').all()
+                for admin in admins:
+                    notif = Notification(
+                        destinataire_id=admin.id,
+                        expediteur_id=None,
+                        type_notification='compte_bloque',
+                        titre=f"Compte bloqué — {utilisateur.prenom} {utilisateur.nom}",
+                        contenu=f"{utilisateur.email} bloqué après {max_tentatives} tentatives échouées.",
+                        est_lue=False
+                    )
+                    db.session.add(notif)
+                db.session.commit()
+                # ── FIN NOUVEAU ──
+
+                # Alerter le développeur immédiatement
+                envoyer_alerte_developpeur(
+                    type_alerte='COMPTE_BLOQUE',
+                    description=f"Compte bloqué après {max_tentatives} tentatives échouées",
+                    details=f"Email : {email}\nIP : {request.remote_addr}"
+                )
+
+                flash(
+                    "Compte bloqué après trop de tentatives échouées. "
+                    "Contactez l'administrateur.",
+                    'danger'
+                )
                 # Alerter le développeur immédiatement
                 envoyer_alerte_developpeur(
                     type_alerte='COMPTE_BLOQUE',

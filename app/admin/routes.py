@@ -106,6 +106,10 @@ def get_statistiques():
         Utilisateur.role.in_(['enseignant', 'agent'])
     ).count()
     utilisateurs_desactives = Utilisateur.query.filter_by(statut_compte='desactive').count()
+    comptes_bloques         = Utilisateur.query.filter(
+        Utilisateur.tentatives_echouees >= 5,
+        Utilisateur.role.in_(['enseignant', 'agent'])
+    ).count()
     notifications_non_lues  = Notification.compter_non_lues(current_user.id)
     autres_admins           = Utilisateur.query.filter(
         Utilisateur.role == 'admin',
@@ -114,8 +118,6 @@ def get_statistiques():
     ).all()
 
     # ── Mode École ──────────────────────────────────────────
-    # Remplace tout le bloc Mode École dans get_statistiques()
-
     if config.mode == 'ecole':
         nb_personnes         = Personne.query.filter_by(est_actif=True).count()
         sessions_aujourd_hui = Session.query.filter(
@@ -146,6 +148,7 @@ def get_statistiques():
             'comptes_attente':         comptes_attente,
             'utilisateurs_actifs':     utilisateurs_actifs,
             'utilisateurs_desactives': utilisateurs_desactives,
+            'comptes_bloques':         comptes_bloques,
             'nombre_personnes':        nb_personnes,
             'notifications_non_lues':  notifications_non_lues,
             'autres_admins':           autres_admins,
@@ -157,8 +160,7 @@ def get_statistiques():
             'admins_actifs':           admins_actifs,
         }
 
-    # Remplace tout le bloc Mode Entreprise dans get_statistiques()
-
+    # ── Mode Entreprise ──────────────────────────────────────
     else:
         nb_personnes          = Personne.query.filter_by(est_actif=True).count()
         pointages_aujourd_hui = Presence.query.filter(
@@ -185,6 +187,7 @@ def get_statistiques():
             'comptes_attente':          comptes_attente,
             'utilisateurs_actifs':      utilisateurs_actifs,
             'utilisateurs_desactives':  utilisateurs_desactives,
+            'comptes_bloques':          comptes_bloques,
             'nombre_personnes':         nb_personnes,
             'notifications_non_lues':   notifications_non_lues,
             'autres_admins':            autres_admins,
@@ -194,7 +197,6 @@ def get_statistiques():
             'retards_aujourd_hui':      retards,
             'admins_actifs':            admins_actifs,
         }
- 
 # ============================================================
 # 1. TABLEAU DE BORD
 # ============================================================
@@ -358,6 +360,14 @@ def rejeter_compte(utilisateur_id):
 @admin.route('/utilisateurs')
 @role_requis('admin')
 def liste_utilisateurs():
+        # Marquer les notifications "compte_bloque" comme lues
+    Notification.query.filter_by(
+        destinataire_id=current_user.id,
+        est_lue=False,
+        type_notification='compte_bloque'
+    ).update({'est_lue': True, 'lue_le': datetime.now(timezone.utc)})
+    db.session.commit()
+    
     role_filtre = request.args.get('role', '')
     statut_filtre = request.args.get('statut', '')
     recherche = request.args.get('recherche', '').strip()
@@ -1051,3 +1061,64 @@ def emplois_du_temps():
         })
 
     return render_template('admin/emplois_du_temps.html', emplois=emplois_data)
+
+# ============================================================
+# DÉBLOQUER UN COMPTE
+# ============================================================
+@admin.route('/debloquer/<string:utilisateur_id>', methods=['POST'])
+@role_requis('admin')
+def debloquer_compte(utilisateur_id):
+    utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
+
+    if utilisateur.tentatives_echouees < 5:
+        flash("Ce compte n'est pas bloqué.", 'warning')
+        return redirect(url_for('admin.liste_utilisateurs'))
+
+    try:
+        # Générer un nouveau mot de passe temporaire
+        nouveau_mdp = f"Temp@{secrets.token_hex(4).upper()}"
+        utilisateur.mot_de_passe_hache = bcrypt.generate_password_hash(nouveau_mdp).decode('utf-8')
+        utilisateur.tentatives_echouees = 0
+        utilisateur.statut_compte = 'actif'
+        utilisateur.est_actif = True
+        utilisateur.version += 1
+        db.session.commit()
+
+        # Envoyer email avec nouveau mot de passe
+        from app.auth.email import envoyer_email
+        corps_html = f"""
+        <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
+            <h2 style="color:#1A3A5C;">Votre compte a été débloqué</h2>
+            <p>Bonjour <strong>{utilisateur.prenom} {utilisateur.nom}</strong>,</p>
+            <p>Votre compte a été débloqué par l'administrateur.</p>
+            <p>Votre nouveau mot de passe temporaire est :</p>
+            <div style="background:#F0F4F9; padding:14px; border-radius:8px; font-size:18px; font-weight:bold; text-align:center; letter-spacing:2px;">
+                {nouveau_mdp}
+            </div>
+            <p style="color:#E8620A; font-size:13px; margin-top:12px;">
+                Veuillez changer ce mot de passe dès votre première connexion.
+            </p>
+        </div>
+        """
+        envoyer_email(
+            destinataire=utilisateur.email,
+            sujet="Compte débloqué — Nouveau mot de passe temporaire",
+            corps_html=corps_html
+        )
+
+        journaliser(
+            type_evenement='compte_debloque',
+            severite='info',
+            description=f"{current_user.email} a débloqué {utilisateur.email}",
+            utilisateur_id=utilisateur.id,
+            resultat='succes'
+        )
+
+        flash(f"Compte de {utilisateur.nom_complet()} débloqué. Un email avec le nouveau mot de passe a été envoyé.", 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erreur déblocage : {str(e)}")
+        flash("Une erreur est survenue.", 'danger')
+
+    return redirect(url_for('admin.liste_utilisateurs'))

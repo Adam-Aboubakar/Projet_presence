@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Notifications') }} — {% if config and config.nom_etablissement %}{{ config.nom_etablissement }}{% else %}Gestion de Présence{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { padding:18px 28px 0; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-header h1 { font-size:17px; font-weight:700; color:var(--primary); }
+  .page-header p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+  .notifs-body { padding:16px 28px 36px; display:flex; flex-direction:column; gap:16px; }
+
+  .actions-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+  .btn-marquer-tout {
+    background:var(--accent); color:white; border:none;
+    padding:7px 16px; border-radius:var(--radius);
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:'DM Sans',sans-serif;
+    display:flex; align-items:center; gap:6px;
+    transition:background 0.15s; text-decoration:none;
+  }
+  .btn-marquer-tout:hover { background:#D4400E; color:white; }
+
+  .notif-count { font-size:12px; color:var(--text-muted); font-weight:500; }
+
+  /* LISTE */
+  .notifs-list { background:var(--card); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+
+  .notif-item {
+    display:flex; align-items:flex-start; gap:14px;
+    padding:14px 18px; border-bottom:1px solid var(--row-border);
+    transition:background 0.15s; text-decoration:none;
+  }
+  .notif-item:last-child { border-bottom:none; }
+  .notif-item:hover { background:var(--row-hover); }
+  .notif-item.non-lue { background:var(--accent-soft); }
+  .notif-item.non-lue:hover { background:var(--accent-soft); filter:brightness(0.97); }
+
+  .notif-icon {
+    width:36px; height:36px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; flex-shrink:0;
+  }
+  .notif-icon.bloque   { background:var(--warning-soft); color:var(--warning); }
+  .notif-icon.attente  { background:var(--info-soft);    color:var(--info); }
+  .notif-icon.default  { background:var(--accent-soft);  color:var(--accent); }
+  .notif-icon.succes   { background:var(--success-soft); color:var(--success); }
+
+  .notif-content { flex:1; min-width:0; }
+  .notif-titre   { font-size:13px; font-weight:600; color:var(--text); }
+  .notif-texte   { font-size:12px; color:var(--text-muted); margin-top:3px; }
+  .notif-date    { font-size:11px; color:var(--text-muted); margin-top:4px; font-family:'JetBrains Mono',monospace; }
+
+  .notif-badge-non-lue {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--accent); flex-shrink:0; margin-top:6px;
+  }
+
+  .notif-lien {
+    font-size:11.5px; font-weight:600; color:var(--info);
+    text-decoration:none; white-space:nowrap; flex-shrink:0;
+    padding:4px 10px; border-radius:6px;
+    background:var(--info-soft);
+    display:flex; align-items:center; gap:4px;
+    transition:background 0.15s;
+  }
+  .notif-lien:hover { background:var(--info); color:white; }
+
+  /* EMPTY */
+  .empty-state { padding:50px; text-align:center; color:var(--text-muted); }
+  .empty-state i { font-size:36px; opacity:.2; display:block; margin-bottom:12px; }
+  .empty-state p { font-size:13.5px; }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <h1><i class="fas fa-bell" style="color:var(--accent); margin-right:8px;"></i>{{ _('Notifications') }}</h1>
+    <p>{{ _('Toutes vos notifications système') }}</p>
+  </div>
+</div>
+
+<div class="notifs-body">
+
+  <div class="actions-bar">
+    <span class="notif-count">{{ notifications | length }} {{ _('notification(s)') }}</span>
+    {% if notifications %}
+    <form method="POST" action="{{ url_for('admin.marquer_tout_lu') }}" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn-marquer-tout">
+        <i class="fas fa-check-double"></i> {{ _('Tout marquer comme lu') }}
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="notifs-list">
+    {% if notifications %}
+      {% for notif in notifications %}
+      <div class="notif-item {{ 'non-lue' if not notif.est_lue else '' }}">
+
+        <!-- Icône -->
+        <div class="notif-icon
+          {% if notif.type_notification == 'compte_bloque' %}bloque
+          {% elif notif.type_notification == 'compte_en_attente' %}attente
+          {% elif notif.type_notification in ['validation', 'reactivation'] %}succes
+          {% else %}default{% endif %}">
+          <i class="fas
+            {% if notif.type_notification == 'compte_bloque' %}fa-lock
+            {% elif notif.type_notification == 'compte_en_attente' %}fa-user-clock
+            {% elif notif.type_notification == 'validation' %}fa-user-check
+            {% elif notif.type_notification == 'reactivation' %}fa-user-check
+            {% elif notif.type_notification == 'desactivation' %}fa-user-slash
+            {% elif notif.type_notification == 'changement_role' %}fa-arrow-right-arrow-left
+            {% else %}fa-bell{% endif %}">
+          </i>
+        </div>
+
+        <!-- Contenu -->
+        <div class="notif-content">
+          <div class="notif-titre">{{ notif.titre }}</div>
+          {% if notif.contenu %}
+          <div class="notif-texte">{{ notif.contenu }}</div>
+          {% endif %}
+          <div class="notif-date">
+            <i class="fas fa-clock" style="font-size:9px; margin-right:3px;"></i>
+            {{ notif.cree_le.strftime('%d/%m/%Y à %H:%M') if notif.cree_le else '—' }}
+          </div>
+        </div>
+
+        <!-- Lien vers la page concernée -->
+        {% if notif.type_notification == 'compte_bloque' %}
+        <a href="{{ url_for('admin.liste_utilisateurs') }}" class="notif-lien">
+          <i class="fas fa-arrow-right"></i> {{ _('Voir') }}
+        </a>
+        {% elif notif.type_notification == 'compte_en_attente' %}
+        <a href="{{ url_for('admin.comptes_attente') }}" class="notif-lien">
+          <i class="fas fa-arrow-right"></i> {{ _('Valider') }}
+        </a>
+        {% endif %}
+
+        <!-- Point non lu -->
+        {% if not notif.est_lue %}
+        <div class="notif-badge-non-lue"></div>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-bell-slash"></i>
+      <p>{{ _('Aucune notification pour le moment') }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

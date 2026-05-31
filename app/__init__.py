@@ -59,13 +59,29 @@ def create_app(config_name='default'):
     @app.context_processor
     def inject_config():
         try:
-            from app.models import Configuration
+            from app.models import Configuration, Notification
             from flask import session as flask_session
+            from flask_login import current_user
             cfg = Configuration.get_config()
             langue = flask_session.get('langue', 'fr')
-            return {'config': cfg, 'langue': langue}
+
+            notifications_recentes = []
+            nb_notifs = 0
+            if current_user.is_authenticated and current_user.role == 'admin':
+                notifications_recentes = Notification.query.filter_by(
+                    destinataire_id=current_user.id,
+                    est_lue=False
+                ).order_by(Notification.cree_le.desc()).limit(5).all()
+                nb_notifs = len(notifications_recentes)
+
+            return {
+                'config': cfg,
+                'langue': langue,
+                'notifications_recentes': notifications_recentes,
+                'nb_notifs': nb_notifs
+            }
         except Exception:
-            return {'config': None, 'langue': 'fr'}
+            return {'config': None, 'langue': 'fr', 'notifications_recentes': [], 'nb_notifs': 0}
 
     @app.before_request
     def verifier_inactivite():
